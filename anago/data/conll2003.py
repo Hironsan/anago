@@ -20,17 +20,22 @@ def load_data(word_preprocess=lambda x: x):
     X_words_valid, _, _, y_valid = load_file(VALID_DATA)
     X_words_test, _, _, y_test = load_file(TEST_DATA)
 
-    index2word = _fit_term_index(X_words_train, reserved=['<PAD>', '<UNK>'], preprocess=word_preprocess)
-    word2index = _invert_index(index2word)
+    indices_word = _fit_term_index(X_words_train, reserved=['<PAD>', '<UNK>'], preprocess=word_preprocess)
+    word_indices = _invert_index(indices_word)
 
-    index2chunk = _fit_term_index(y_train, reserved=['<PAD>'])
-    chunk2index = _invert_index(index2chunk)
+    #indices_char = _fit_term_index(chain(*X_words_train), reserved=['<UNK>'], preprocess=word_preprocess)
+    #char_indices = _invert_index(indices_char)
 
-    X_words_train = np.array([[word2index[word_preprocess(w)] for w in words] for words in X_words_train])
-    X_words_test = np.array([[word2index.get(word_preprocess(w), word2index['<UNK>']) for w in words] for words in X_words_test])
-    y_train = np.array([[chunk2index[t] for t in chunk_tags] for chunk_tags in y_train])
-    y_test = np.array([[chunk2index[t] for t in chunk_tags] for chunk_tags in y_test])
-    return X_words_train, y_train, X_words_test, y_test, index2word, index2chunk
+    indices_chunk = _fit_term_index(y_train, reserved=['<PAD>'])
+    chunk_indices = _invert_index(indices_chunk)
+
+    X_words_train = np.array([[word_indices[word_preprocess(w)] for w in words] for words in X_words_train])
+    X_words_test = np.array([[word_indices.get(word_preprocess(w), word_indices['<UNK>']) for w in words] for words in X_words_test])
+    #X_chars_train = np.array([[[char_indices[ch] for ch in word_preprocess(word)] for word in words] for words in X_words_train])
+    #X_chars_test = np.array([[[char_indices.get(ch, char_indices['<UNK>']) for ch in word_preprocess(word)] for word in words] for words in X_words_test])
+    y_train = np.array([[chunk_indices[t] for t in chunk_tags] for chunk_tags in y_train])
+    y_test = np.array([[chunk_indices[t] for t in chunk_tags] for chunk_tags in y_test])
+    return X_words_train, y_train, X_words_test, y_test, indices_word, indices_chunk
 
 
 def _fit_term_index(terms, reserved=(), preprocess=lambda x: x):
