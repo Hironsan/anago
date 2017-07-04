@@ -10,31 +10,37 @@ https://arxiv.org/abs/1603.01360
 import itertools
 
 import numpy as np
-from keras.layers import Dense, LSTM, Bidirectional, Embedding, Input, Dropout, Concatenate
+from keras import backend as K
+from keras.layers import Dense, LSTM, Bidirectional, Embedding, Input, Dropout, Concatenate, Reshape, Permute
 from keras.layers.wrappers import TimeDistributed
 from keras.models import Model, load_model, save_model
 from keras.optimizers import RMSprop
 from keras.preprocessing import sequence
 from keras.utils.np_utils import to_categorical
-from sklearn.metrics import f1_score, confusion_matrix, classification_report
+from sklearn.metrics import classification_report
 
-from anago.data import conll2003
+from anago.data import loader
 
 
 class NeuralEntityModel(object):
 
-    def __init__(self, maxlen, max_features, word_embedding_dim, lstm_dim, num_classes, index2chunk):
-        self.maxlen = maxlen
-        self.max_features = max_features
-        self.word_embedding_dim = word_embedding_dim
+    def __init__(self, maxlen, max_features, word_embedding_dim, lstm_dim, num_classes, index2chunk, n_char, max_length):
+        self.char_embedding_size = 25
+        self.char_vocab_size = n_char
+        self.char_lstm_dim = self.char_embedding_size
+        self.indices_tag = index2chunk
         self.lstm_dim = lstm_dim
+        self.max_sent_len = maxlen
+        self.max_word_len = max_length
         self.num_classes = num_classes
-        self.index2chunk = index2chunk
+        self.word_embedding_size = word_embedding_dim
+        self.word_vocab_size = max_features
+
         self.model = None
 
-    def train(self, X_train, y_train, batch_size, epochs):
+    def train(self, X_word_train, X_char_train, y_train, batch_size, epochs):
         self._build_model()
-        self.model.fit([X_train], y_train, batch_size=batch_size, epochs=epochs)
+        self.model.fit([X_word_train, X_char_train], y_train, batch_size=batch_size, epochs=epochs)
 
     def predict(self, X):
         self._check_model()
@@ -51,9 +57,9 @@ class NeuralEntityModel(object):
         y_pred = self.predict(X_test)
         y_pred = [y.argmax() for y in itertools.chain(*y_pred)]
 
-        tagset = set(self.index2chunk) - {'O', '<PAD>'}
+        tagset = set(self.indices_tag) - {'O', '<PAD>'}
         tagset = sorted(tagset, key=lambda tag: tag.split('-', 1)[::-1])
-        class_indices = {cls: idx for idx, cls in enumerate(self.index2chunk)}
+        class_indices = {cls: idx for idx, cls in enumerate(self.indices_tag)}
 
         print(classification_report(
             y_true,
@@ -70,19 +76,28 @@ class NeuralEntityModel(object):
         self.model = load_model(filepath=filepath)
 
     def _build_model(self):
-        char_input = Input(shape=(self.maxlen,), dtype='int32', name='chat_input')
-        char_emb = Embedding(self.n_char, self.char_dim, input_length=, name='char_emb')(char_input)
-        emb_from_chars = Bidirectional(LSTM(self.char_lstm_dim, return_sequences=True, dropout=0.2, recurrent_dropout=0.2))(char_emb)
+        char_input = Input(shape=(self.max_word_len,), dtype='int32', name='char_input')
+        char_emb = Embedding(self.char_vocab_size, self.char_embedding_size, input_length=self.max_word_len, name='char_emb')(char_input)
+        print(char_emb)
 
-        word_input = Input(shape=(self.maxlen,), dtype='int32', name='word_input')
-        word_emb = Embedding(self.max_features, self.word_embedding_dim, input_length=self.maxlen, name='word_emb')(word_input)
+        chars_emb = Bidirectional(LSTM(self.char_lstm_dim, return_sequences=True, dropout=0.2, recurrent_dropout=0.2))(char_emb)
+        print(chars_emb)
 
-        merged = Concatenate([emb_from_chars, word_emb])
+        word_input = Input(shape=(self.max_sent_len,), dtype='int32', name='word_input')
+        word_emb = Embedding(self.word_vocab_size, self.word_embedding_size, input_length=self.max_sent_len, name='word_emb')(word_input)
+        print(word_emb)
 
-        bilstm = Bidirectional(LSTM(self.char_lstm_dim+self.word_embedding_dim, return_sequences=True, dropout=0.2, recurrent_dropout=0.2))(merged)
+
+        word_emb = K.concatenate([word_emb, chars_emb], axis=-1)
+        print(word_emb)
+
+        bilstm = Bidirectional(LSTM(self.lstm_dim, return_sequences=True, dropout=0.2, recurrent_dropout=0.2))(word_emb)
         bilstm_d = Dropout(0.2)(bilstm)
+        print("neko")
         dense = TimeDistributed(Dense(self.num_classes, activation='softmax'))(bilstm_d)
-        self.model = Model(inputs=[word_input], outputs=[dense])
+        print("inu")
+        self.model = Model(inputs=[word_input, char_input], outputs=[dense])
+        print("aiai")
         self.model.compile(loss='categorical_crossentropy',
                            optimizer=RMSprop(0.01),
                            metrics=['acc'])
@@ -94,25 +109,34 @@ class NeuralEntityModel(object):
 
 
 if __name__ == '__main__':
-    maxlen = 50  # cut texts after this number of words (among top max_features most common words)
-    word_embedding_dim = 100
+    max_sent_len = 50  # cut texts after this number of words (among top max_features most common words)
+    max_word_len = 20
+    word_embedding_size = 100
     lstm_dim = 100
     batch_size = 64
     char_dim = 25
 
     print('Loading data...')
-    X_train, y_train, X_test, y_test, index2word, index2chunk = conll2003.load_data(word_preprocess=lambda w: w.lower())
+    X_word_train, y_train = loader.load_file(loader.TRAIN_DATA)
+    X_word_test, y_test = loader.load_file(loader.TEST_DATA)
 
-    max_features = len(index2word)
-    nb_chunk_tags = len(index2chunk)
+    indices_word, word_indices = loader.word_mapping(X_word_train, str.lower)
+    indices_char, char_indices = loader.char_mapping(X_word_train, str.lower)
+    indices_tag, tag_indices = loader.tag_mapping(y_train)
 
-    X_train = sequence.pad_sequences(X_train, maxlen=maxlen, padding='post')
-    X_test = sequence.pad_sequences(X_test, maxlen=maxlen, padding='post')
-    y_train = sequence.pad_sequences(y_train, maxlen=maxlen, padding='post')
-    y_train = np.array([to_categorical(y, num_classes=nb_chunk_tags) for y in y_train])
-    y_test = sequence.pad_sequences(y_test, maxlen=maxlen, padding='post')
-    y_test = np.array([to_categorical(y, num_classes=nb_chunk_tags) for y in y_test])
+    word_vocab_size = len(indices_word)
+    char_vocab_size = len(indices_char)
+    num_tags = len(indices_tag)
 
-    model = NeuralEntityModel(maxlen, max_features, word_embedding_dim, lstm_dim, nb_chunk_tags, index2chunk)
-    model.train(X_train, y_train, batch_size, epochs=3)
-    model.report(X_test, y_test)
+    X_word_train, X_char_train = loader.prepare_sentence(X_word_train, word_indices, char_indices, lower=True)
+    X_word_test, X_char_test = loader.prepare_sentence(X_word_test, word_indices, char_indices, lower=True)
+    y_train, y_test = loader.convert_tag_str(y_train, tag_indices), loader.convert_tag_str(y_test, tag_indices)
+
+    y_train = sequence.pad_sequences(y_train, maxlen=max_sent_len, padding='post')
+    y_train = np.array([to_categorical(y, num_classes=num_tags) for y in y_train])
+    y_test = sequence.pad_sequences(y_test, maxlen=max_sent_len, padding='post')
+    y_test = np.array([to_categorical(y, num_classes=num_tags) for y in y_test])
+
+    model = NeuralEntityModel(max_sent_len, word_vocab_size, word_embedding_size, lstm_dim, num_tags, indices_tag, char_vocab_size, max_word_len)
+    model.train(X_word_train, X_char_train, y_train, batch_size, epochs=3)
+    model.report(X_word_test, y_test)
