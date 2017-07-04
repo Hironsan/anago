@@ -76,28 +76,30 @@ class NeuralEntityModel(object):
         self.model = load_model(filepath=filepath)
 
     def _build_model(self):
-        char_input = Input(shape=(self.max_word_len,), dtype='int32', name='char_input')
-        char_emb = Embedding(self.char_vocab_size, self.char_embedding_size, input_length=self.max_word_len, name='char_emb')(char_input)
+        char_input = Input(shape=(self.max_sent_len, self.max_word_len), dtype='int32', name='char_input')
+        char_emb = Embedding(input_dim=self.char_vocab_size, output_dim=self.char_embedding_size,
+                             input_shape=(self.max_sent_len, self.max_word_len), input_length=self.max_word_len,
+                             name='char_emb')(char_input)
         print(char_emb)
+        #char_emb = Reshape((self.max_sent_len, self.max_word_len, self.char_embedding_size))(char_emb)
+        #print(char_emb)
 
-        chars_emb = Bidirectional(LSTM(self.char_lstm_dim, return_sequences=True, dropout=0.2, recurrent_dropout=0.2))(char_emb)
+        chars_emb = Bidirectional(LSTM(self.char_lstm_dim, return_sequences=False,
+                                       dropout=0.2, recurrent_dropout=0.2), name='input_bilstm')(char_emb)
         print(chars_emb)
 
         word_input = Input(shape=(self.max_sent_len,), dtype='int32', name='word_input')
-        word_emb = Embedding(self.word_vocab_size, self.word_embedding_size, input_length=self.max_sent_len, name='word_emb')(word_input)
+        word_emb = Embedding(input_dim=self.word_vocab_size, output_dim=self.word_embedding_size,
+                             input_length=self.max_sent_len, name='word_emb')(word_input)
         print(word_emb)
-
 
         word_emb = K.concatenate([word_emb, chars_emb], axis=-1)
         print(word_emb)
 
         bilstm = Bidirectional(LSTM(self.lstm_dim, return_sequences=True, dropout=0.2, recurrent_dropout=0.2))(word_emb)
         bilstm_d = Dropout(0.2)(bilstm)
-        print("neko")
         dense = TimeDistributed(Dense(self.num_classes, activation='softmax'))(bilstm_d)
-        print("inu")
         self.model = Model(inputs=[word_input, char_input], outputs=[dense])
-        print("aiai")
         self.model.compile(loss='categorical_crossentropy',
                            optimizer=RMSprop(0.01),
                            metrics=['acc'])
@@ -131,6 +133,9 @@ if __name__ == '__main__':
     X_word_train, X_char_train = loader.prepare_sentence(X_word_train, word_indices, char_indices, lower=True)
     X_word_test, X_char_test = loader.prepare_sentence(X_word_test, word_indices, char_indices, lower=True)
     y_train, y_test = loader.convert_tag_str(y_train, tag_indices), loader.convert_tag_str(y_test, tag_indices)
+
+    X_word_train = sequence.pad_sequences(X_word_train, maxlen=max_sent_len, padding='post')
+    X_word_test = sequence.pad_sequences(X_word_test, maxlen=max_sent_len, padding='post')
 
     y_train = sequence.pad_sequences(y_train, maxlen=max_sent_len, padding='post')
     y_train = np.array([to_categorical(y, num_classes=num_tags) for y in y_train])
