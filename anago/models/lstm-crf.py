@@ -14,7 +14,7 @@ from keras.layers import Dense, LSTM, Bidirectional, Embedding, Input, Dropout
 from keras.layers.merge import Concatenate
 from keras.layers.wrappers import TimeDistributed
 from keras.models import Model, load_model, save_model
-from keras.optimizers import RMSprop
+from keras.optimizers import RMSprop, SGD, Adam
 from keras.preprocessing import sequence
 from keras.utils.np_utils import to_categorical
 from sklearn.metrics import classification_report
@@ -47,14 +47,14 @@ class NeuralEntityModel(object):
         pred = self.model.predict(X, batch_size=1)
         return pred
 
-    def evaluate(self, X_test, y_test):
+    def evaluate(self, X_word_test, X_char_test, y_test):
         self._check_model()
-        score = self.model.evaluate(X_test, y_test, batch_size=1)
+        score = self.model.evaluate([X_word_test, X_char_test], y_test, batch_size=1)
         return score
 
-    def report(self, X_test, y_test):
+    def report(self, X_word_test, X_char_test, y_test):
         y_true = [y.argmax() for y in itertools.chain(*y_test)]
-        y_pred = self.predict(X_test)
+        y_pred = self.predict([X_word_test, X_char_test])
         y_pred = [y.argmax() for y in itertools.chain(*y_pred)]
 
         tagset = set(self.indices_tag) - {'O', '<PAD>'}
@@ -76,23 +76,27 @@ class NeuralEntityModel(object):
         self.model = load_model(filepath=filepath)
 
     def _build_model(self):
+        dropout = 0.5
         char_input = Input(shape=(self.max_sent_len, self.max_word_len), dtype='int32', name='char_input')
         char_emb = Embedding(input_dim=self.char_vocab_size, output_dim=self.char_embedding_size, name='char_emb')(char_input)
         chars_emb = TimeDistributed(Bidirectional(LSTM(self.char_lstm_dim, return_sequences=False,
-                                       dropout=0.2, recurrent_dropout=0.2), name='input_bilstm'))(char_emb)
+                                       dropout=dropout, recurrent_dropout=dropout), name='input_bilstm'))(char_emb)
         word_input = Input(shape=(self.max_sent_len,), dtype='int32', name='word_input')
         word_emb = Embedding(input_dim=self.word_vocab_size, output_dim=self.word_embedding_size,
                              input_length=self.max_sent_len, name='word_emb')(word_input)
 
         concat_layer = Concatenate(axis=-1)
         word_embeddings = concat_layer([word_emb, chars_emb])
+        word_embeddings = Dropout(dropout)(word_embeddings)
 
-        bilstm = Bidirectional(LSTM(self.lstm_dim, return_sequences=True, dropout=0.2, recurrent_dropout=0.2))(word_embeddings)
-        bilstm_d = Dropout(0.2)(bilstm)
-        dense = TimeDistributed(Dense(self.num_classes, activation='softmax'))(bilstm_d)
+        bilstm = Bidirectional(LSTM(self.lstm_dim, return_sequences=True, dropout=dropout, recurrent_dropout=dropout))(word_embeddings)
+        # bilstm_d = Dropout(0.2)(bilstm)
+        #dense1 = TimeDistributed(Dense(self.lstm_dim, activation='tanh'))(bilstm)
+        #dense = TimeDistributed(Dense(self.num_classes, activation='softmax'))(dense1)
+        dense = TimeDistributed(Dense(self.num_classes, activation='softmax'))(bilstm)
         self.model = Model(inputs=[word_input, char_input], outputs=[dense])
         self.model.compile(loss='categorical_crossentropy',
-                           optimizer=RMSprop(0.01),
+                           optimizer=SGD(lr=0.01, clipvalue=5.0),
                            metrics=['acc'])
         self.model.summary()
 
@@ -137,4 +141,5 @@ if __name__ == '__main__':
 
     model = NeuralEntityModel(max_sent_len, word_vocab_size, word_embedding_size, lstm_dim, num_tags, indices_tag, char_vocab_size, max_word_len)
     model.train(X_word_train, X_char_train, y_train, batch_size, epochs=3)
-    model.report(X_word_test, y_test)
+    model.report(X_word_test, X_char_test, y_test)
+    print(model.evaluate(X_word_test, X_char_test, y_test))
