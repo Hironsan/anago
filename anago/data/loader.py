@@ -86,6 +86,30 @@ def pad_word_chars(words):
     return char_for, char_rev, char_pos
 
 
+def pad_word_chars(words, max_word_len):
+    words_for = []
+    for word in words:
+        padding = [0] * (max_word_len - len(word))
+        padded_word = word + padding
+        words_for.append(padded_word[:max_word_len])
+    return words_for
+
+
+def pad_words(words, max_word_len, max_sent_len):
+    padding = [[0] * max_word_len for i in range(max_sent_len - len(words))]
+    words += padding
+    return words[:max_sent_len]
+
+
+def pad_chars(dataset, max_word_len, max_sent_len):
+    result = []
+    for sent in dataset:
+        words = pad_word_chars(sent, max_word_len)
+        words = pad_words(words, max_word_len, max_sent_len)
+        result.append(words)
+    return np.asarray(result)
+
+
 def _fit_term_index(terms, reserved=(), preprocess=lambda x: x):
     all_terms = chain(*terms)
     all_terms = map(preprocess, all_terms)

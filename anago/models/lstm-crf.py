@@ -127,11 +127,13 @@ if __name__ == '__main__':
 
     X_word_train = sequence.pad_sequences(X_word_train, maxlen=max_sent_len, padding='post')
     X_word_test = sequence.pad_sequences(X_word_test, maxlen=max_sent_len, padding='post')
+    X_char_train = loader.pad_chars(X_char_train, max_word_len, max_sent_len)
+    X_char_test = loader.pad_chars(X_char_test, max_word_len, max_sent_len)
 
     y_train = sequence.pad_sequences(y_train, maxlen=max_sent_len, padding='post')
-    y_train = np.array([to_categorical(y, num_classes=num_tags) for y in y_train])
+    y_train = np.asarray([to_categorical(y, num_classes=num_tags) for y in y_train])
     y_test = sequence.pad_sequences(y_test, maxlen=max_sent_len, padding='post')
-    y_test = np.array([to_categorical(y, num_classes=num_tags) for y in y_test])
+    y_test = np.asarray([to_categorical(y, num_classes=num_tags) for y in y_test])
 
     model = NeuralEntityModel(max_sent_len, word_vocab_size, word_embedding_size, lstm_dim, num_tags, indices_tag, char_vocab_size, max_word_len)
     model.train(X_word_train, X_char_train, y_train, batch_size, epochs=3)

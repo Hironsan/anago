@@ -61,3 +61,18 @@ class TestLoader(unittest.TestCase):
         indices_char, char_indices = char_mapping(words, self.preprocess)
         words, chars = prepare_sentence(words, word_indices, char_indices, lower=True)
         print(words[0])
+
+    def test_pad_chars(self):
+        words, tags = load_file(TRAIN_DATA)
+        indices_char, char_indices = char_mapping(words, self.preprocess)
+        chars = [convert_char_str(sent, char_indices, lower=True) for sent in words]
+        max_word_len = 20
+        max_sent_len = 50
+        chars = pad_chars(chars, max_word_len, max_sent_len)
+        num_sent_len = {len(words) for words in chars}
+        self.assertEqual(1, len(num_sent_len))
+        self.assertEqual({max_sent_len}, num_sent_len)
+        num_word_len = {len(words) for words in chain(*chars)}
+        self.assertEqual(1, len(num_word_len))
+        self.assertEqual({max_word_len}, num_word_len)
+        self.assertIsInstance(chars, np.ndarray)
