@@ -9,24 +9,25 @@ TRAIN_DATA = os.path.join(os.path.dirname(__file__), '../../data/conll2003/en/tr
 VALID_DATA = os.path.join(os.path.dirname(__file__), '../../data/conll2003/en/valid.txt')
 TEST_DATA = os.path.join(os.path.dirname(__file__), '../../data/conll2003/en/test.txt')
 UNK = '<UNK>'
+PAD = '<PAD>'
 
 
 def word_mapping(words, word_preprocess=lambda x: x):
-    indices_word = _fit_term_index(words, reserved=[UNK], preprocess=word_preprocess)
+    indices_word = _fit_term_index(words, reserved=[PAD, UNK], preprocess=word_preprocess)
     word_indices = _invert_index(indices_word)
 
     return indices_word, word_indices
 
 
 def char_mapping(words, word_preprocess=lambda x: x):
-    indices_char = _fit_term_index(chain(*words), reserved=[UNK], preprocess=word_preprocess)
+    indices_char = _fit_term_index(chain(*words), reserved=[PAD, UNK], preprocess=word_preprocess)
     char_indices = _invert_index(indices_char)
 
     return indices_char, char_indices
 
 
 def tag_mapping(tags):
-    indices_tag = _fit_term_index(tags)
+    indices_tag = _fit_term_index(tags, reserved=[PAD])
     tag_indices = _invert_index(indices_tag)
 
     return indices_tag, tag_indices

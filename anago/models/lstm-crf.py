@@ -90,13 +90,13 @@ class NeuralEntityModel(object):
         word_embeddings = Dropout(dropout)(word_embeddings)
 
         bilstm = Bidirectional(LSTM(self.lstm_dim, return_sequences=True, dropout=dropout, recurrent_dropout=dropout))(word_embeddings)
-        # bilstm_d = Dropout(0.2)(bilstm)
+        bilstm = Dropout(dropout)(bilstm)
         #dense1 = TimeDistributed(Dense(self.lstm_dim, activation='tanh'))(bilstm)
         #dense = TimeDistributed(Dense(self.num_classes, activation='softmax'))(dense1)
         dense = TimeDistributed(Dense(self.num_classes, activation='softmax'))(bilstm)
         self.model = Model(inputs=[word_input, char_input], outputs=[dense])
         self.model.compile(loss='categorical_crossentropy',
-                           optimizer=SGD(lr=0.01, clipvalue=5.0),
+                           optimizer=RMSprop(lr=0.01),
                            metrics=['acc'])
         self.model.summary()
 
@@ -139,7 +139,7 @@ if __name__ == '__main__':
     y_test = sequence.pad_sequences(y_test, maxlen=max_sent_len, padding='post')
     y_test = np.asarray([to_categorical(y, num_classes=num_tags) for y in y_test])
 
-    model = NeuralEntityModel(max_sent_len, word_vocab_size, word_embedding_size, lstm_dim, num_tags, indices_tag, char_vocab_size, max_word_len)
+    model = NeuralEntityModel(max_sent_len, word_vocab_size, word_embedding_size, lstm_dim, num_tags, indices_tag,
+                              char_vocab_size, max_word_len)
     model.train(X_word_train, X_char_train, y_train, batch_size, epochs=3)
     model.report(X_word_test, X_char_test, y_test)
-    print(model.evaluate(X_word_test, X_char_test, y_test))
