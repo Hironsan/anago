@@ -10,8 +10,8 @@ https://arxiv.org/abs/1603.01360
 import itertools
 
 import numpy as np
-from keras import backend as K
-from keras.layers import Dense, LSTM, Bidirectional, Embedding, Input, Dropout, Concatenate, Reshape, Permute
+from keras.layers import Dense, LSTM, Bidirectional, Embedding, Input, Dropout
+from keras.layers.merge import Concatenate
 from keras.layers.wrappers import TimeDistributed
 from keras.models import Model, load_model, save_model
 from keras.optimizers import RMSprop
@@ -77,26 +77,17 @@ class NeuralEntityModel(object):
 
     def _build_model(self):
         char_input = Input(shape=(self.max_sent_len, self.max_word_len), dtype='int32', name='char_input')
-        char_emb = Embedding(input_dim=self.char_vocab_size, output_dim=self.char_embedding_size,
-                             input_shape=(self.max_sent_len, self.max_word_len), input_length=self.max_word_len,
-                             name='char_emb')(char_input)
-        print(char_emb)
-        #char_emb = Reshape((self.max_sent_len, self.max_word_len, self.char_embedding_size))(char_emb)
-        #print(char_emb)
-
-        chars_emb = Bidirectional(LSTM(self.char_lstm_dim, return_sequences=False,
-                                       dropout=0.2, recurrent_dropout=0.2), name='input_bilstm')(char_emb)
-        print(chars_emb)
-
+        char_emb = Embedding(input_dim=self.char_vocab_size, output_dim=self.char_embedding_size, name='char_emb')(char_input)
+        chars_emb = TimeDistributed(Bidirectional(LSTM(self.char_lstm_dim, return_sequences=False,
+                                       dropout=0.2, recurrent_dropout=0.2), name='input_bilstm'))(char_emb)
         word_input = Input(shape=(self.max_sent_len,), dtype='int32', name='word_input')
         word_emb = Embedding(input_dim=self.word_vocab_size, output_dim=self.word_embedding_size,
                              input_length=self.max_sent_len, name='word_emb')(word_input)
-        print(word_emb)
 
-        word_emb = K.concatenate([word_emb, chars_emb], axis=-1)
-        print(word_emb)
+        concat_layer = Concatenate(axis=-1)
+        word_embeddings = concat_layer([word_emb, chars_emb])
 
-        bilstm = Bidirectional(LSTM(self.lstm_dim, return_sequences=True, dropout=0.2, recurrent_dropout=0.2))(word_emb)
+        bilstm = Bidirectional(LSTM(self.lstm_dim, return_sequences=True, dropout=0.2, recurrent_dropout=0.2))(word_embeddings)
         bilstm_d = Dropout(0.2)(bilstm)
         dense = TimeDistributed(Dense(self.num_classes, activation='softmax'))(bilstm_d)
         self.model = Model(inputs=[word_input, char_input], outputs=[dense])
