@@ -37,13 +37,12 @@ class NeuralEntityModel(object):
         self.num_classes = num_classes
         self.word_embedding_size = word_embedding_dim
         self.word_vocab_size = max_features
+        self.transition_matrix = None
 
         self.model = None
 
     def train(self, X_word_train, X_char_train, y_train, batch_size, epochs):
         self._build_model()
-        #a,b = y_train.shape
-        #y_train = np.reshape(y_train, (a, b, 1))
         self.model.fit([X_word_train, X_char_train], y_train, batch_size=batch_size, epochs=epochs)
 
     def predict(self, X):
@@ -58,8 +57,10 @@ class NeuralEntityModel(object):
 
     def report(self, X_word_test, X_char_test, y_test):
         y_true = [y.argmax() for y in itertools.chain(*y_test)]
+        transition_matrix = self.transition_matrix.eval(session=K.get_session())
         y_pred = self.predict([X_word_test, X_char_test])
-        y_pred = [y.argmax() for y in itertools.chain(*y_pred)]
+        y_pred, _ = zip(*[tf.contrib.crf.viterbi_decode(y_, transition_matrix) for y_ in y_pred])
+        y_pred = list(itertools.chain(*y_pred))
 
         tagset = set(self.indices_tag) - {'O', '<PAD>'}
         tagset = sorted(tagset, key=lambda tag: tag.split('-', 1)[::-1])
@@ -82,9 +83,12 @@ class NeuralEntityModel(object):
     def loss(self, y_true, y_pred):
         y_t = K.argmax(y_true, -1)
         y_t = tf.cast(y_t, tf.int32)
-        #y_t = K.reshape(y_t, shape=(batch_size, self.max_sent_len))
         sequence_length = tf.constant(shape=(batch_size,), value=self.max_sent_len, dtype=tf.int32)
-        log_likelihood, transition_params = tf.contrib.crf.crf_log_likelihood(y_pred, y_t, sequence_length)
+        if self.transition_matrix:
+            log_likelihood, transition_params = tf.contrib.crf.crf_log_likelihood(y_pred, y_t, sequence_length, self.transition_matrix)
+        else:
+            log_likelihood, transition_params = tf.contrib.crf.crf_log_likelihood(y_pred, y_t, sequence_length)
+        self.transition_matrix = transition_params
         loss = tf.reduce_mean(-log_likelihood)
         return loss
 
@@ -110,9 +114,8 @@ class NeuralEntityModel(object):
 
         self.model = Model(inputs=[word_input, char_input], outputs=[dense])
         self.model.compile(loss=self.loss,
-                           optimizer=RMSprop(lr=0.01),
+                           optimizer=RMSprop(lr=0.01, clipvalue=5.0),
                            metrics=['acc'])
-        print("compile done")
         self.model.summary()
 
     def _check_model(self):
@@ -158,6 +161,14 @@ if __name__ == '__main__':
     print(X_word_train.shape)
     print(X_char_train.shape)
     print(y_train.shape)
+    r = (len(X_word_train) // batch_size) * batch_size
+    #r = batch_size
+    X_word_train = X_word_train[:r]
+    X_char_train = X_char_train[:r]
+    y_train = y_train[:r]
+    #X_word_test = X_word_test[:r]
+    #X_char_test = X_char_test[:r]
+    #y_test = y_test[:r]
 
     model = NeuralEntityModel(max_sent_len, word_vocab_size, word_embedding_size, lstm_dim, num_tags, indices_tag,
                               char_vocab_size, max_word_len)
