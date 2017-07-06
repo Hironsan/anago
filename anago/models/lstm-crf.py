@@ -10,7 +10,9 @@ https://arxiv.org/abs/1603.01360
 import itertools
 
 import numpy as np
-from keras.layers import Dense, LSTM, Bidirectional, Embedding, Input, Dropout
+import tensorflow as tf
+import keras.backend as K
+from keras.layers import Dense, LSTM, Bidirectional, Embedding, Input, Dropout, Reshape, Flatten
 from keras.layers.merge import Concatenate
 from keras.layers.wrappers import TimeDistributed
 from keras.models import Model, load_model, save_model
@@ -40,6 +42,8 @@ class NeuralEntityModel(object):
 
     def train(self, X_word_train, X_char_train, y_train, batch_size, epochs):
         self._build_model()
+        #a,b = y_train.shape
+        #y_train = np.reshape(y_train, (a, b, 1))
         self.model.fit([X_word_train, X_char_train], y_train, batch_size=batch_size, epochs=epochs)
 
     def predict(self, X):
@@ -75,6 +79,15 @@ class NeuralEntityModel(object):
     def load(self, filepath):
         self.model = load_model(filepath=filepath)
 
+    def loss(self, y_true, y_pred):
+        y_t = K.argmax(y_true, -1)
+        y_t = tf.cast(y_t, tf.int32)
+        #y_t = K.reshape(y_t, shape=(batch_size, self.max_sent_len))
+        sequence_length = tf.constant(shape=(batch_size,), value=self.max_sent_len, dtype=tf.int32)
+        log_likelihood, transition_params = tf.contrib.crf.crf_log_likelihood(y_pred, y_t, sequence_length)
+        loss = tf.reduce_mean(-log_likelihood)
+        return loss
+
     def _build_model(self):
         dropout = 0.5
         char_input = Input(shape=(self.max_sent_len, self.max_word_len), dtype='int32', name='char_input')
@@ -91,13 +104,15 @@ class NeuralEntityModel(object):
 
         bilstm = Bidirectional(LSTM(self.lstm_dim, return_sequences=True, dropout=dropout, recurrent_dropout=dropout))(word_embeddings)
         bilstm = Dropout(dropout)(bilstm)
-        #dense1 = TimeDistributed(Dense(self.lstm_dim, activation='tanh'))(bilstm)
-        #dense = TimeDistributed(Dense(self.num_classes, activation='softmax'))(dense1)
-        dense = TimeDistributed(Dense(self.num_classes, activation='softmax'))(bilstm)
+        dense1 = TimeDistributed(Dense(self.lstm_dim, activation='tanh'))(bilstm)
+        dense = TimeDistributed(Dense(self.num_classes))(dense1)
+        # dense = TimeDistributed(Dense(self.num_classes, activation='softmax'))(bilstm)
+
         self.model = Model(inputs=[word_input, char_input], outputs=[dense])
-        self.model.compile(loss='categorical_crossentropy',
+        self.model.compile(loss=self.loss,
                            optimizer=RMSprop(lr=0.01),
                            metrics=['acc'])
+        print("compile done")
         self.model.summary()
 
     def _check_model(self):
@@ -135,9 +150,14 @@ if __name__ == '__main__':
     X_char_test = loader.pad_chars(X_char_test, max_word_len, max_sent_len)
 
     y_train = sequence.pad_sequences(y_train, maxlen=max_sent_len, padding='post')
-    y_train = np.asarray([to_categorical(y, num_classes=num_tags) for y in y_train])
+    #y_train = np.asarray(y_train, dtype=np.int32)
+    y_train = np.asarray([to_categorical(y, num_classes=num_tags) for y in y_train], dtype=np.int32)
     y_test = sequence.pad_sequences(y_test, maxlen=max_sent_len, padding='post')
-    y_test = np.asarray([to_categorical(y, num_classes=num_tags) for y in y_test])
+    #y_test = np.asarray(y_test, dtype=np.int32)
+    y_test = np.asarray([to_categorical(y, num_classes=num_tags) for y in y_test], dtype=np.int32)
+    print(X_word_train.shape)
+    print(X_char_train.shape)
+    print(y_train.shape)
 
     model = NeuralEntityModel(max_sent_len, word_vocab_size, word_embedding_size, lstm_dim, num_tags, indices_tag,
                               char_vocab_size, max_word_len)
