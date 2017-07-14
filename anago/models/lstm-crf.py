@@ -96,8 +96,20 @@ class NeuralEntityModel(object):
         dropout = 0.5
         char_input = Input(shape=(self.max_sent_len, self.max_word_len), dtype='int32', name='char_input')
         char_emb = Embedding(input_dim=self.char_vocab_size, output_dim=self.char_embedding_size, name='char_emb')(char_input)
-        chars_emb = TimeDistributed(Bidirectional(LSTM(self.char_lstm_dim, return_sequences=False,
+
+        print(char_emb)
+        #char_emb = Reshape((self.max_sent_len*self.max_word_len, self.char_embedding_size))(char_emb)
+        #print(char_emb)
+        #a = TimeDistributed(LSTM(output_dim=self.char_lstm_dim, return_sequences=True, return_state=True))(char_emb)
+        #b = TimeDistributed(LSTM(output_dim=self.char_lstm_dim, return_sequences=True, return_state=True, go_backwards=True))(char_emb)
+        #print(a)
+        #chars_emb = Concatenate(axis=-1)([a, b])
+
+        #print(chars_emb)
+
+        chars_emb = TimeDistributed(Bidirectional(LSTM(self.char_lstm_dim,
                                        dropout=dropout, recurrent_dropout=dropout), name='input_bilstm'))(char_emb)
+
         word_input = Input(shape=(self.max_sent_len,), dtype='int32', name='word_input')
         word_emb = Embedding(input_dim=self.word_vocab_size, output_dim=self.word_embedding_size,
                              input_length=self.max_sent_len, name='word_emb')(word_input)
@@ -172,5 +184,5 @@ if __name__ == '__main__':
 
     model = NeuralEntityModel(max_sent_len, word_vocab_size, word_embedding_size, lstm_dim, num_tags, indices_tag,
                               char_vocab_size, max_word_len)
-    model.train(X_word_train, X_char_train, y_train, batch_size, epochs=3)
+    model.train(X_word_train, X_char_train, y_train, batch_size, epochs=10)
     model.report(X_word_test, X_char_test, y_test)

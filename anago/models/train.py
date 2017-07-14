@@ -65,9 +65,12 @@ class NeuralEntityModel(object):
 
     def _build_model(self):
         word_input = Input(shape=(self.maxlen,), dtype='int32', name='word_input')
-        word_emb = Embedding(self.max_features, self.word_embedding_dim, input_length=self.maxlen, name='word_emb')(word_input)
-        bilstm = Bidirectional(LSTM(self.lstm_dim, return_sequences=True, dropout=0.2, recurrent_dropout=0.2))(word_emb)
-        bilstm_d = Dropout(0.2)(bilstm)
+        from anago.models.keras_gensim_embeddings import word2vec_embedding_layer
+        layer = word2vec_embedding_layer()
+        word_emb = layer(word_input)
+        #word_emb = Embedding(self.max_features, self.word_embedding_dim, input_length=self.maxlen, name='word_emb')(word_input)
+        bilstm = Bidirectional(LSTM(self.lstm_dim, return_sequences=True, dropout=0.5, recurrent_dropout=0.5))(word_emb)
+        bilstm_d = Dropout(0.5)(bilstm)
         dense = TimeDistributed(Dense(self.num_classes, activation='softmax'))(bilstm_d)
         self.model = Model(inputs=[word_input], outputs=[dense])
         self.model.compile(loss='categorical_crossentropy',
