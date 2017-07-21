@@ -74,7 +74,8 @@ class NeuralEntityModel(object):
                                           embedding_dimension=50)
         word_emb = layer(word_input)
         """
-        word_emb = Embedding(self.max_features, self.word_embedding_dim, input_length=self.maxlen, name='word_emb')(word_input)
+        word_emb = Embedding(self.max_features, self.word_embedding_dim, input_length=self.maxlen, mask_zero=True)(word_input)
+        #word_emb = Embedding(self.max_features, self.word_embedding_dim, input_length=self.maxlen)(word_input)
         bilstm = Bidirectional(LSTM(self.lstm_dim, return_sequences=True, dropout=0.5, recurrent_dropout=0.5))(word_emb)
         bilstm_d = Dropout(0.5)(bilstm)
         dense = TimeDistributed(Dense(self.num_classes, activation='softmax'))(bilstm_d)

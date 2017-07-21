@@ -72,7 +72,8 @@ def word2vec_embedding_layer2(embeddings_path, vocab_path, word_index, embedding
 
     layer = Embedding(input_dim=embedding_matrix.shape[0],
                       output_dim=embedding_matrix.shape[1],
-                      weights=[embedding_matrix])
+                      weights=[embedding_matrix],
+                      )
     return layer
 
 

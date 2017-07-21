@@ -65,10 +65,18 @@ class NeuralEntityModel(object):
 
     def _build_model(self):
         word_input = Input(shape=(self.maxlen,), dtype='int32', name='word_input')
-        from anago.models.keras_gensim_embeddings import word2vec_embedding_layer
-        layer = word2vec_embedding_layer()
+        #from anago.models.keras_gensim_embeddings import word2vec_embedding_layer
+        #layer = word2vec_embedding_layer()
+        """
+        from anago.models.keras_gensim_embeddings import word2vec_embedding_layer2
+        word_index = {w: i for i, w in enumerate(index2word)}
+        layer = word2vec_embedding_layer2('embeddings.npz',
+                                          'map.json',
+                                          word_index,
+                                          embedding_dimension=300)
         word_emb = layer(word_input)
-        #word_emb = Embedding(self.max_features, self.word_embedding_dim, input_length=self.maxlen, name='word_emb')(word_input)
+        """
+        word_emb = Embedding(self.max_features, self.word_embedding_dim, input_length=self.maxlen, name='word_emb')(word_input)
         bilstm = Bidirectional(LSTM(self.lstm_dim, return_sequences=True, dropout=0.5, recurrent_dropout=0.5))(word_emb)
         bilstm_d = Dropout(0.5)(bilstm)
         dense = TimeDistributed(Dense(self.num_classes, activation='softmax'))(bilstm_d)
@@ -103,5 +111,5 @@ if __name__ == '__main__':
     y_test = np.array([to_categorical(y, num_classes=nb_chunk_tags) for y in y_test])
 
     model = NeuralEntityModel(maxlen, max_features, word_embedding_dim, lstm_dim, nb_chunk_tags, index2chunk)
-    model.train(X_train, y_train, batch_size, epochs=3)
+    model.train(X_train, y_train, batch_size, epochs=10)
     model.report(X_test, y_test)
