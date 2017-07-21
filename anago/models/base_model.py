@@ -7,7 +7,7 @@ class BaseModel(object):
         self.batch_size = None
         self.epoch_size = None
 
-    def train(self, y, *X):
+    def train(self, X, y):
         self._build_model()
         self.model.fit(X, y, batch_size=self.batch_size, epochs=self.epoch_size)
 
@@ -15,7 +15,7 @@ class BaseModel(object):
         y_pred = self.model.predict(X, batch_size=1)
         return y_pred
 
-    def evaluate(self, y, *X):
+    def evaluate(self, X, y):
         score = self.model.evaluate(X, y, batch_size=1)
         return score
 
