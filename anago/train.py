@@ -1,11 +1,7 @@
 import argparse
 
-import numpy as np
-from keras.preprocessing import sequence
-from keras.utils.np_utils import to_categorical
-
 from anago.config import Config
-from anago.data import reader, metrics
+from anago.data import reader, metrics, preprocess
 from anago.models.bilstm import BiLSTM
 
 parser = argparse.ArgumentParser()
@@ -23,17 +19,15 @@ def main():
 
     config = Config(word_to_id, entity_to_id)
 
-    X_train = sequence.pad_sequences(train_data['X'], maxlen=config.num_steps, padding='post')
-    X_test = sequence.pad_sequences(test_data['X'], maxlen=config.num_steps, padding='post')
-    y_train = sequence.pad_sequences(train_data['y'], maxlen=config.num_steps, padding='post')
-    y_train = np.array([to_categorical(y, num_classes=config.num_classes) for y in y_train])
-    y_test = sequence.pad_sequences(test_data['y'], maxlen=config.num_steps, padding='post')
-    y_test = np.array([to_categorical(y, num_classes=config.num_classes) for y in y_test])
+    X_train = preprocess.pad_words(train_data['X'], config)
+    X_test = preprocess.pad_words(test_data['X'], config)
+    y_train = preprocess.to_onehot(train_data['y'], config)
+    y_test = preprocess.to_onehot(test_data['y'], config)
 
     model = BiLSTM(config)
     model.train(X_train, y_train)
     y_pred = model.predict(X_test)
-    # metrics.report(y_test, y_pred, index2chunk)
+    metrics.report(y_test, y_pred, entity_to_id)
 
     if args.save_path:
         print('Saving model to {}.'.format(args.save_path))
