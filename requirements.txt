@@ -1,5 +1,6 @@
 backports.weakref==1.0rc1
 bleach==1.5.0
+h5py==2.7.0
 html5lib==0.9999999
 Keras==2.0.5
 Markdown==2.2.0
