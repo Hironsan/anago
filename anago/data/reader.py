@@ -42,7 +42,7 @@ def _file_to_ids(filename, word_to_id, entity_to_id, preprocess):
     return {'X': sents, 'y': entities}
 
 
-def conll_raw_data(data_path=None, preprocess=str.lower):
+def conll_raw_data(data_path=None, preprocess=str.lower, vocab_path=None):
     """Load conll raw data from data directory "data_path".
     Reads NER text files, converts strings to integer ids,
     and performs mini-batching of the inputs.
@@ -51,6 +51,7 @@ def conll_raw_data(data_path=None, preprocess=str.lower):
     Args:
         data_path: string path to the directory where simple-examples.tgz has been extracted.
         preprocess: preprocessing function for word
+        vocab_path: pre-trained vocabulary
     Returns:
         tuple (train_data, valid_data, test_data, vocabulary)
         where each of the data objects can be passed to PTBIterator.
@@ -61,6 +62,13 @@ def conll_raw_data(data_path=None, preprocess=str.lower):
     test_path = os.path.join(data_path, 'test.txt')
 
     word_to_id, entity_to_id = _build_vocab(train_path, preprocess)
+    if vocab_path:
+        import json
+        with open(vocab_path, 'r') as f:
+            word_to_id = json.load(f)
+            word_to_id = {w: i+2 for w, i in word_to_id.items()}
+            word_to_id[PAD] = 0
+            word_to_id[UNK] = 1
     train_data = _file_to_ids(train_path, word_to_id, entity_to_id, preprocess)
     valid_data = _file_to_ids(valid_path, word_to_id, entity_to_id, preprocess)
     test_data = _file_to_ids(test_path, word_to_id, entity_to_id, preprocess)

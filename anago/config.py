@@ -11,6 +11,7 @@ class Config(object):
     batch_size = 64
     vocab_size = 10000
     word_emb_size = 100
+    embedding_path = None
 
     def __init__(self, word_to_id, entity_to_id):
         self.vocab_size = len(word_to_id)

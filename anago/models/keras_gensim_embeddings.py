@@ -77,6 +77,29 @@ def word2vec_embedding_layer2(embeddings_path, vocab_path, word_index, embedding
     return layer
 
 
+def embedding_layer(embeddings_path, word_index):
+    """
+    Generate an embedding layer word2vec embeddings
+    :param embeddings_path: where the embeddings are saved (as a numpy file)
+    :return: the generated embedding layer
+    """
+    weights = np.load(open(embeddings_path, 'rb'))
+    embeddings_index = {w: weights[i - 2] for w, i in word_index.items()}
+
+    embedding_matrix = np.zeros((len(word_index), weights.shape[1]))
+    for word, i in word_index.items():
+        embedding_vector = embeddings_index.get(word)
+        if embedding_vector is not None:
+            # words not found in embedding index will be all-zeros.
+            embedding_matrix[i] = embedding_vector
+
+    layer = Embedding(input_dim=embedding_matrix.shape[0],
+                      output_dim=embedding_matrix.shape[1],
+                      weights=[embedding_matrix],
+                      )
+    return layer
+
+
 if __name__ == '__main__':
     dir_name = os.path.join(os.path.dirname(__file__), '../../data/glove.6B')
     input_file = os.path.join(dir_name, 'glove.6B.300d.txt')

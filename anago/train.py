@@ -14,10 +14,14 @@ def main():
     if not args.data_path:
         raise ValueError('Must set --data_path to conll data directory')
 
-    raw_data = reader.conll_raw_data(args.data_path)
+    import os
+    vocab_path = os.path.join(os.path.dirname(__file__), 'models/map.json')
+    raw_data = reader.conll_raw_data(args.data_path, vocab_path=vocab_path)
     train_data, valid_data, test_data, word_to_id, entity_to_id = raw_data
 
     config = Config(word_to_id, entity_to_id)
+    config.embedding_path = os.path.join(os.path.dirname(__file__), 'models/embeddings.npz')
+    config.word_to_id = word_to_id
 
     X_train = preprocess.pad_words(train_data['X'], config)
     X_test = preprocess.pad_words(test_data['X'], config)
