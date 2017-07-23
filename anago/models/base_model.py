@@ -1,15 +1,15 @@
-from keras.models import Model, load_model, save_model
+from keras.models import load_model, save_model
 
 
 class BaseModel(object):
 
-    def __init__(self):
-        self.batch_size = None
-        self.epoch_size = None
+    def __init__(self, config):
+        self.config = config
+        self.model = None
 
     def train(self, X, y):
         self._build_model()
-        self.model.fit(X, y, batch_size=self.batch_size, epochs=self.epoch_size)
+        self.model.fit(X, y, batch_size=self.config.batch_size, epochs=self.config.epoch_size)
 
     def predict(self, X):
         y_pred = self.model.predict(X, batch_size=1)

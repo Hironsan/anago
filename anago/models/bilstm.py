@@ -11,24 +11,21 @@ from anago.models.base_model import BaseModel
 
 class BiLSTM(BaseModel):
 
-    def __init__(self, maxlen, max_features, word_embedding_dim, lstm_dim, num_classes, batch_size, epoch_size):
-        self.maxlen = maxlen
-        self.max_features = max_features
-        self.word_embedding_dim = word_embedding_dim
-        self.lstm_dim = lstm_dim
-        self.num_classes = num_classes
-        self.batch_size = batch_size
-        self.epoch_size = epoch_size
-        self.model = None
-
     def _build_model(self):
-        word_input = Input(shape=(self.maxlen,), dtype='int32', name='word_input')
-        word_emb = Embedding(self.max_features, self.word_embedding_dim, input_length=self.maxlen, name='word_emb')(word_input)
-        bilstm = Bidirectional(LSTM(self.lstm_dim, return_sequences=True, dropout=0.5, recurrent_dropout=0.5))(word_emb)
-        bilstm_d = Dropout(0.5)(bilstm)
-        dense = TimeDistributed(Dense(self.num_classes, activation='softmax'))(bilstm_d)
-        self.model = Model(inputs=[word_input], outputs=[dense])
-        self.model.compile(loss='categorical_crossentropy',
-                           optimizer=RMSprop(0.01),
-                           metrics=['acc'])
-        self.model.summary()
+        word_input = Input(shape=(self.config.num_steps,), dtype='int32')
+        x = Embedding(input_dim=self.config.vocab_size,
+                      output_dim=self.config.word_emb_size,
+                      input_length=self.config.num_steps,
+                      mask_zero=True)(word_input)
+        x = Bidirectional(LSTM(units=self.config.hidden_size,
+                               return_sequences=True,
+                               dropout=self.config.dropout,
+                               recurrent_dropout=self.config.dropout))(x)
+        x = Dropout(self.config.dropout)(x)
+        preds = TimeDistributed(Dense(units=self.config.num_classes, activation='softmax'))(x)
+        model = Model(inputs=word_input, outputs=preds)
+        model.compile(loss='categorical_crossentropy',
+                      optimizer=RMSprop(self.config.learning_rate),
+                      metrics=['acc'])
+        model.summary()
+        self.model = model

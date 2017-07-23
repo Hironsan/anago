@@ -21,33 +21,23 @@ def main():
     raw_data = reader.conll_raw_data(args.data_path)
     train_data, valid_data, test_data, word_to_id, entity_to_id = raw_data
 
-    config = Config()
+    config = Config(word_to_id, entity_to_id)
 
-    ### -----------------rewrite---------------------------
-    maxlen = 50  # cut texts after this number of words (among top max_features most common words)
-    word_embedding_dim = 100
-    lstm_dim = 100
-    batch_size = 64
+    X_train = sequence.pad_sequences(train_data['X'], maxlen=config.num_steps, padding='post')
+    X_test = sequence.pad_sequences(test_data['X'], maxlen=config.num_steps, padding='post')
+    y_train = sequence.pad_sequences(train_data['y'], maxlen=config.num_steps, padding='post')
+    y_train = np.array([to_categorical(y, num_classes=config.num_classes) for y in y_train])
+    y_test = sequence.pad_sequences(test_data['y'], maxlen=config.num_steps, padding='post')
+    y_test = np.array([to_categorical(y, num_classes=config.num_classes) for y in y_test])
 
-    max_features = len(word_to_id)
-    nb_chunk_tags = len(entity_to_id)
-
-    X_train = sequence.pad_sequences(train_data['X'], maxlen=maxlen, padding='post')
-    X_test = sequence.pad_sequences(test_data['X'], maxlen=maxlen, padding='post')
-    y_train = sequence.pad_sequences(train_data['y'], maxlen=maxlen, padding='post')
-    y_train = np.array([to_categorical(y, num_classes=nb_chunk_tags) for y in y_train])
-    y_test = sequence.pad_sequences(test_data['y'], maxlen=maxlen, padding='post')
-    y_test = np.array([to_categorical(y, num_classes=nb_chunk_tags) for y in y_test])
-
-    model = BiLSTM(maxlen, max_features, word_embedding_dim, lstm_dim, nb_chunk_tags, batch_size, epoch_size=10)
+    model = BiLSTM(config)
     model.train(X_train, y_train)
     y_pred = model.predict(X_test)
     # metrics.report(y_test, y_pred, index2chunk)
-    ### -----------------rewrite---------------------------
 
     if args.save_path:
         print('Saving model to {}.'.format(args.save_path))
-        # save the model
+        model.save(args.save_path)
 
 
 if __name__ == '__main__':
