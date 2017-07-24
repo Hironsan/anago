@@ -6,7 +6,8 @@ from anago.models.bilstm import BiLSTM
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--data_path', help='Where the training/test data is stored.')
-parser.add_argument('--save_path', help='Model output directory.')
+parser.add_argument('--save_path', help='Where the trained model is stored.')
+parser.add_argument('--glove_path', default=None, help='Where GloVe embedding is stored.')
 args = parser.parse_args()
 
 
@@ -14,24 +15,28 @@ def main():
     if not args.data_path:
         raise ValueError('Must set --data_path to conll data directory')
 
-    import os
-    vocab_path = os.path.join(os.path.dirname(__file__), 'models/map.json')
-    raw_data = reader.conll_raw_data(args.data_path, vocab_path=vocab_path)
-    train_data, valid_data, test_data, word_to_id, entity_to_id = raw_data
+    config = Config()
 
-    config = Config(word_to_id, entity_to_id)
-    config.embedding_path = os.path.join(os.path.dirname(__file__), 'models/embeddings.npz')
-    config.word_to_id = word_to_id
+    vocab_words, vocab_tags = reader.load_vocab(args.data_path, args.glove_path)
+
+    embeddings = reader.get_glove_vectors(vocab_words, args.glove_path, dim=100)
+
+    # get processing functions
+    processing_word = preprocess.get_processing_word(vocab_words, lowercase=True)
+    processing_tag = preprocess.get_processing_word(vocab_tags, lowercase=False)
+
+    raw_data = reader.conll_raw_data(args.data_path, processing_word, processing_tag)
+    train_data, valid_data, test_data = raw_data
 
     X_train = preprocess.pad_words(train_data['X'], config)
     X_test = preprocess.pad_words(test_data['X'], config)
-    y_train = preprocess.to_onehot(train_data['y'], config)
-    y_test = preprocess.to_onehot(test_data['y'], config)
+    y_train = preprocess.to_onehot(train_data['y'], config, ntags=len(vocab_tags))
+    y_test = preprocess.to_onehot(test_data['y'], config, ntags=len(vocab_tags))
 
-    model = BiLSTM(config)
+    model = BiLSTM(config, embeddings, ntags=len(vocab_tags))
     model.train(X_train, y_train)
     y_pred = model.predict(X_test)
-    metrics.report(y_test, y_pred, entity_to_id)
+    metrics.report(y_test, y_pred, vocab_tags)
 
     if args.save_path:
         print('Saving model to {}.'.format(args.save_path))

@@ -3,8 +3,10 @@ from keras.models import load_model, save_model
 
 class BaseModel(object):
 
-    def __init__(self, config):
+    def __init__(self, config, embeddings, ntags):
         self.config = config
+        self.embeddings = embeddings
+        self.ntags = ntags
         self.model = None
 
     def train(self, X, y):
