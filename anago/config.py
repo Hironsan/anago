@@ -8,7 +8,10 @@ class Config(object):
     epoch_size = 5
     dropout = 0.5
     lr_decay = 0.9
-    batch_size = 64
+    batch_size = 32
     vocab_size = 10000
     max_word_len = 20
+
     use_char = True
+    nb_filters = 30
+    nb_kernels = 3
