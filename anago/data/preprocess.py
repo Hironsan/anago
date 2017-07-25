@@ -15,7 +15,7 @@ def to_onehot(ys, config, ntags):
     return np.asarray([to_categorical(y, num_classes=ntags) for y in ys])
 
 
-def get_processing_word(vocab_words=None, lowercase=False):
+def get_processing_word(vocab=None, lowercase=False):
     """
     Args:
         vocab: dict[word] = idx
@@ -28,12 +28,16 @@ def get_processing_word(vocab_words=None, lowercase=False):
         # 1. preprocess word
         if lowercase:
             word = word.lower()
-        #word = re.sub(r"[0-9０１２３４５６７８９]", r'0', word)
+        word = digit_to_zero(word)
 
         # 2. get id of word
-        if vocab_words is not None:
-            word = vocab_words.get(word, vocab_words.get(UNK, vocab_words[PAD]))
+        if vocab is not None:
+            word = vocab.get(word, vocab.get(UNK, vocab[PAD]))
 
         return word
 
     return f
+
+
+def digit_to_zero(word):
+    return re.sub(r'[0-9０１２３４５６７８９]', r'0', word)

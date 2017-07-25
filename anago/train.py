@@ -17,9 +17,10 @@ def main():
 
     config = Config()
 
-    vocab_words, vocab_tags = reader.load_vocab(args.data_path, args.glove_path)
+    vocab_words, vocab_tags = reader.load_vocab(args.data_path, args.glove_path,
+                                                preprocess.get_processing_word(lowercase=True))
 
-    embeddings = reader.get_glove_vectors(vocab_words, args.glove_path, dim=100)
+    embeddings = reader.get_glove_vectors(vocab_words, args.glove_path, dim=300)
 
     # get processing functions
     processing_word = preprocess.get_processing_word(vocab_words, lowercase=True)
