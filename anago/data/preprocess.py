@@ -54,3 +54,27 @@ def get_processing_word(vocab_words=None, vocab_chars=None, lowercase=False, use
 
 def digit_to_zero(word):
     return re.sub(r'[0-9０１２３４５６７８９]', r'0', word)
+
+
+def pad_word_chars(words, max_word_len):
+    words_for = []
+    for word in words:
+        padding = [0] * (max_word_len - len(word))
+        padded_word = word + padding
+        words_for.append(padded_word[:max_word_len])
+    return words_for
+
+
+def pad_words1(words, max_word_len, max_sent_len):
+    padding = [[0] * max_word_len for i in range(max_sent_len - len(words))]
+    words += padding
+    return words[:max_sent_len]
+
+
+def pad_chars(dataset, config):
+    result = []
+    for sent in dataset:
+        words = pad_word_chars(sent, config.max_word_len)
+        words = pad_words1(words, config.max_word_len, config.num_steps)
+        result.append(words)
+    return np.asarray(result)

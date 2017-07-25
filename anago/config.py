@@ -7,7 +7,8 @@ class Config(object):
     hidden_size = 100
     epoch_size = 5
     dropout = 0.5
-    lr_decay = 0.5
+    lr_decay = 0.9
     batch_size = 64
     vocab_size = 10000
-    user_char = False
+    max_word_len = 20
+    use_char = True
