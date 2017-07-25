@@ -15,26 +15,39 @@ def to_onehot(ys, config, ntags):
     return np.asarray([to_categorical(y, num_classes=ntags) for y in ys])
 
 
-def get_processing_word(vocab=None, lowercase=False):
+def get_processing_word(vocab_words=None, vocab_chars=None, lowercase=False, use_char=False):
     """
     Args:
-        vocab: dict[word] = idx
+        vocab_words: dict[word] = idx
+        vocab_chars: dict[char] = idx
+        lowercase: if True, word is converted to lowercase
     Returns:
         f("cat") = ([12, 4, 32], 12345)
                  = (list of char ids, word id)
     """
     def f(word):
-
-        # 1. preprocess word
+        # 0. preprocess word
         if lowercase:
             word = word.lower()
         word = digit_to_zero(word)
 
-        # 2. get id of word
-        if vocab is not None:
-            word = vocab.get(word, vocab.get(UNK, vocab[PAD]))
+        # 1. get chars of words
+        if vocab_chars is not None and use_char:
+            char_ids = []
+            for char in word:
+                # ignore chars out of vocabulary
+                if char in vocab_chars:
+                    char_ids += [vocab_chars.get(char, vocab_chars[UNK])]
 
-        return word
+        # 2. get id of word
+        if vocab_words is not None:
+            word = vocab_words.get(word, vocab_words.get(UNK, vocab_words[PAD]))
+
+        # 3. return tuple char ids, word id
+        if vocab_chars is not None and use_char:
+            return char_ids, word
+        else:
+            return word
 
     return f
 

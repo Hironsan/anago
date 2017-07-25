@@ -30,11 +30,30 @@ def _build_vocab(filename, preprocess):
     words = [PAD, UNK] + list(words)
     word_to_id = dict(zip(words, range(len(words))))
 
+    chars = sorted(get_char_vocab(data['X']))
+    chars = [PAD, UNK] + chars
+    char_to_id = dict(zip(chars, range(len(chars))))
+
     entities = sorted(set(itertools.chain(*data['y'])))
     entities = [PAD] + entities
     entity_to_id = dict(zip(entities, range(len(entities))))
 
-    return word_to_id, entity_to_id
+    return word_to_id, char_to_id, entity_to_id
+
+
+def get_char_vocab(dataset):
+    """
+    Args:
+        dataset: a iterator yielding tuples (sentence, tags)
+    Returns:
+        a set of all the characters in the dataset
+    """
+    vocab_char = set()
+    for words in dataset:
+        for word in words:
+            vocab_char.update(word)
+
+    return vocab_char
 
 
 def get_glove_vocab(filename):
@@ -65,13 +84,13 @@ def add_vocab(word_to_id, vocab_glove):
 
 def load_vocab(data_path, glove_path=None, preprocess=str.lower):
     train_path = os.path.join(data_path, 'train.txt')
-    word_to_id, entity_to_id = _build_vocab(train_path, preprocess)
+    word_to_id, char_to_id, entity_to_id = _build_vocab(train_path, preprocess)
 
     # build vocab
     vocab_glove = get_glove_vocab(glove_path)
     word_to_id = add_vocab(word_to_id, vocab_glove)
 
-    return word_to_id, entity_to_id
+    return word_to_id, char_to_id, entity_to_id
 
 
 def get_glove_vectors(vocab, glove_filename, dim):
@@ -82,9 +101,9 @@ def get_glove_vectors(vocab, glove_filename, dim):
         glove_filename: a path to a glove file
         dim: (int) dimension of embeddings
     """
-    #embeddings = np.zeros([len(vocab), dim])
-    limit = np.sqrt(3 / dim)
-    embeddings = np.random.uniform(-limit, limit, size=(len(vocab), dim))
+    embeddings = np.zeros([len(vocab), dim])
+    #limit = np.sqrt(3 / dim)
+    #embeddings = np.random.uniform(-limit, limit, size=(len(vocab), dim))
     if not glove_filename:
         return embeddings
     with open(glove_filename) as f:

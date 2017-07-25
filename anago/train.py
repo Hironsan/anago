@@ -17,13 +17,14 @@ def main():
 
     config = Config()
 
-    vocab_words, vocab_tags = reader.load_vocab(args.data_path, args.glove_path,
-                                                preprocess.get_processing_word(lowercase=True))
+    vocab_words, vocab_chars, vocab_tags = reader.load_vocab(args.data_path, args.glove_path,
+                                                             preprocess.get_processing_word(lowercase=True))
 
-    embeddings = reader.get_glove_vectors(vocab_words, args.glove_path, dim=300)
+    embeddings = reader.get_glove_vectors(vocab_words, args.glove_path, dim=100)
 
     # get processing functions
-    processing_word = preprocess.get_processing_word(vocab_words, lowercase=True)
+    processing_word = preprocess.get_processing_word(vocab_words, vocab_chars,
+                                                     lowercase=True, use_char=config.user_char)
     processing_tag = preprocess.get_processing_word(vocab_tags, lowercase=False)
 
     raw_data = reader.conll_raw_data(args.data_path, processing_word, processing_tag)

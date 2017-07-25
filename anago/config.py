@@ -10,3 +10,4 @@ class Config(object):
     lr_decay = 0.5
     batch_size = 64
     vocab_size = 10000
+    user_char = False
