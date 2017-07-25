@@ -40,6 +40,7 @@ class BiLSTMCNN(BaseModel):
                                recurrent_dropout=self.config.dropout))(x)
         x = Dropout(self.config.dropout)(x)
         preds = TimeDistributed(Dense(units=self.ntags, activation='softmax'))(x)
+
         model = Model(inputs=[word_input, char_input], outputs=preds)
         model.compile(loss='categorical_crossentropy',
                       optimizer=RMSprop(lr=self.config.learning_rate,
