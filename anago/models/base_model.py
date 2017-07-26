@@ -1,4 +1,5 @@
 from keras.models import load_model, save_model
+from keras.callbacks import TensorBoard
 
 
 class BaseModel(object):
@@ -11,7 +12,12 @@ class BaseModel(object):
 
     def train(self, X, y):
         self._build_model()
-        self.model.fit(X, y, batch_size=self.config.batch_size, epochs=self.config.epoch_size)
+        self.model.fit(X, y,
+                       batch_size=self.config.batch_size,
+                       epochs=self.config.epoch_size,
+                       shuffle=True,
+                       callbacks=self._get_callbacks(),
+                       )
 
     def predict(self, X):
         y_pred = self.model.predict(X, batch_size=1)
@@ -29,3 +35,7 @@ class BaseModel(object):
 
     def _build_model(self):
         pass
+
+    def _get_callbacks(self):
+        callbacks = [TensorBoard(self.config.log_dir)]
+        return callbacks

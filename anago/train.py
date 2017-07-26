@@ -8,6 +8,7 @@ from anago.models.bilstm_cnn import BiLSTMCNN
 parser = argparse.ArgumentParser()
 parser.add_argument('--data_path', help='Where the training/test data is stored.')
 parser.add_argument('--save_path', help='Where the trained model is stored.')
+parser.add_argument('--log_dir', help='Where log data is stored.')
 parser.add_argument('--glove_path', default=None, help='Where GloVe embedding is stored.')
 args = parser.parse_args()
 
@@ -17,6 +18,7 @@ def main():
         raise ValueError('Must set --data_path to conll data directory')
 
     config = Config()
+    config.log_dir = args.log_dir
 
     vocab_words, vocab_chars, vocab_tags = reader.load_vocab(args.data_path, args.glove_path,
                                                              preprocess.get_processing_word(lowercase=True))
