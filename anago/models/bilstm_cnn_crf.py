@@ -7,6 +7,7 @@ Guillaume Lample, Miguel Ballesteros, Sandeep Subramanian, Kazuya Kawakami, Chri
 "Neural Architectures for Named Entity Recognition". Proceedings of NAACL 2016.
 https://arxiv.org/abs/1603.01360
 """
+import numpy as np
 import tensorflow as tf
 import keras.backend as K
 from keras.layers import Dense, LSTM, Bidirectional, Embedding, Input, Dropout, Conv2D, MaxPool2D, Reshape
@@ -20,13 +21,22 @@ from anago.models.base_model import BaseModel
 
 class BiLSTMCNNCrf(BaseModel):
 
+    def predict(self, X):
+        scores = self.model.predict(X, batch_size=1)
+        y_pred = []
+        for score in scores:
+            pred, _ = tf.contrib.crf.viterbi_decode(score, self.transition_matrix)
+            y_pred.append(pred)
+
+        return np.asarray(y_pred)
+
     def loss(self, y_true, y_pred):
         y_t = K.argmax(y_true, -1)
         y_t = tf.cast(y_t, tf.int32)
         sequence_length = tf.constant(shape=(self.config.batch_size,), value=self.config.num_steps, dtype=tf.int32)
         log_likelihood, transition_params = tf.contrib.crf.crf_log_likelihood(y_pred, y_t, sequence_length)
         loss = tf.reduce_mean(-log_likelihood)
-        self.transition_matrix = transition_params
+        self.transition_matrix = K.eval(transition_params)
 
         return loss
 
@@ -57,7 +67,7 @@ class BiLSTMCNNCrf(BaseModel):
                                recurrent_dropout=self.config.dropout))(x)
         x = TimeDistributed(Dense(self.config.hidden_size, activation='tanh'))(x)
         x = TimeDistributed(Dense(self.ntags))(x)
-        # pred = TimeDistributed(Dense(self.num_classes, activation='softmax'))(x)
+        # pred = TimeDistributed(Dense(self.ntags, activation='softmax'))(x)
 
         model = Model(inputs=[word_input, char_input], outputs=[x])
         model.compile(loss=self.loss,
