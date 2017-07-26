@@ -49,9 +49,9 @@ def main():
         X_test = [sents_word, sents_char]
         config.char_vocab_size = len(vocab_chars)
         config.char_embedding_size = 25
-        # from models.bilstm_cnn_crf import BiLSTMCNNCrf
-        model = BiLSTMCNN(config, embeddings, ntags=len(vocab_tags))
-        # model = BiLSTMCNNCrf(config, embeddings, ntags=len(vocab_tags))
+        from models.bilstm_cnn_crf import BiLSTMCNNCrf
+        #model = BiLSTMCNN(config, embeddings, ntags=len(vocab_tags))
+        model = BiLSTMCNNCrf(config, embeddings, ntags=len(vocab_tags))
         y_train = preprocess.to_onehot(train_data['y'], config, ntags=len(vocab_tags))
         y_train = y_train[:r]
     else:

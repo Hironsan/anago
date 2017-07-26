@@ -15,6 +15,7 @@ from keras.layers.merge import Concatenate
 from keras.layers.wrappers import TimeDistributed
 from keras.models import Model
 from keras.optimizers import RMSprop
+from keras.utils import to_categorical
 
 from anago.models.base_model import BaseModel
 
@@ -26,7 +27,7 @@ class BiLSTMCNNCrf(BaseModel):
         y_pred = []
         for score in scores:
             pred, _ = tf.contrib.crf.viterbi_decode(score, self.transition_matrix)
-            y_pred.append(pred)
+            y_pred.append(to_categorical(pred, num_classes=self.ntags))
 
         return np.asarray(y_pred)
 
