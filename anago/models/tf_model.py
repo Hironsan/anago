@@ -1,8 +1,8 @@
 import numpy as np
 import os
 import tensorflow as tf
-from data_utils import minibatches, pad_sequences, get_chunks
-from general_utils import Progbar
+from anago.data_utils import minibatches, pad_sequences, get_chunks
+from anago.general_utils import Progbar
 
 
 class NERModel(object):
@@ -353,3 +353,17 @@ class NERModel(object):
             saver.restore(sess, self.config.model_output)
             acc, f1 = self.run_evaluate(sess, test, tags)
             self.logger.info("- test acc {:04.2f} - f1 {:04.2f}".format(100*acc, 100*f1))
+
+    def interactive_shell(self, sent, tags, processing_word):
+        idx_to_tag = {idx: tag for tag, idx in tags.items()}
+        saver = tf.train.Saver()
+        with tf.Session() as sess:
+            saver.restore(sess, self.config.model_output)
+            words_raw = sent.strip().split(" ")
+
+            words = [processing_word(w) for w in words_raw]
+            if type(words[0]) == tuple:
+                words = zip(*words)
+            pred_ids, _ = self.predict_batch(sess, [words])
+            preds = [idx_to_tag[idx] for idx in list(pred_ids[0])]
+            return {"x": words_raw, "y": preds}

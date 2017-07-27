@@ -5,7 +5,7 @@ class Config(object):
     num_layers = 1
     num_steps = 50  # cut texts after this number of words (among top max_features most common words)
     hidden_size = 100
-    epoch_size = 10
+    epoch_size = 5
     dropout = 0.5
     lr_decay = 0.9
     batch_size = 32

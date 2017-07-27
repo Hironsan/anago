@@ -23,7 +23,7 @@ def main():
     vocab_words, vocab_chars, vocab_tags = reader.load_vocab(args.data_path, args.glove_path,
                                                              preprocess.get_processing_word(lowercase=True))
 
-    embeddings = reader.get_glove_vectors(vocab_words, args.glove_path, dim=100)
+    embeddings = reader.get_glove_vectors(vocab_words, args.glove_path, dim=300)
 
     # get processing functions
     processing_word = preprocess.get_processing_word(vocab_words, vocab_chars,
@@ -50,8 +50,8 @@ def main():
         config.char_vocab_size = len(vocab_chars)
         config.char_embedding_size = 25
         from models.bilstm_cnn_crf import BiLSTMCNNCrf
-        #model = BiLSTMCNN(config, embeddings, ntags=len(vocab_tags))
-        model = BiLSTMCNNCrf(config, embeddings, ntags=len(vocab_tags))
+        model = BiLSTMCNN(config, embeddings, ntags=len(vocab_tags))
+        #model = BiLSTMCNNCrf(config, embeddings, ntags=len(vocab_tags))
         y_train = preprocess.to_onehot(train_data['y'], config, ntags=len(vocab_tags))
         y_train = y_train[:r]
     else:
@@ -65,6 +65,7 @@ def main():
     model.train(X_train, y_train)
     y_pred = model.predict(X_test)
     metrics.report(y_test, y_pred, vocab_tags)
+    print(metrics.run_evaluate(y_test, y_pred, vocab_tags))
 
     if args.save_path:
         print('Saving model to {}.'.format(args.save_path))
