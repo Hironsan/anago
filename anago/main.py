@@ -1,7 +1,7 @@
 from data_utils import get_trimmed_glove_vectors, load_vocab, \
     get_processing_word, CoNLLDataset
 from models.tf_model import NERModel
-from config_tf import Config
+from config_jp import Config
 
 # create instance of config
 config = Config()

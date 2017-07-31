@@ -43,7 +43,7 @@ class CoNLLDataset(object):
         with open(self.filename) as f:
             words, tags = [], []
             for line in f:
-                line = line.strip()
+                line = line.rstrip()
                 if (len(line) == 0 or line.startswith("-DOCSTART-")):
                     if len(words) != 0:
                         niter += 1
@@ -52,7 +52,9 @@ class CoNLLDataset(object):
                         yield words, tags
                         words, tags = [], []
                 else:
-                    word, _, _, tag = line.split(' ')
+                    #word, _, _, tag = line.split(' ')
+                    #print(line)
+                    word, tag = line.split('\t')
                     if self.processing_word is not None:
                         word = self.processing_word(word)
                     if self.processing_tag is not None:

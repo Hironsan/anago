@@ -1,4 +1,4 @@
-from config_tf import Config
+from config_jp import Config
 from data_utils import CoNLLDataset, get_vocabs, UNK, NUM, \
     get_glove_vocab, write_vocab, load_vocab, get_char_vocab, \
     export_trimmed_glove_vectors, get_processing_word

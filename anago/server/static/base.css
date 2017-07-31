@@ -22,17 +22,17 @@ meter::-webkit-meter-even-less-good-value {
     margin-right:5px;
 }
 
-.axlabel.dialogue, .axlabel.nlp{
+.axlabel.facility{
     border: 1px solid #c2e0c6;
     background-color: #c2e0c6;
 }
 
-.axlabel.computervision{
+.axlabel.event{
     border: 1px solid #fef2c0;
     background-color: #fef2c0;
 }
 
-.axlabel.audiorecognition, .axlabel.audiosynthesis{
+.axlabel.percentage{
     border: 1px solid #d8bfd8;
     background-color: #d8bfd8;
 }
@@ -42,9 +42,9 @@ meter::-webkit-meter-even-less-good-value {
     background-color: #fbca04;
 }
 
-.axlabel.money2{
-    border: 1px solid #fffafa;
-    background-color: #fffafa;
+.axlabel.money{
+    border: 1px solid #EE82EE;
+    background-color: #EE82EE;
 }
 
 .axlabel.misc{
@@ -61,6 +61,27 @@ meter::-webkit-meter-even-less-good-value {
     border: 1px solid #b0c4de;
     background-color: #b0c4de;    
 }
+
+.axlabel.count{
+    border: 1px solid #FF00FF;
+    background-color: #FF00FF;
+}
+
+.axlabel.time{
+    border: 1px solid #00FFFF;
+    background-color: #00FFFF;
+}
+
+.axlabel.date{
+    border: 1px solid #00FF00;
+    background-color: #00FF00;
+}
+
+.axlabel.artifact{
+    border: 1px solid #DC143C;
+    background-color: #DC143C;
+}
+
 
 .content-area{
     margin-left:.75em;
