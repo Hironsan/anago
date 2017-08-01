@@ -1,9 +1,11 @@
-import numpy as np
 import os
+import numpy as np
+
 
 UNK = "$UNK$"
 NUM = "$NUM$"
 NONE = "O"
+
 
 class CoNLLDataset(object):
     """
@@ -22,8 +24,7 @@ class CoNLLDataset(object):
             pass
         ```
     """
-    def __init__(self, filename, processing_word=None, processing_tag=None, 
-                 max_iter=None):
+    def __init__(self, filename, processing_word=None, processing_tag=None, max_iter=None):
         """
         Args:
             filename: path to the file
@@ -37,31 +38,29 @@ class CoNLLDataset(object):
         self.max_iter = max_iter
         self.length = None
 
-
     def __iter__(self):
         niter = 0
         with open(self.filename) as f:
             words, tags = [], []
             for line in f:
                 line = line.rstrip()
-                if (len(line) == 0 or line.startswith("-DOCSTART-")):
+                if len(line) == 0 or line.startswith('-DOCSTART-'):
                     if len(words) != 0:
                         niter += 1
-                        if self.max_iter is not None and niter > self.max_iter:
+                        if self.max_iter and niter > self.max_iter:
                             break
                         yield words, tags
                         words, tags = [], []
                 else:
                     #word, _, _, tag = line.split(' ')
-                    #print(line)
-                    word, tag = line.split('\t')
-                    if self.processing_word is not None:
+                    #word, tag = line.split('\t')
+                    word, tag = line.split(' ')
+                    if self.processing_word:
                         word = self.processing_word(word)
-                    if self.processing_tag is not None:
+                    if self.processing_tag:
                         tag = self.processing_tag(tag)
-                    words += [word]
-                    tags += [tag]
-
+                    words.append(word)
+                    tags.append(tag)
 
     def __len__(self):
         """
@@ -108,62 +107,53 @@ def get_char_vocab(dataset):
     return vocab_char
 
 
-def get_glove_vocab(filename):
-    """
+def load_glove_vocab(filename):
+    """Loads GloVe's vocab from a file.
+
     Args:
         filename: path to the glove vectors
+    Returns:
+        a set of all words in GloVe
     """
-    print("Building vocab...")
-    vocab = set()
+    print('Building vocab...')
     with open(filename) as f:
-        for line in f:
-            word = line.strip().split(' ')[0]
-            vocab.add(word)
-    print("- done. {} tokens".format(len(vocab)))
+        vocab = {line.strip().split()[0] for line in f}
+    print('- done. {} tokens'.format(len(vocab)))
     return vocab
 
 
 def write_vocab(vocab, filename):
-    """
-    Writes a vocab to a file
+    """Writes vocab to a file.
 
-    Args:
+    Arguments:
         vocab: iterable that yields word
         filename: path to vocab file
-    Returns:
-        write a word per line
     """
-    print("Writing vocab...")
-    with open(filename, "w") as f:
-        for i, word in enumerate(vocab):
-            if i != len(vocab) - 1:
-                f.write("{}\n".format(word))
-            else:
-                f.write(word)
-    print("- done. {} tokens".format(len(vocab)))
+    print('Writing vocab...')
+    with open(filename, 'w') as f:
+        f.write('\n'.join(vocab))
+    print('- done. {} tokens'.format(len(vocab)))
 
 
 def load_vocab(filename):
-    """
-    Args:
+    """Loads vocab from a file.
+
+    Arguments:
         filename: file with a word per line
     Returns:
         d: dict[word] = index
     """
-    d = dict()
+    print('Loading vocab...')
     with open(filename) as f:
-        for idx, word in enumerate(f):
-            word = word.strip()
-            d[word] = idx
-
+        d = {w.rstrip(): i for i, w in enumerate(f)}
+    print('- done. {} tokens'.format(len(d)))
     return d
 
 
 def export_trimmed_glove_vectors(vocab, glove_filename, trimmed_filename, dim):
-    """
-    Saves glove vectors in numpy array
+    """Saves GloVe vectors in numpy array
     
-    Args:
+    Arguments:
         vocab: dictionary vocab[word] = index
         glove_filename: a path to a glove file
         trimmed_filename: a path where to store a matrix in npy
@@ -184,19 +174,18 @@ def export_trimmed_glove_vectors(vocab, glove_filename, trimmed_filename, dim):
 
 def get_trimmed_glove_vectors(filename):
     """
-    Args:
+    Arguments:
         filename: path to the npz file
     Returns:
         matrix of embeddings (np array)
     """
     with np.load(filename) as data:
-        return data["embeddings"]
+        return data['embeddings']
 
 
-def get_processing_word(vocab_words=None, vocab_chars=None, 
-                    lowercase=False, chars=False):
+def get_processing_word(vocab_words=None, vocab_chars=None, lowercase=False, chars=False):
     """
-    Args:
+    Arguments:
         vocab: dict[word] = idx
     Returns: 
         f("cat") = ([12, 4, 32], 12345)
@@ -235,7 +224,7 @@ def get_processing_word(vocab_words=None, vocab_chars=None,
 
 def _pad_sequences(sequences, pad_tok, max_length):
     """
-    Args:
+    Arguments:
         sequences: a generator of list or tuple
         pad_tok: the char to pad with
     Returns:
@@ -254,7 +243,7 @@ def _pad_sequences(sequences, pad_tok, max_length):
 
 def pad_sequences(sequences, pad_tok, nlevels=1):
     """
-    Args:
+    Arguments:
         sequences: a generator of list or tuple
         pad_tok: the char to pad with
     Returns:
@@ -279,13 +268,12 @@ def pad_sequences(sequences, pad_tok, nlevels=1):
                                             max_length_sentence)
         sequence_length, _ = _pad_sequences(sequence_length, 0, max_length_sentence)
 
-
     return sequence_padded, sequence_length
 
 
 def minibatches(data, minibatch_size):
     """
-    Args:
+    Arguments:
         data: generator of (sentence, tags) tuples
         minibatch_size: (int)
     Returns: 
@@ -299,8 +287,8 @@ def minibatches(data, minibatch_size):
         
         if type(x[0]) == tuple:
             x = zip(*x)
-        x_batch += [x]
-        y_batch += [y]
+        x_batch.append(x)
+        y_batch.append(y)
 
     if len(x_batch) != 0:
         yield x_batch, y_batch
@@ -308,7 +296,7 @@ def minibatches(data, minibatch_size):
 
 def get_chunk_type(tok, idx_to_tag):
     """
-    Args:
+    Arguments:
         tok: id of token, ex 4
         idx_to_tag: dictionary {4: "B-PER", ...}
     Returns:
@@ -322,7 +310,7 @@ def get_chunk_type(tok, idx_to_tag):
 
 def get_chunks(seq, tags):
     """
-    Args:
+    Arguments:
         seq: [4, 4, 0, 0, ...] sequence of labels
         tags: dict["O"] = 4
     Returns:

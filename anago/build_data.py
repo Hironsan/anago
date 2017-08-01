@@ -1,6 +1,6 @@
-from config_jp import Config
-from data_utils import CoNLLDataset, get_vocabs, UNK, NUM, \
-    get_glove_vocab, write_vocab, load_vocab, get_char_vocab, \
+from anago.config_jp import Config
+from anago.data_utils import CoNLLDataset, get_vocabs, UNK, NUM, \
+    load_glove_vocab, write_vocab, load_vocab, get_char_vocab, \
     export_trimmed_glove_vectors, get_processing_word
 
 
@@ -23,7 +23,7 @@ def build_data(config):
 
     # Build Word and Tag vocab
     vocab_words, vocab_tags = get_vocabs([train, dev, test])
-    vocab_glove = get_glove_vocab(config.glove_filename)
+    vocab_glove = load_glove_vocab(config.glove_filename)
 
     vocab = vocab_words & vocab_glove
     vocab.add(UNK)
