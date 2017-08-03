@@ -4,6 +4,7 @@ from unittest.mock import MagicMock
 
 from anago.data import conll
 from anago.data.preprocess import get_vocabs, get_char_vocab, build_vocab, load_vocab, load_word_embeddings
+from anago.data.preprocess import WordPreprocessor
 
 
 class ProprocessTest(unittest.TestCase):
@@ -38,3 +39,18 @@ class ProprocessTest(unittest.TestCase):
         vocab = build_vocab(self.datasets, config)
         embeddings = load_word_embeddings(vocab.word, config.glove_path, config.dim)
         self.assertEqual(embeddings.shape[1], config.dim)
+
+
+class WordPreprocessorTest(unittest.TestCase):
+
+    def test_preprocessor(self):
+        train_dir = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/')
+        datasets = conll.read_data_sets(train_dir)
+        X, y = datasets.train.sents, datasets.train.labels
+
+        preprocessor = WordPreprocessor()
+        p = preprocessor.fit(X, y)
+        X, y = p.transform(X, y)
+        print(X[0])
+        print(y[0])
+        print(p.inverse_transform(y[0]))

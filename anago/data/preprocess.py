@@ -1,9 +1,12 @@
 import collections
+import itertools
 import os
 import re
+
 import numpy as np
 from keras.preprocessing import sequence
 from keras.utils.np_utils import to_categorical
+from sklearn.base import BaseEstimator, TransformerMixin
 
 from anago.data.reader import UNK, PAD
 from anago.data_utils import write_vocab, load_glove_vocab, UNK, NUM
@@ -184,3 +187,78 @@ def load_word_embeddings(vocab, glove_filename, dim):
                 embeddings[word_idx] = np.asarray(embedding)
 
     return embeddings
+
+
+class WordPreprocessor(BaseEstimator, TransformerMixin):
+    def __init__(self, lowercase=True, num_norm=True, char_feature=True):
+        self.lowercase = lowercase
+        self.num_norm = num_norm
+        self.char_feature = char_feature
+        self.vocab_word = None
+        self.vocab_char = None
+        self.vocab_tag  = None
+
+    def fit(self, X, y):
+        words = {}
+        chars = {}
+        tags  = {}
+
+        for w in set(itertools.chain(*X)):
+            w = self._lower(w)
+            w = self._normalize_num(w)
+            if w not in words:
+                words[w] = len(words)
+
+            if not self.char_feature:
+                continue
+            for c in w:
+                if c not in chars:
+                    chars[c] = len(chars)
+
+        for t in itertools.chain(*y):
+            if t not in tags:
+                tags[t] = len(tags)
+
+        self.vocab_word = words
+        self.vocab_char = chars
+        self.vocab_tag  = tags
+
+        return self
+
+    def transform(self, X, y):
+        sents = []
+        for sent in X:
+            word_ids = []
+            char_word_ids = []
+            for w in sent:
+                w = self._lower(w)
+                w = self._normalize_num(w)
+                word_id = self.vocab_word[w]
+                word_ids.append(word_id)
+                if self.char_feature:
+                    char_ids = self._get_char_ids(w)
+                    char_word_ids.append(char_ids)
+            if self.char_feature:
+                sents.append((char_word_ids, word_ids))
+            else:
+                sents.append(word_ids)
+
+        y = [[self.vocab_tag[t] for t in sent] for sent in y]
+
+        return sents, y
+
+    def inverse_transform(self, y):
+        indice_tag = {i: t for t, i in self.vocab_tag.items()}
+        return [indice_tag[y_] for y_ in y]
+
+    def _get_char_ids(self, word):
+        return [self.vocab_char[c] for c in word]
+
+    def _lower(self, word):
+        return word.lower() if self.lowercase else word
+
+    def _normalize_num(self, word):
+        if self.num_norm:
+            return re.sub(r'[0-9０１２３４５６７８９]', r'0', word)
+        else:
+            return word
