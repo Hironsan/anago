@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 
 from anago.data import conll
 from anago.data.preprocess import get_vocabs, get_char_vocab, build_vocab, load_vocab, load_word_embeddings
-from anago.data.preprocess import WordPreprocessor
+from anago.data.preprocess import WordPreprocessor, UNK
 
 
 class ProprocessTest(unittest.TestCase):
@@ -54,3 +54,33 @@ class WordPreprocessorTest(unittest.TestCase):
         print(X[0])
         print(y[0])
         print(p.inverse_transform(y[0]))
+
+    def test_unknown_word(self):
+        train_dir = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/')
+        datasets = conll.read_data_sets(train_dir)
+        X, y = datasets.train.sents, datasets.train.labels
+        preprocessor = WordPreprocessor()
+        p = preprocessor.fit(X, y)
+        X = [['$unknownword$', 'あ']]
+        y = [['O', 'O']]
+        X, y = p.transform(X, y)
+
+    def test_vocab_init(self):
+        train_dir = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/')
+        datasets = conll.read_data_sets(train_dir)
+        X, y = datasets.train.sents, datasets.train.labels
+        unknown_word = 'unknownword'
+        X_test, y_test = [[unknown_word]], [['O']]
+
+        preprocessor = WordPreprocessor()
+        p = preprocessor.fit(X, y)
+        X_pred, _ = p.transform(X_test, y_test)
+        words = X_pred[0][1]
+        self.assertEqual(words, [p.vocab_word[UNK]])
+
+        vocab_init = {unknown_word}
+        preprocessor = WordPreprocessor(vocab_init=vocab_init)
+        p = preprocessor.fit(X, y)
+        X_pred, _ = p.transform(X_test, y_test)
+        words = X_pred[0][1]
+        self.assertNotEqual(words, [p.vocab_word[UNK]])

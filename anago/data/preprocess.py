@@ -190,20 +190,22 @@ def load_word_embeddings(vocab, glove_filename, dim):
 
 
 class WordPreprocessor(BaseEstimator, TransformerMixin):
-    def __init__(self, lowercase=True, num_norm=True, char_feature=True):
+
+    def __init__(self, lowercase=True, num_norm=True, char_feature=True, vocab_init=None):
         self.lowercase = lowercase
         self.num_norm = num_norm
         self.char_feature = char_feature
         self.vocab_word = None
         self.vocab_char = None
         self.vocab_tag  = None
+        self.vocab_init = vocab_init or {}
 
     def fit(self, X, y):
-        words = {}
-        chars = {}
+        words = {UNK: 0}
+        chars = {UNK: 0}
         tags  = {}
 
-        for w in set(itertools.chain(*X)):
+        for w in set(itertools.chain(*X)) | set(self.vocab_init):
             w = self._lower(w)
             w = self._normalize_num(w)
             if w not in words:
@@ -233,11 +235,16 @@ class WordPreprocessor(BaseEstimator, TransformerMixin):
             for w in sent:
                 w = self._lower(w)
                 w = self._normalize_num(w)
-                word_id = self.vocab_word[w]
+                if w in self.vocab_word:
+                    word_id = self.vocab_word[w]
+                else:
+                    word_id = self.vocab_word[UNK]
                 word_ids.append(word_id)
+
                 if self.char_feature:
                     char_ids = self._get_char_ids(w)
                     char_word_ids.append(char_ids)
+
             if self.char_feature:
                 sents.append((char_word_ids, word_ids))
             else:
@@ -252,7 +259,7 @@ class WordPreprocessor(BaseEstimator, TransformerMixin):
         return [indice_tag[y_] for y_ in y]
 
     def _get_char_ids(self, word):
-        return [self.vocab_char[c] for c in word]
+        return [self.vocab_char.get(c, self.vocab_char[UNK]) for c in word]
 
     def _lower(self, word):
         return word.lower() if self.lowercase else word
