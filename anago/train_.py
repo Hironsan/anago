@@ -32,17 +32,19 @@ config = parser.parse_args()
 
 
 def main():
-    dataset = conll.read_data_sets(config.data_path)
-    vocab = build_vocab(dataset, config)
-    embeddings = load_word_embeddings(vocab.word, config.glove_path, config.word_dim)
+    datasets = conll.read_datasets(config.data_path, config.glove_path)
+    vocab_word = datasets.train._preprocessor.vocab_word
+    vocab_char = datasets.train._preprocessor.vocab_char
+    vocab_tag  = datasets.train._preprocessor.vocab_tag
+    embeddings = load_word_embeddings(vocab_word, config.glove_path, config.word_dim)
+    print(len(vocab_word))
+    print(len(vocab_char))
+    print(len(vocab_tag))
+    print(vocab_char)
 
-    model = LstmCrfModel(config, embeddings, vocab)
-    model.build()
-
-    model.train(dataset.train, dataset.valid)
-    model.evaluate(dataset.test)
-    model.save(config.save_path)
-    # print('Saving model to {}.'.format(config.save_path))
+    model = LstmCrfModel(config, embeddings, vocab_char, vocab_tag)
+    model.train(datasets.train, datasets.valid)
+    model.evaluate(datasets.test)
 
 if __name__ == '__main__':
     main()

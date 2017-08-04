@@ -205,17 +205,17 @@ class WordPreprocessor(BaseEstimator, TransformerMixin):
         chars = {UNK: 0}
         tags  = {}
 
-        for w in set(itertools.chain(*X)) | set(self.vocab_init):
-            w = self._lower(w)
-            w = self._normalize_num(w)
-            if w not in words:
-                words[w] = len(words)
-
+        for w in set(itertools.chain(*X)):
             if not self.char_feature:
                 continue
             for c in w:
                 if c not in chars:
                     chars[c] = len(chars)
+
+            w = self._lower(w)
+            w = self._normalize_num(w)
+            if w not in words:
+                words[w] = len(words)
 
         for t in itertools.chain(*y):
             if t not in tags:
@@ -233,6 +233,10 @@ class WordPreprocessor(BaseEstimator, TransformerMixin):
             word_ids = []
             char_word_ids = []
             for w in sent:
+                if self.char_feature:
+                    char_ids = self._get_char_ids(w)
+                    char_word_ids.append(char_ids)
+
                 w = self._lower(w)
                 w = self._normalize_num(w)
                 if w in self.vocab_word:
@@ -240,10 +244,6 @@ class WordPreprocessor(BaseEstimator, TransformerMixin):
                 else:
                     word_id = self.vocab_word[UNK]
                 word_ids.append(word_id)
-
-                if self.char_feature:
-                    char_ids = self._get_char_ids(w)
-                    char_word_ids.append(char_ids)
 
             if self.char_feature:
                 sents.append((char_word_ids, word_ids))

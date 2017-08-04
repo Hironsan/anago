@@ -4,6 +4,9 @@ import os
 import numpy as np
 from tensorflow.python.framework import random_seed
 
+from anago.data.preprocess import WordPreprocessor
+from anago.data_utils import load_glove_vocab
+
 
 def extract_data(filename):
     sents, labels = [], []
@@ -116,6 +119,27 @@ def read_data_sets(train_dir, one_hot=False, valid_size=5000, seed=None):
     train = DataSet(x_train, y_train, seed=seed)
     valid = DataSet(x_valid, y_valid, seed=seed)
     test = DataSet(x_test, y_test, seed=seed)
+    Datasets = collections.namedtuple('Datasets', ['train', 'valid', 'test'])
+
+    return Datasets(train=train, valid=valid, test=test)
+
+
+def read_datasets(train_dir, glove_file, one_hot=False, valid_size=5000, seed=None):
+    train_path = os.path.join(train_dir, 'train.txt')
+    valid_path = os.path.join(train_dir, 'valid.txt')
+    test_path = os.path.join(train_dir, 'test.txt')
+    x_train, y_train = extract_data(train_path)
+    x_valid, y_valid = extract_data(valid_path)
+    x_test, y_test = extract_data(test_path)
+
+    vocab_glove = load_glove_vocab(glove_file)
+
+    p = WordPreprocessor(vocab_init=vocab_glove)
+    p = p.fit(np.concatenate((x_train, x_valid, x_test)), y_train)
+
+    train = DataSet(x_train, y_train, seed=seed, preprocessor=p)
+    valid = DataSet(x_valid, y_valid, seed=seed, preprocessor=p)
+    test = DataSet(x_test, y_test, seed=seed, preprocessor=p)
     Datasets = collections.namedtuple('Datasets', ['train', 'valid', 'test'])
 
     return Datasets(train=train, valid=valid, test=test)

@@ -6,7 +6,7 @@ from anago.general_utils import Progbar, get_logger
 
 
 class LstmCrfModel(object):
-    def __init__(self, config, embeddings, vocab):
+    def __init__(self, config, embeddings, vocab_char, vocab_tag):
         """
         Args:
             config: class with hyper parameters
@@ -15,10 +15,12 @@ class LstmCrfModel(object):
         """
         self.config     = config
         self.embeddings = embeddings
-        self.vocab      = vocab
-        self.nchars     = len(vocab.char)
-        self.ntags      = len(vocab.tag)
+        #self.vocab      = vocab
+        self.nchars     = len(vocab_char)
+        self.ntags      = len(vocab_tag)
         self.logger     = get_logger(os.path.join(config.log_dir, 'log.txt'))
+
+        self.build()
 
     def add_placeholders(self):
         # shape = (batch size, max length of sentence in batch)
@@ -256,14 +258,8 @@ class LstmCrfModel(object):
         """
         nbatches = (len(train.sents) + self.config.batch_size - 1) // self.config.batch_size
         prog = Progbar(target=nbatches)
-        # for i, (words, labels) in enumerate(minibatches(train, self.config.batch_size)):
-        from anago.data_utils import get_processing_word
-        processing_word = get_processing_word(self.vocab.word, self.vocab.char, lowercase=True, chars=self.config.use_char)
-        processing_tag = get_processing_word(self.vocab.tag, lowercase=False)
         for i in range(nbatches):
             words, labels = train.next_batch(self.config.batch_size)
-            words = [[processing_word(w) for w in row] for row in words]
-            labels = [[processing_tag(t) for t in row] for row in labels]
 
             fd, _ = self.get_feed_dict(words, labels, self.config.learning_rate, self.config.dropout)
 
@@ -291,15 +287,18 @@ class LstmCrfModel(object):
         """
         accs = []
         correct_preds, total_correct, total_preds = 0., 0., 0.
-        for words, labels in minibatches(test, self.config.batch_size):
+        nbatches = (len(test.sents) + self.config.batch_size - 1) // self.config.batch_size
+        vocab_tag = test._preprocessor.vocab_tag
+        for i in range(nbatches):
+            words, labels = test.next_batch(self.config.batch_size)
             labels_pred, sequence_lengths = self.predict_batch(sess, words)
 
             for lab, lab_pred, length in zip(labels, labels_pred, sequence_lengths):
                 lab = lab[:length]
                 lab_pred = lab_pred[:length]
                 accs += [a == b for (a, b) in zip(lab, lab_pred)]
-                lab_chunks = set(get_chunks(lab, self.vocab.tag))
-                lab_pred_chunks = set(get_chunks(lab_pred, self.vocab.tag))
+                lab_chunks = set(get_chunks(lab, vocab_tag))
+                lab_pred_chunks = set(get_chunks(lab_pred, vocab_tag))
                 correct_preds += len(lab_chunks & lab_pred_chunks)
                 total_preds += len(lab_pred_chunks)
                 total_correct += len(lab_chunks)
@@ -334,7 +333,7 @@ class LstmCrfModel(object):
                 acc, f1 = self.run_epoch(sess, train, dev, epoch)
 
                 # decay learning rate
-                self.config.lr *= self.config.lr_decay
+                self.config.learning_rate *= self.config.lr_decay
 
                 # early stopping and saving best parameters
                 if f1 >= best_score:
@@ -352,12 +351,12 @@ class LstmCrfModel(object):
                                         nepoch_no_imprv))
                         break
 
-    def evaluate(self, test, tags):
+    def evaluate(self, test):
         saver = tf.train.Saver()
         with tf.Session() as sess:
             self.logger.info("Testing model over test set")
             saver.restore(sess, self.config.save_path)
-            acc, f1 = self.run_evaluate(sess, test, tags)
+            acc, f1 = self.run_evaluate(sess, test)
             self.logger.info("- test acc {:04.2f} - f1 {:04.2f}".format(100*acc, 100*f1))
 
     def interactive_shell(self, sent, tags, processing_word):
