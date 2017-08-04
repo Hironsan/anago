@@ -34,7 +34,7 @@ def dense_to_one_hot(labels_dense, num_classes):
 
 class DataSet(object):
 
-    def __init__(self, sents, labels, seed=None):
+    def __init__(self, sents, labels, seed=None, preprocessor=None):
         """Construct a DataSet."""
         seed1, seed2 = random_seed.get_seed(seed)
         # If op level seed is not set, use whatever graph level seed is returned
@@ -45,6 +45,7 @@ class DataSet(object):
         self._labels = labels
         self._epochs_completed = 0
         self._index_in_epoch = 0
+        self._preprocessor = preprocessor
 
     @property
     def sents(self):
@@ -91,11 +92,17 @@ class DataSet(object):
             end = self._index_in_epoch
             sents_new_part = self._sents[start:end]
             labels_new_part = self._labels[start:end]
-            return np.concatenate((sents_rest_part, sents_new_part), axis=0), np.concatenate((labels_rest_part, labels_new_part), axis=0)
+            X, y = np.concatenate((sents_rest_part, sents_new_part), axis=0), np.concatenate((labels_rest_part, labels_new_part), axis=0)
+            # return np.concatenate((sents_rest_part, sents_new_part), axis=0), np.concatenate((labels_rest_part, labels_new_part), axis=0)
         else:
             self._index_in_epoch += batch_size
             end = self._index_in_epoch
-            return self._sents[start:end], self._labels[start:end]
+            X, y = self._sents[start:end], self._labels[start:end]
+            #return self._sents[start:end], self._labels[start:end]
+        if self._preprocessor:
+            return self._preprocessor.transform(X, y)
+        else:
+            return X, y
 
 
 def read_data_sets(train_dir, one_hot=False, valid_size=5000, seed=None):

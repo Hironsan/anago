@@ -51,9 +51,13 @@ class WordPreprocessorTest(unittest.TestCase):
         preprocessor = WordPreprocessor()
         p = preprocessor.fit(X, y)
         X, y = p.transform(X, y)
-        print(X[0])
-        print(y[0])
-        print(p.inverse_transform(y[0]))
+        chars, words = X[0]
+        char, word = chars[0][0], words[0]
+        tag = y[0][0]
+        self.assertIsInstance(word, int)
+        self.assertIsInstance(char, int)
+        self.assertIsInstance(tag, int)
+        self.assertIsInstance(p.inverse_transform(y[0])[0], str)
 
     def test_unknown_word(self):
         train_dir = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/')

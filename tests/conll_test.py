@@ -2,6 +2,7 @@ import os
 import unittest
 
 from anago.data.conll import *
+from anago.data.preprocess import *
 
 
 class TestConll(unittest.TestCase):
@@ -25,3 +26,21 @@ class TestConll(unittest.TestCase):
         self.assertTrue(hasattr(datasets, 'train'))
         self.assertTrue(hasattr(datasets, 'valid'))
         self.assertTrue(hasattr(datasets, 'test'))
+
+    def test_dataset_with_preprocessing(self):
+        X, y = extract_data(self.filename)
+        d = DataSet(X, y)
+        sents, tags = d.next_batch(batch_size=1)
+        word, tag = sents[0][0], tags[0][0]
+        self.assertIsInstance(word, str)
+        self.assertIsInstance(tag, str)
+
+        p = WordPreprocessor()
+        p = p.fit(X, y)
+        d = DataSet(X, y, preprocessor=p)
+        sents, tags = d.next_batch(batch_size=1)
+        chars, words = sents[0]
+        word, char, tag = words[0], chars[0][0], tags[0][0]
+        self.assertIsInstance(word, int)
+        self.assertIsInstance(char, int)
+        self.assertIsInstance(tag, int)
