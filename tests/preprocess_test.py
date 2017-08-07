@@ -2,6 +2,8 @@ import os
 import unittest
 from unittest.mock import MagicMock
 
+from sklearn.externals import joblib
+
 from anago.data import conll
 from anago.data.preprocess import get_vocabs, get_char_vocab, build_vocab, load_vocab, load_word_embeddings
 from anago.data.preprocess import WordPreprocessor, UNK
@@ -88,3 +90,28 @@ class WordPreprocessorTest(unittest.TestCase):
         X_pred, _ = p.transform(X_test, y_test)
         words = X_pred[0][1]
         self.assertNotEqual(words, [p.vocab_word[UNK]])
+
+    def test_save(self):
+        preprocessor = WordPreprocessor()
+        filename = os.path.join(os.path.dirname(__file__), 'data/preprocessor.pkl')
+        joblib.dump(preprocessor, filename)
+        self.assertTrue(os.path.exists(filename))
+        if os.path.exists(filename):
+            os.remove(filename)
+
+    def test_load(self):
+        train_dir = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/')
+        datasets = conll.read_data_sets(train_dir)
+        X, y = datasets.train.sents, datasets.train.labels
+
+        preprocessor = WordPreprocessor()
+        p = preprocessor.fit(X, y)
+        filename = os.path.join(os.path.dirname(__file__), 'data/preprocessor.pkl')
+        joblib.dump(p, filename)
+        self.assertTrue(os.path.exists(filename))
+        loaded_p = joblib.load(filename)
+
+        self.assertEqual(loaded_p.transform(X, y), p.transform(X, y))
+
+        if os.path.exists(filename):
+            os.remove(filename)

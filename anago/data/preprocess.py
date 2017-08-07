@@ -205,7 +205,7 @@ class WordPreprocessor(BaseEstimator, TransformerMixin):
         chars = {UNK: 0}
         tags  = {}
 
-        for w in set(itertools.chain(*X)):
+        for w in set(itertools.chain(*X)) | set(self.vocab_init):
             if not self.char_feature:
                 continue
             for c in w:
