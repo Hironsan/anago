@@ -28,6 +28,7 @@ parser.add_argument('--lr_decay', default=0.9, type=float, help='The decay of th
 parser.add_argument('--lr_method', default='adam', help='The learning method')
 parser.add_argument('--max_epoch', default=15, type=int, help='The number of epochs')
 parser.add_argument('--reload', default=False, help='Reload model', action='store_true')
+parser.add_argument('--nepoch_no_imprv', default=3, type=int, help='For early stopping')
 config = parser.parse_args()
 
 
