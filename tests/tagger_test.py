@@ -18,6 +18,10 @@ class TaggerTest(unittest.TestCase):
         self.assertIsInstance(res[0][0], str)
         self.assertIsInstance(res[0][1], str)
 
+        tag_set = {'O', 'Location', 'Person', 'Organization', 'Misc'}
+        for _, tag in res:
+            self.assertIn(tag, tag_set)
+
     def test_get_entities(self):
         tagger = anago.Tagger()
         res = tagger.get_entities(self.sent)
