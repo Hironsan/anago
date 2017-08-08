@@ -2,169 +2,130 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import argparse
 import os
 
 import tensorflow as tf
 
-from anago import config
-from anago.models.bilstm_crf import LstmCrfModel
+from anago.models.model import LstmCrfModel
+from anago.data.preprocess import load_word_embeddings
+from anago.data.conll import extract_data, load_glove_vocab, WordPreprocessor, DataSet
+from anago.data_utils import pad_sequences
 
-FLAGS = tf.app.flags.FLAGS
-
-tf.flags.DEFINE_string("inception_checkpoint_file", "",
-                       "Path to a pretrained inception_v3 model.")
-tf.flags.DEFINE_string("train_dir", "",
-                       "Directory for saving and loading model checkpoints.")
-tf.flags.DEFINE_boolean("train_inception", False,
-                        "Whether to train inception submodel variables.")
-tf.flags.DEFINE_integer("number_of_steps", 1000000, "Number of training steps.")
-tf.flags.DEFINE_integer("log_every_n_steps", 1,
-                        "Frequency at which loss and global step are logged.")
-
-tf.logging.set_verbosity(tf.logging.INFO)
+parser = argparse.ArgumentParser()
+# data settings
+parser.add_argument('--data_path', required=True, help='Where the training/test data is stored.')
+parser.add_argument('--save_path', required=True, help='Where the trained model is stored.')
+parser.add_argument('--log_dir', help='Where log data is stored.')
+parser.add_argument('--glove_path', default=None, help='Where GloVe embedding is stored.')
+# model settings
+parser.add_argument('--dropout', default=0.5, type=float, help='The probability of keeping weights in the dropout layer')
+parser.add_argument('--char_dim', default=100, type=int, help='Character embedding dimension')
+parser.add_argument('--word_dim', default=300, type=int, help='Word embedding dimension')
+parser.add_argument('--lstm_size', default=300, type=int, help='The number of hidden units in lstm')
+parser.add_argument('--char_lstm_size', default=100, type=int, help='The number of hidden units in char lstm')
+parser.add_argument('--use_char', default=True, help='Use character feature', action='store_false')
+parser.add_argument('--crf', default=True, help='Use CRF', action='store_false')
+parser.add_argument('--train_embeddings', default=True, help='Fine-tune word embeddings', action='store_false')
+# learning settings
+parser.add_argument('--batch_size', default=20, type=int, help='The batch size')
+parser.add_argument('--clip_value', default=0.0, type=float, help='The clip value')
+parser.add_argument('--learning_rate', default=0.001, type=float, help='The initial value of the learning rate')
+parser.add_argument('--lr_decay', default=0.9, type=float, help='The decay of the learning rate for each epoch')
+parser.add_argument('--lr_method', default='adam', help='The learning method')
+parser.add_argument('--max_epoch', default=15, type=int, help='The number of epochs')
+parser.add_argument('--reload', default=False, help='Reload model', action='store_true')
+parser.add_argument('--nepoch_no_imprv', default=3, type=int, help='For early stopping')
+config = parser.parse_args()
 
 
 class Trainer(object):
 
-    def __init__(self, *args):
-        self.batch_size = batch_size
-        self.learning_rate = learning_rate
-        self.dropout = dropout
-        self.save_path = save_path
-        self.max_epoch = max_epoch
-        self.lr_decay = lr_decay
-        self.nepoch_no_imprv = npoch_no_imprv
-        self.logger = logger
+    def __init__(self, config):
+        self.config = config
+        self.word_ids = tf.placeholder(tf.int32, (None, None), name='word_ids')
+        self.char_ids = tf.placeholder(tf.int32, (None, None, None), name='char_ids')
+        self.sequence_lengths = tf.placeholder(tf.int32, (None), name='sequence_lengths')
+        self.word_lengths = tf.placeholder(tf.int32, (None, None), name='word_lengths')
+        self.labels = tf.placeholder(tf.int32, (None, None), name='labels')
+        self.dropout = tf.placeholder(tf.float32, shape=[], name='dropout')
+        self.lr = tf.placeholder(dtype=tf.float32, shape=[], name="lr")
 
-    def run_epoch(self, sess, train, dev, epoch):
-        """
-        Performs one complete pass over the train set and evaluate on dev
-        Args:
-            sess: tensorflow session
-            train: dataset that yields tuple of sentences, tags
-            dev: dataset
-            epoch: (int) number of the epoch
-        """
-        nbatches = (len(train.sents) + self.batch_size - 1) // self.batch_size
-        prog = Progbar(target=nbatches)
-        for i in range(nbatches):
-            words, labels = train.next_batch(self.batch_size)
+    def train(self, x_train, y_train):
+        vocab_glove = load_glove_vocab(config.glove_path)
+        p = WordPreprocessor(vocab_init=vocab_glove)
+        p = p.fit(x_train, y_train)
+        vocab_word = p.vocab_word
+        vocab_char = p.vocab_char
+        vocab_tag  = p.vocab_tag
+        dataset = DataSet(x_train, y_train, preprocessor=p)
 
-            fd, _ = self.get_feed_dict(words, labels, self.learning_rate, self.dropout)
-
-            _, train_loss, summary = sess.run([self.train_op, self.loss, self.merged], feed_dict=fd)
-
-            prog.update(i + 1, [("train loss", train_loss)])
-
-            # tensorboard
-            if i % 10 == 0:
-                self.file_writer.add_summary(summary, epoch*nbatches + i)
-
-        acc, f1 = self.run_evaluate(sess, dev)
-        self.logger.info("- dev acc {:04.2f} - f1 {:04.2f}".format(100*acc, 100*f1))
-        return acc, f1
-
-    def train(self, train, dev):
-        """
-        Performs training with early stopping and lr exponential decay
-        Args:
-            train: dataset that yields tuple of sentences, tags
-            dev: dataset
-        """
-        model = LstmCrfModel(model_config, mode="train", train_inception=FLAGS.train_inception)
-        model.build()
-
-        best_score = 0
-        saver = tf.train.Saver()
-        # for early stopping
-        nepoch_no_imprv = 0
         with tf.Session() as sess:
-            sess.run(self.init)
-            if self.reload:
-                self.logger.info("Reloading the latest trained model...")
-                saver.restore(sess, self.save_path)
-            # tensorboard
-            self.add_summary(sess)
-            for epoch in range(self.max_epoch):
-                self.logger.info("Epoch {:} out of {:}".format(epoch + 1, self.max_epoch))
-
-                acc, f1 = self.run_epoch(sess, train, dev, epoch)
-
-                # decay learning rate
-                self.learning_rate *= self.lr_decay
-
-                # early stopping and saving best parameters
-                if f1 >= best_score:
-                    nepoch_no_imprv = 0
-                    if not os.path.exists(self.save_path):
-                        os.makedirs(self.save_path)
-                    saver.save(sess, self.save_path)
-                    best_score = f1
-                    self.logger.info("- new best score!")
-
-                else:
-                    nepoch_no_imprv += 1
-                    if nepoch_no_imprv >= self.nepoch_no_imprv:
-                        self.logger.info("- early stopping {} epochs without improvement".format(nepoch_no_imprv))
-                        break
-
-    def train(self, dataset):
-        model_config = config.ModelConfig()
-        model_config.inception_checkpoint_file = FLAGS.inception_checkpoint_file
-        training_config = config.TrainingConfig()
-
-        # Create training directory.
-        train_dir = FLAGS.train_dir
-        if not tf.gfile.IsDirectory(train_dir):
-            tf.logging.info("Creating training directory: %s", train_dir)
-            tf.gfile.MakeDirs(train_dir)
-
-        # Build the TensorFlow graph.
-        g = tf.Graph()
-        with g.as_default():
-            # Build the model.
-            model = LstmCrfModel(model_config, mode="train", train_inception=FLAGS.train_inception)
+            embeddings = load_word_embeddings(vocab_word, config.glove_path, config.word_dim)
+            model = LstmCrfModel(config, embeddings, vocab_char, vocab_tag)
             model.build()
+            optimizer = tf.train.AdamOptimizer(self.config.learning_rate)
+            train_op = optimizer.minimize(model.loss)
+            sess.run(tf.global_variables_initializer())
 
-            # Set up the learning rate.
-            learning_rate = tf.constant(training_config.initial_learning_rate)
-            if training_config.learning_rate_decay_factor > 0:
-                num_batches_per_epoch = (training_config.num_examples_per_epoch / model_config.batch_size)
-                decay_steps = int(num_batches_per_epoch * training_config.num_epochs_per_decay)
+            for epoch in range(self.config.max_epoch):
+                self.run_epoch(sess, dataset, train_op, model)
+                self.config.learning_rate *= self.config.lr_decay
 
-                def _learning_rate_decay_fn(learning_rate, global_step):
-                    return tf.train.exponential_decay(
-                        learning_rate,
-                        global_step,
-                        decay_steps=decay_steps,
-                        decay_rate=training_config.learning_rate_decay_factor,
-                        staircase=True)
+    def run_epoch(self, sess, dataset, train_op, model):
+        nbatches = (len(dataset.sents) + self.config.batch_size - 1) // self.config.batch_size
+        for i in range(nbatches):
+            words, labels = dataset.next_batch(self.config.batch_size)
 
-                learning_rate_decay_fn = _learning_rate_decay_fn
+            fd, _ = model.get_feed_dict(words, labels, self.config.learning_rate, self.config.dropout)
 
-            # Set up the training ops.
-            train_op = tf.contrib.layers.optimize_loss(
-                loss=model.total_loss,
-                global_step=model.global_step,
-                learning_rate=learning_rate,
-                optimizer=training_config.optimizer,
-                clip_gradients=training_config.clip_gradients,
-                learning_rate_decay_fn=learning_rate_decay_fn)
+            _, train_loss = sess.run([train_op, model.loss], feed_dict=fd)
 
-            # Set up the Saver for saving and restoring model checkpoints.
-            saver = tf.train.Saver(max_to_keep=training_config.max_checkpoints_to_keep)
+    def get_feed_dict(self, words, labels=None, lr=None, dropout=None):
+        """
+        Given some data, pad it and build a feed dictionary
+        Args:
+            words: list of sentences. A sentence is a list of ids of a list of words.
+                A word is a list of ids
+            labels: list of ids
+            lr: (float) learning rate
+            dropout: (float) keep prob
+        Returns:
+            dict {placeholder: value}
+        """
+        # perform padding of the given data
+        if self.config.use_char:
+            char_ids, word_ids = zip(*words)
+            word_ids, sequence_lengths = pad_sequences(word_ids, 0)
+            char_ids, word_lengths = pad_sequences(char_ids, pad_tok=0, nlevels=2)
+        else:
+            word_ids, sequence_lengths = pad_sequences(words, 0)
 
-        # Run training.
-        tf.contrib.slim.learning.train(
-            train_op,
-            train_dir,
-            log_every_n_steps=FLAGS.log_every_n_steps,
-            graph=g,
-            global_step=model.global_step,
-            number_of_steps=FLAGS.number_of_steps,
-            init_fn=model.init_fn,
-            saver=saver)
+        # build feed dictionary
+        feed = {
+            self.word_ids: word_ids,
+            self.sequence_lengths: sequence_lengths
+        }
+
+        if self.config.use_char:
+            feed[self.char_ids] = char_ids
+            feed[self.word_lengths] = word_lengths
+
+        if labels:
+            labels, _ = pad_sequences(labels, 0)
+            feed[self.labels] = labels
+
+        if lr:
+            feed[self.lr] = lr
+
+        if dropout:
+            feed[self.dropout] = dropout
+
+        return feed, sequence_lengths
 
 
-if __name__ == "__main__":
-    tf.app.run()
+if __name__ == '__main__':
+    train_path = os.path.join(config.data_path, 'train.txt')
+    x_train, y_train = extract_data(train_path)
+    t = Trainer(config)
+    t.train(x_train, y_train)
