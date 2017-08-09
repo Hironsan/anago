@@ -185,3 +185,32 @@ class LstmCrfModel(object):
             feed[self.dropout] = dropout
 
         return feed, sequence_lengths
+
+    def predict_batch(self, sess, words):
+        """
+        Args:
+            sess: a tensorflow session
+            words: list of sentences
+        Returns:
+            labels_pred: list of labels for each sentence
+            sequence_length
+        """
+        # get the feed dictionnary
+        fd, sequence_lengths = self.get_feed_dict(words, dropout=1.0)
+
+        if self.config.crf:
+            viterbi_sequences = []
+            logits, transition_params = sess.run([self.logits, self.transition_params], feed_dict=fd)
+            # iterate over the sentences
+            for logit, sequence_length in zip(logits, sequence_lengths):
+                # keep only the valid time steps
+                logit = logit[:sequence_length]
+                viterbi_sequence, viterbi_score = tf.contrib.crf.viterbi_decode(logit, transition_params)
+                viterbi_sequences += [viterbi_sequence]
+
+            return viterbi_sequences, sequence_lengths
+
+        else:
+            labels_pred = sess.run(self.labels_pred, feed_dict=fd)
+
+            return labels_pred, sequence_lengths
