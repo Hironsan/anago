@@ -34,7 +34,6 @@ class LstmCrfModel(object):
         self.word_lengths = tf.placeholder(tf.int32, (None, None), name='word_lengths')
         self.labels = tf.placeholder(tf.int32, (None, None), name='labels')
         self.dropout = tf.placeholder(tf.float32, shape=[], name='dropout')
-        self.lr = tf.placeholder(dtype=tf.float32, shape=[], name="lr")
 
     def build_word_embeddings(self):
         """Builds the word embeddings.
@@ -144,14 +143,13 @@ class LstmCrfModel(object):
         self.build_model()
         self.build_loss()
 
-    def get_feed_dict(self, words, labels=None, lr=None, dropout=None):
+    def get_feed_dict(self, words, labels=None, dropout=None):
         """
         Given some data, pad it and build a feed dictionary
         Args:
             words: list of sentences. A sentence is a list of ids of a list of words.
                 A word is a list of ids
             labels: list of ids
-            lr: (float) learning rate
             dropout: (float) keep prob
         Returns:
             dict {placeholder: value}
@@ -177,9 +175,6 @@ class LstmCrfModel(object):
         if labels:
             labels, _ = pad_sequences(labels, 0)
             feed[self.labels] = labels
-
-        if lr:
-            feed[self.lr] = lr
 
         if dropout:
             feed[self.dropout] = dropout

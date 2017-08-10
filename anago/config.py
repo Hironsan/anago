@@ -1,10 +1,8 @@
-"""Sequential labeling model and training configurations."""
-
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-
+"""
 class Config(object):
 
     learning_rate = 0.01
@@ -22,6 +20,34 @@ class Config(object):
     use_char = True
     nb_filters = 30
     nb_kernels = 3
+"""
+
+class Config(object):
+    # data settings
+    data_path = None  # Where the training/test data is stored
+    save_path = None  # Where the trained model is stored
+    log_dir = None    # Where log data is stored
+    glove_path = None # Where GloVe embedding is stored
+
+    # model settings
+    dropout = 0.5           # The probability of keeping weights in the dropout layer
+    char_dim = 100          # Character embedding dimension
+    word_dim = 300          # Word embedding dimension
+    lstm_size = 300         # The number of hidden units in lstm
+    char_lstm_size = 100    # The number of hidden units in char lstm
+    use_char = True         # Use character feature
+    crf = True              # Use CRF
+
+    # training settings
+    batch_size = 20          # The batch size
+    clip_value = 0.0         # The clip value
+    learning_rate = 0.001    # The initial value of the learning rate
+    lr_decay = 0.9           # The decay of the learning rate for each epoch
+    lr_method = 'adam'       # The learning method
+    max_epoch = 15           # The number of epochs
+    reload=False             # Reload model
+    nepoch_no_imprv = 3      # For early stopping
+    train_embeddings = True  # Fine-tune word embeddings
 
 
 class ModelConfig(object):
