@@ -1,76 +1,76 @@
-import argparse
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
-from anago.config import Config
-from anago.data import reader, metrics, preprocess
-from anago.models.bilstm import BiLSTM
-from anago.models.bilstm_cnn import BiLSTMCNN
+import os
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--data_path', help='Where the training/test data is stored.')
-parser.add_argument('--save_path', help='Where the trained model is stored.')
-parser.add_argument('--log_dir', help='Where log data is stored.')
-parser.add_argument('--glove_path', default=None, help='Where GloVe embedding is stored.')
-args = parser.parse_args()
+import numpy as np
+import tensorflow as tf
+import keras.backend as K
+from keras.optimizers import RMSprop
+from keras.utils.np_utils import to_categorical
 
-
-def main():
-    if not args.data_path:
-        raise ValueError('Must set --data_path to conll data directory')
-
-    config = Config()
-    config.log_dir = args.log_dir
-
-    vocab_words, vocab_chars, vocab_tags = reader.load_vocab(args.data_path, args.glove_path,
-                                                             preprocess.get_processing_word(lowercase=True))
-
-    embeddings = reader.get_glove_vectors(vocab_words, args.glove_path, dim=300)
-
-    # get processing functions
-    processing_word = preprocess.get_processing_word(vocab_words, vocab_chars,
-                                                     lowercase=True, use_char=config.use_char)
-    processing_tag = preprocess.get_processing_word(vocab_tags, lowercase=False)
-
-    raw_data = reader.conll_raw_data(args.data_path, processing_word, processing_tag)
-    train_data, valid_data, test_data = raw_data
-
-    if config.use_char:
-        sents_char = [list(zip(*d))[0] for d in train_data['X']]
-        sents_word = [list(zip(*d))[1] for d in train_data['X']]
-        sents_char = preprocess.pad_chars(sents_char, config)
-        sents_word = preprocess.pad_words(sents_word, config)
-        r = len(sents_char) // config.batch_size * config.batch_size
-        sents_char = sents_char[:r]
-        sents_word = sents_word[:r]
-        X_train = [sents_word, sents_char]
-        sents_char = [list(zip(*d))[0] for d in test_data['X']]
-        sents_word = [list(zip(*d))[1] for d in test_data['X']]
-        sents_word = preprocess.pad_words(sents_word, config)
-        sents_char = preprocess.pad_chars(sents_char, config)
-        X_test = [sents_word, sents_char]
-        config.char_vocab_size = len(vocab_chars)
-        config.char_embedding_size = 25
-        from models.bilstm_cnn_crf import BiLSTMCNNCrf
-        model = BiLSTMCNN(config, embeddings, ntags=len(vocab_tags))
-        #model = BiLSTMCNNCrf(config, embeddings, ntags=len(vocab_tags))
-        y_train = preprocess.to_onehot(train_data['y'], config, ntags=len(vocab_tags))
-        y_train = y_train[:r]
-    else:
-        X_train = preprocess.pad_words(train_data['X'], config)
-        X_test = preprocess.pad_words(test_data['X'], config)
-        model = BiLSTM(config, embeddings, ntags=len(vocab_tags))
-        y_train = preprocess.to_onehot(train_data['y'], config, ntags=len(vocab_tags))
-
-    y_test = preprocess.to_onehot(test_data['y'], config, ntags=len(vocab_tags))
-
-    model.train(X_train, y_train)
-    y_pred = model.predict(X_test)
-    metrics.report(y_test, y_pred, vocab_tags)
-    print(metrics.run_evaluate(y_test, y_pred, vocab_tags))
-
-    if args.save_path:
-        print('Saving model to {}.'.format(args.save_path))
-        model.save(args.save_path)
+from anago.models.keras_model import LSTMCrf
+from anago.data.preprocess import load_word_embeddings
+from anago.data.conll import load_glove_vocab, WordPreprocessor, DataSet
+from anago.data_utils import pad_sequences, get_chunks
+from anago.general_utils import Progbar, get_logger
 
 
-if __name__ == '__main__':
-    main()
+class Trainer(object):
+
+    def __init__(self, config):
+        self.config = config
+        self.logger = get_logger(os.path.join(config.log_dir, 'log.txt'))
+        self.sequence_lengths = 0
+
+    def train(self, x_train, y_train, x_valid=None, y_valid=None):
+        p = WordPreprocessor()
+        p = p.fit(x_train, y_train)
+        train = DataSet(x_train, y_train, preprocessor=p)
+        embeddings = load_word_embeddings(p.vocab_word, self.config.glove_path, self.config.word_dim)
+        self.config.char_vocab_size = len(p.vocab_char)
+
+        model = LSTMCrf(self.config, embeddings, len(p.vocab_tag))
+        model = model.build()
+        model.compile(loss=self.loss,
+                      optimizer=RMSprop(lr=self.config.learning_rate),
+                      )##metrics=['acc'])
+
+        for epoch in range(self.config.max_epoch):
+            self.logger.info('Epoch {:} out of {:}'.format(epoch + 1, self.config.max_epoch))
+
+            nbatches = (len(train.sents) + self.config.batch_size - 1) // self.config.batch_size
+            prog = Progbar(target=nbatches)
+            for i in range(nbatches):
+                words, labels = train.next_batch(self.config.batch_size)
+                words, chars, labels = self.pad_sequence(words, labels, len(p.vocab_tag))
+                train_loss = model.train_on_batch([words, chars], labels)
+                prog.update(i + 1, [('train loss', train_loss)])
+
+    def pad_sequence(self, words, labels, ntags):
+        if labels:
+            labels, _ = pad_sequences(labels, 0)
+            labels = np.asarray(labels)
+            labels = np.asarray([to_categorical(y, num_classes=ntags) for y in labels])
+
+        if self.config.use_char:
+            char_ids, word_ids = zip(*words)
+            word_ids, self.sequence_lengths = pad_sequences(word_ids, 0)
+            char_ids, word_lengths = pad_sequences(char_ids, pad_tok=0, nlevels=2)
+            word_ids, char_ids = np.asarray(word_ids), np.asarray(char_ids)
+            return word_ids, char_ids, labels
+        else:
+            word_ids, self.sequence_lengths = pad_sequences(words, 0)
+            word_ids = np.asarray(word_ids)
+            return np.asarray(word_ids), labels
+
+    def loss(self, y_true, y_pred):
+        y_t = K.argmax(y_true, -1)
+        y_t = tf.cast(y_t, tf.int32)
+        sequence_length = tf.constant(shape=(self.config.batch_size,), value=self.sequence_lengths, dtype=tf.int32)
+        log_likelihood, transition_params = tf.contrib.crf.crf_log_likelihood(y_pred, y_t, sequence_length)
+        loss = tf.reduce_mean(-log_likelihood)
+        self.transition_matrix = K.eval(transition_params)
+
+        return loss
