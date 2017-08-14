@@ -201,9 +201,9 @@ class WordPreprocessor(BaseEstimator, TransformerMixin):
         self.vocab_init = vocab_init or {}
 
     def fit(self, X, y):
-        words = {UNK: 0}
-        chars = {UNK: 0}
-        tags  = {}
+        words = {PAD: 0, UNK: 1}
+        chars = {PAD: 0, UNK: 1}
+        tags  = {PAD: 0}
 
         for w in set(itertools.chain(*X)) | set(self.vocab_init):
             if not self.char_feature:
