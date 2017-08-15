@@ -1,25 +1,11 @@
-import itertools
-from sklearn.metrics import classification_report
+import numpy as np
 
-
-def report(y_true, y_pred, entity_to_id):
-    y_true = [y.argmax() for y in itertools.chain(*y_true)]
-    y_pred = [y.argmax() for y in itertools.chain(*y_pred)]
-
-    tagset = set(entity_to_id) - {'O', '<PAD>'}
-    tagset = sorted(tagset, key=lambda tag: tag.split('-', 1)[::-1])
-
-    print(classification_report(
-        y_true,
-        y_pred,
-        labels=[entity_to_id[cls] for cls in tagset],
-        target_names=tagset,
-    ))
+NONE = 'O'
 
 
 def get_chunk_type(tok, idx_to_tag):
     """
-    Args:
+    Arguments:
         tok: id of token, ex 4
         idx_to_tag: dictionary {4: "B-PER", ...}
     Returns:
@@ -31,10 +17,9 @@ def get_chunk_type(tok, idx_to_tag):
     return tag_class, tag_type
 
 
-NONE = 'O'
 def get_chunks(seq, tags):
     """
-    Args:
+    Arguments:
         seq: [4, 4, 0, 0, ...] sequence of labels
         tags: dict["O"] = 4
     Returns:
@@ -76,7 +61,6 @@ def get_chunks(seq, tags):
     return chunks
 
 
-import numpy as np
 def run_evaluate(y_true, y_pred, tags):
     """
     Evaluates performance on test set

@@ -7,11 +7,11 @@ import os
 import numpy as np
 import tensorflow as tf
 
-from anago.models.model import LstmCrfModel
+from anago.data.reader import load_glove_vocab, WordPreprocessor, DataSet
+from anago.data.metrics import get_chunks
 from anago.data.preprocess import load_word_embeddings
-from anago.data.conll import load_glove_vocab, WordPreprocessor, DataSet
-from anago.data_utils import pad_sequences, get_chunks
-from anago.general_utils import Progbar, get_logger
+from anago.data.utils import Progbar, get_logger
+from anago.models.model import LstmCrfModel
 
 
 class Trainer(object):

@@ -1,8 +1,11 @@
-import numpy as np
 import os
+
+import numpy as np
 import tensorflow as tf
-from anago.data_utils import minibatches, pad_sequences, get_chunks
-from anago.general_utils import Progbar, get_logger
+
+from anago.data.preprocess import pad_sequences
+from anago.data.metrics import get_chunks
+from anago.data.utils import Progbar, get_logger
 
 
 class LstmCrfModel(object):

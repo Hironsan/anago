@@ -1,149 +1,143 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import collections
-import itertools
 import os
 
 import numpy as np
-UNK = '<UNK>'
-PAD = '<PAD>'
+from tensorflow.python.framework import random_seed
+
+from anago.data.preprocess import WordPreprocessor
 
 
-def _read_dataset(filename, processing_word, processing_tag=lambda x: x):
-    with open(filename, 'r') as f:
-        data = f.read().replace("-DOCSTART- -X- -X- O\n\n", "").strip().split('\n\n')
-        data = [sent.split('\n') for sent in data]
-        sents = [[processing_word(line.split(' ')[0]) for line in sent] for sent in data]
-        entities = [[processing_tag(line.split(' ')[-1]) for line in sent] for sent in data]
-        return {'X': sents, 'y': entities}
+def extract_data(filename):
+    sents, labels = [], []
+    with open(filename) as f:
+        words, tags = [], []
+        for line in f:
+            line = line.rstrip()
+            if len(line) == 0 or line.startswith('-DOCSTART-'):
+                if len(words) != 0:
+                    sents.append(words)
+                    labels.append(tags)
+                    words, tags = [], []
+            else:
+                word, _, _, tag = line.split(' ')
+                words.append(word)
+                tags.append(tag)
+    return np.asarray(sents), np.asarray(labels)
 
 
-def _build_vocab(filename, preprocess):
-    data = _read_dataset(filename, preprocess)
-
-    counter = collections.Counter(itertools.chain(*data['X']))
-    count_pairs = sorted(counter.items(), key=lambda x: (-x[1], x[0]))
-
-    words, _ = list(zip(*count_pairs))
-    words = [PAD, UNK] + list(words)
-    word_to_id = dict(zip(words, range(len(words))))
-
-    chars = sorted(get_char_vocab(data['X']))
-    chars = [PAD, UNK] + chars
-    char_to_id = dict(zip(chars, range(len(chars))))
-
-    entities = sorted(set(itertools.chain(*data['y'])))
-    entities = [PAD] + entities
-    entity_to_id = dict(zip(entities, range(len(entities))))
-
-    return word_to_id, char_to_id, entity_to_id
+def dense_to_one_hot(labels_dense, num_classes):
+    """Convert class labels from scalars to one-hot vectors."""
+    num_labels = labels_dense.shape[0]
+    index_offset = np.arange(num_labels) * num_classes
+    labels_one_hot = np.zeros((num_labels, num_classes))
+    labels_one_hot.flat[index_offset + labels_dense.ravel()] = 1
+    return labels_one_hot
 
 
-def get_char_vocab(dataset):
-    """
-    Args:
-        dataset: a iterator yielding tuples (sentence, tags)
-    Returns:
-        a set of all the characters in the dataset
-    """
-    vocab_char = set()
-    for words in dataset:
-        for word in words:
-            vocab_char.update(word)
+class DataSet(object):
 
-    return vocab_char
+    def __init__(self, sents, labels, seed=None, preprocessor=None):
+        """Construct a DataSet."""
+        seed1, seed2 = random_seed.get_seed(seed)
+        # If op level seed is not set, use whatever graph level seed is returned
+        np.random.seed(seed1 if seed is None else seed2)
+        assert sents.shape[0] == labels.shape[0]
+        self._num_examples = sents.shape[0]
+        self._sents = sents
+        self._labels = labels
+        self._epochs_completed = 0
+        self._index_in_epoch = 0
+        self._preprocessor = preprocessor
+
+    @property
+    def sents(self):
+        return self._sents
+
+    @property
+    def labels(self):
+        return self._labels
+
+    @property
+    def num_examples(self):
+        return self._num_examples
+
+    @property
+    def epochs_completed(self):
+        return self._epochs_completed
+
+    def next_batch(self, batch_size, shuffle=True):
+        """Return the next `batch_size` examples from this data set."""
+        start = self._index_in_epoch
+        # Shuffle for the first epoch
+        if self._epochs_completed == 0 and start == 0 and shuffle:
+            perm0 = np.arange(self._num_examples)
+            np.random.shuffle(perm0)
+            self._sents = self.sents[perm0]
+            self._labels = self.labels[perm0]
+        # Go to the next epoch
+        if start + batch_size > self._num_examples:
+            # Finished epoch
+            self._epochs_completed += 1
+            # Get the rest examples in this epoch
+            rest_num_examples = self._num_examples - start
+            sents_rest_part = self._sents[start:self._num_examples]
+            labels_rest_part = self._labels[start:self._num_examples]
+            # Shuffle the data
+            if shuffle:
+                perm = np.arange(self._num_examples)
+                np.random.shuffle(perm)
+                self._sents = self.sents[perm]
+                self._labels = self.labels[perm]
+            # Start next epoch
+            start = 0
+            self._index_in_epoch = batch_size - rest_num_examples
+            end = self._index_in_epoch
+            sents_new_part = self._sents[start:end]
+            labels_new_part = self._labels[start:end]
+            X, y = np.concatenate((sents_rest_part, sents_new_part), axis=0), np.concatenate((labels_rest_part, labels_new_part), axis=0)
+            # return np.concatenate((sents_rest_part, sents_new_part), axis=0), np.concatenate((labels_rest_part, labels_new_part), axis=0)
+        else:
+            self._index_in_epoch += batch_size
+            end = self._index_in_epoch
+            X, y = self._sents[start:end], self._labels[start:end]
+            #return self._sents[start:end], self._labels[start:end]
+        if self._preprocessor:
+            return self._preprocessor.transform(X, y)
+        else:
+            return X, y
 
 
-def get_glove_vocab(filename):
-    """
+def read_datasets(train_dir, glove_file, one_hot=False, valid_size=5000, seed=None):
+    train_path = os.path.join(train_dir, 'train.txt')
+    valid_path = os.path.join(train_dir, 'valid.txt')
+    test_path = os.path.join(train_dir, 'test.txt')
+    x_train, y_train = extract_data(train_path)
+    x_valid, y_valid = extract_data(valid_path)
+    x_test, y_test = extract_data(test_path)
+
+    vocab_glove = load_glove_vocab(glove_file)
+
+    p = WordPreprocessor(vocab_init=vocab_glove)
+    p = p.fit(np.concatenate((x_train, x_valid, x_test)), y_train)
+
+    train = DataSet(x_train, y_train, seed=seed, preprocessor=p)
+    valid = DataSet(x_valid, y_valid, seed=seed, preprocessor=p)
+    test = DataSet(x_test, y_test, seed=seed, preprocessor=p)
+    Datasets = collections.namedtuple('Datasets', ['train', 'valid', 'test'])
+
+    return Datasets(train=train, valid=valid, test=test)
+
+
+def load_glove_vocab(filename):
+    """Loads GloVe's vocab from a file.
+
     Args:
         filename: path to the glove vectors
-    """
-    print("Building vocab...")
-    vocab = set()
-    if not filename:
-        return vocab
-    with open(filename) as f:
-        for line in f:
-            word = line.strip().split(' ')[0]
-            vocab.add(word)
-    print("- done. {} tokens".format(len(vocab)))
-    return vocab
-
-
-def add_vocab(word_to_id, vocab_glove):
-    i = max(word_to_id.values()) + 1
-    for w in vocab_glove:
-        if w not in word_to_id:
-            word_to_id[w] = i
-            i += 1
-    return word_to_id
-
-
-def load_vocab(data_path, glove_path=None, preprocess=str.lower):
-    train_path = os.path.join(data_path, 'train.txt')
-    word_to_id, char_to_id, entity_to_id = _build_vocab(train_path, preprocess)
-
-    # build vocab
-    vocab_glove = get_glove_vocab(glove_path)
-    word_to_id = add_vocab(word_to_id, vocab_glove)
-
-    return word_to_id, char_to_id, entity_to_id
-
-
-def get_glove_vectors(vocab, glove_filename, dim):
-    """
-    Saves glove vectors in numpy array
-    Args:
-        vocab: dictionary vocab[word] = index
-        glove_filename: a path to a glove file
-        dim: (int) dimension of embeddings
-    """
-    embeddings = np.zeros([len(vocab), dim])
-    #limit = np.sqrt(3 / dim)
-    #embeddings = np.random.uniform(-limit, limit, size=(len(vocab), dim))
-    if not glove_filename:
-        return embeddings
-    with open(glove_filename) as f:
-        for line in f:
-            line = line.strip().split(' ')
-            word = line[0]
-            embedding = [float(x) for x in line[1:]]
-            if word in vocab:
-                word_idx = vocab[word]
-                embeddings[word_idx] = np.asarray(embedding)
-
-    return embeddings
-
-
-def _file_to_ids(filename, processing_word, processing_tag):
-    data = _read_dataset(filename, processing_word, processing_tag)
-    return data
-
-
-def conll_raw_data(data_path, processing_word, processing_tag):
-    """Load conll raw data from data directory "data_path".
-    Reads NER text files, converts strings to integer ids,
-    and performs mini-batching of the inputs.
-    The conll dataset comes from conll's webpage:
-    http://www.cnts.ua.ac.be/conll2003/ner.tgz
-    Args:
-        data_path: string path to the directory where simple-examples.tgz has been extracted.
-        preprocess: preprocessing function for word
-        vocab_path: pre-trained vocabulary
     Returns:
-        tuple (train_data, valid_data, test_data, vocabulary)
-        where each of the data objects can be passed to PTBIterator.
+        a set of all words in GloVe
     """
-
-    train_path = os.path.join(data_path, 'train.txt')
-    valid_path = os.path.join(data_path, 'valid.txt')
-    test_path = os.path.join(data_path, 'test.txt')
-
-    train_data = _file_to_ids(train_path, processing_word, processing_tag)
-    valid_data = _file_to_ids(valid_path, processing_word, processing_tag)
-    test_data = _file_to_ids(test_path, processing_word, processing_tag)
-
-    return train_data, valid_data, test_data
+    print('Building vocab...')
+    with open(filename) as f:
+        vocab = {line.strip().split()[0] for line in f}
+    print('- done. {} tokens'.format(len(vocab)))
+    return vocab

@@ -1,6 +1,6 @@
 import argparse
 
-from anago.data import conll
+from anago.data import reader
 from anago.data.preprocess import load_word_embeddings
 from anago.models.bilstm_crf import LstmCrfModel
 
@@ -33,7 +33,7 @@ config = parser.parse_args()
 
 
 def main():
-    datasets = conll.read_datasets(config.data_path, config.glove_path)
+    datasets = reader.read_datasets(config.data_path, config.glove_path)
     vocab_word = datasets.train._preprocessor.vocab_word
     vocab_char = datasets.train._preprocessor.vocab_char
     vocab_tag  = datasets.train._preprocessor.vocab_tag

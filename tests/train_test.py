@@ -2,7 +2,7 @@ import os
 import unittest
 
 import anago
-from anago.data.conll import extract_data
+from anago.data.reader import extract_data
 from anago.config import Config
 
 

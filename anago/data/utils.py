@@ -4,24 +4,6 @@ import logging
 import numpy as np
 
 
-def print_sentence(logger, data):
-    """
-    Adapted from Assignment 3 of CS224N
-
-    Args:
-        logger: logger instance
-        data: dict d["x"] = ["I", "live", ...]
-    """
-    spacings = [max([len(seq[i]) for seq in data.values()]) for i in range(len(data[list(data.keys())[0]]))]
-    # Compute the word spacing
-    for key, seq in data.items():
-        # logger.info("{} : ".format(key))
-        to_print = ""
-        for token, spacing in zip(seq, spacings):
-            to_print += token + " " * (spacing - len(token) + 1)
-        logger.info(to_print)
-
-
 def get_logger(filename):
     logger = logging.getLogger('logger')
     logger.setLevel(logging.DEBUG)
@@ -142,3 +124,28 @@ class Progbar(object):
         self.update(self.seen_so_far+n, values)
 
 
+def minibatches(data, minibatch_size):
+    """
+    Arguments:
+        data: generator of (sentence, tags) tuples
+        minibatch_size: (int)
+    Returns:
+        list of tuples
+    """
+    x_batch, y_batch = [], []
+    for (x, y) in data:
+        if len(x_batch) == minibatch_size:
+            yield x_batch, y_batch
+            x_batch, y_batch = [], []
+
+        if type(x[0]) == tuple:
+            x = zip(*x)
+        x_batch.append(x)
+        y_batch.append(y)
+
+    if len(x_batch) != 0:
+        yield x_batch, y_batch
+
+
+def download(url, save_dir='.'):
+    pass

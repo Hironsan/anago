@@ -1,5 +1,5 @@
 """
-A Keras implementation of LSTM-CRF for named-entity recognition.
+A Keras implementation of BiLSTM-CRF for named-entity recognition.
 
 References
 --
@@ -7,14 +7,11 @@ Guillaume Lample, Miguel Ballesteros, Sandeep Subramanian, Kazuya Kawakami, Chri
 "Neural Architectures for Named Entity Recognition". Proceedings of NAACL 2016.
 https://arxiv.org/abs/1603.01360
 """
-import numpy as np
-import tensorflow as tf
 import keras.backend as K
 from keras.layers import Dense, LSTM, Bidirectional, Embedding, Input, Dropout, Lambda
 from keras.layers.merge import Concatenate
 from keras.layers.wrappers import TimeDistributed
 from keras.models import Model
-from keras.utils import to_categorical
 
 from anago.models.base_model import BaseModel
 

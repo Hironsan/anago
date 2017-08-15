@@ -2,7 +2,7 @@ import os
 import unittest
 
 import anago
-from anago.data.conll import DataSet, extract_data
+from anago.data.reader import DataSet, extract_data
 
 
 class TrainTest(unittest.TestCase):

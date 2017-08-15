@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from anago.data_utils import pad_sequences
+from anago.data.preprocess import pad_sequences
 
 
 class LstmCrfModel(object):

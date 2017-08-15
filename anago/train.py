@@ -4,17 +4,17 @@ from __future__ import print_function
 
 import os
 
+import keras.backend as K
 import numpy as np
 import tensorflow as tf
-import keras.backend as K
-from keras.optimizers import RMSprop, Adam
+from keras.optimizers import Adam
 from keras.utils.np_utils import to_categorical
 
+from anago.data.reader import WordPreprocessor, DataSet
+from anago.data.metrics import get_chunks
+from anago.data.preprocess import load_word_embeddings, pad_sequences
+from anago.data.utils import Progbar, get_logger
 from anago.models.keras_model import LSTMCrf
-from anago.data.preprocess import load_word_embeddings
-from anago.data.conll import load_glove_vocab, WordPreprocessor, DataSet
-from anago.data_utils import pad_sequences, get_chunks
-from anago.general_utils import Progbar, get_logger
 
 
 class Trainer(object):
@@ -65,7 +65,7 @@ class Trainer(object):
         else:
             word_ids, sequence_lengths = pad_sequences(words, 0)
             word_ids = np.asarray(word_ids)
-            return np.asarray(word_ids), labels, sequence_lengths
+            return word_ids, labels, sequence_lengths
 
     def loss(self, y_true, y_pred):
         y_t = K.argmax(y_true, -1)
@@ -73,7 +73,6 @@ class Trainer(object):
         sequence_lengths = K.argmin(y_t, -1)
         log_likelihood, transition_params = tf.contrib.crf.crf_log_likelihood(y_pred, y_t, sequence_lengths)
         loss = tf.reduce_mean(-log_likelihood)
-        # self.transition_params = K.eval(transition_params)
         self.transition_params = transition_params
 
         return loss
