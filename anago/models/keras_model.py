@@ -27,8 +27,12 @@ class LSTMCrf(BaseModel):
                                     )(char_ids)
         s = K.shape(char_embeddings)
         char_embeddings = Lambda(lambda x: K.reshape(x, shape=(-1, s[-2], self.config.char_dim)))(char_embeddings)
-        char_embeddings = Bidirectional(LSTM(units=self.config.char_lstm_size,
-                                             ))(char_embeddings)
+        """
+        char_embeddings = Bidirectional(LSTM(units=self.config.char_lstm_size))(char_embeddings)
+        """
+        fwd_state = LSTM(self.config.char_lstm_size, return_state=True)(char_embeddings)[-2]
+        bwd_state = LSTM(self.config.char_lstm_size, return_state=True, go_backwards=True)(char_embeddings)[-2]
+        char_embeddings = Concatenate(axis=-1)([fwd_state, bwd_state])
         # shape = (batch size, max sentence length, char hidden size)
         char_embeddings = Lambda(lambda x: K.reshape(x, shape=[-1, s[1], 2 * self.config.char_lstm_size]))(char_embeddings)
 
@@ -40,10 +44,11 @@ class LSTMCrf(BaseModel):
                                     weights=[self.embeddings])(word_ids)
         # combine characters and word
         x = Concatenate(axis=-1)([char_embeddings, word_embeddings])
-
+        # x = Dropout(self.config.dropout)(x)
         x = Bidirectional(LSTM(units=self.config.lstm_size, return_sequences=True))(x)
         x = Dropout(self.config.dropout)(x)
-        pred = TimeDistributed(Dense(self.ntags))(x)
+        pred = Dense(self.ntags)(x)
+        #pred = TimeDistributed(Dense(self.ntags))(x)
 
         model = Model(inputs=[word_ids, char_ids], outputs=[pred])
         model.summary()
