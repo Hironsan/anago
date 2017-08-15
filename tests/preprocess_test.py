@@ -4,16 +4,16 @@ import unittest
 from sklearn.externals import joblib
 
 from anago.data import reader
-from anago.data.preprocess import WordPreprocessor, UNK
+from anago.data.preprocess import WordPreprocessor, UNK, dense_to_one_hot
 
 
 class WordPreprocessorTest(unittest.TestCase):
 
-    def test_preprocessor(self):
-        train_dir = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/')
-        datasets = reader.read_data_sets(train_dir)
-        X, y = datasets.train.sents, datasets.train.labels
+    def setUp(self):
+        self.filename = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/train.txt')
 
+    def test_preprocessor(self):
+        X, y = reader.extract_data(self.filename)
         preprocessor = WordPreprocessor()
         p = preprocessor.fit(X, y)
         X, y = p.transform(X, y)
@@ -26,9 +26,7 @@ class WordPreprocessorTest(unittest.TestCase):
         self.assertIsInstance(p.inverse_transform(y[0])[0], str)
 
     def test_unknown_word(self):
-        train_dir = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/')
-        datasets = reader.read_data_sets(train_dir)
-        X, y = datasets.train.sents, datasets.train.labels
+        X, y = reader.extract_data(self.filename)
         preprocessor = WordPreprocessor()
         p = preprocessor.fit(X, y)
         X = [['$unknownword$', 'あ']]
@@ -36,9 +34,7 @@ class WordPreprocessorTest(unittest.TestCase):
         X, y = p.transform(X, y)
 
     def test_vocab_init(self):
-        train_dir = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/')
-        datasets = reader.read_data_sets(train_dir)
-        X, y = datasets.train.sents, datasets.train.labels
+        X, y = reader.extract_data(self.filename)
         unknown_word = 'unknownword'
         X_test, y_test = [[unknown_word]], [['O']]
 
@@ -64,10 +60,7 @@ class WordPreprocessorTest(unittest.TestCase):
             os.remove(filename)
 
     def test_load(self):
-        train_dir = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/')
-        datasets = reader.read_data_sets(train_dir)
-        X, y = datasets.train.sents, datasets.train.labels
-
+        X, y = reader.extract_data(self.filename)
         preprocessor = WordPreprocessor()
         p = preprocessor.fit(X, y)
         filename = os.path.join(os.path.dirname(__file__), 'data/preprocessor.pkl')
@@ -79,3 +72,12 @@ class WordPreprocessorTest(unittest.TestCase):
 
         if os.path.exists(filename):
             os.remove(filename)
+
+
+class PreprocessTest(unittest.TestCase):
+
+    def test_dense_to_onehot(self):
+        labels = [1, 2, 3]
+        labels_one_hot = dense_to_one_hot(labels, num_classes=9)
+        for labels in labels_one_hot:
+            self.assertEqual(sum(labels), 1)

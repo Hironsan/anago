@@ -1,11 +1,11 @@
 import os
 import unittest
 
-from anago.data.reader import *
-from anago.data.preprocess import *
+from anago.data.reader import DataSet, extract_data, load_glove_vocab
+from anago.data.preprocess import WordPreprocessor
 
 
-class TestConll(unittest.TestCase):
+class ReaderTest(unittest.TestCase):
 
     def setUp(self):
         self.filename = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/test.txt')
