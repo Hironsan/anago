@@ -61,7 +61,35 @@ def get_chunks(seq, tags):
     return chunks
 
 
-def run_evaluate(y_true, y_pred, tags):
+def get_entities(seq):
+    """
+    Arguments:
+        seq: ["B-PER", "I-PER", "O", "B-LOC", ...] sequence of labels
+    Returns:
+        list of (chunk_type, chunk_start, chunk_end)
+
+    Example:
+        seq: ["B-PER", "I-PER", "O", "B-LOC"]
+        result = [("PER", 0, 2), ("LOC", 3, 4)]
+    """
+    i = 0
+    chunks = []
+    seq = seq + ['O']  # add sentinel
+    types = [tag.split('-')[-1] for tag in seq]
+    while i < len(seq):
+        if seq[i].startswith('B'):
+            for j in range(i+1, len(seq)):
+                if seq[j].startswith('I') and types[j] == types[i]:
+                    continue
+                break
+            chunks.append((types[i], i, j))
+            i = j
+        else:
+            i += 1
+    return chunks
+
+
+def run_evaluate(y_true, y_pred, sequence_lengths):
     """
     Evaluates performance on test set
     Args:
@@ -72,17 +100,14 @@ def run_evaluate(y_true, y_pred, tags):
         accuracy
         f1 score
     """
-    labels = [y.argmax(axis=1) for y in y_true]
-    labels_pred = [y.argmax(axis=1) for y in y_pred]
-    sequence_lengths = [y.argmin() for y in labels]
     accs = []
     correct_preds, total_correct, total_preds = 0., 0., 0.
-    for lab, lab_pred, length in zip(labels, labels_pred, sequence_lengths):
+    for lab, lab_pred, length in zip(y_true, y_pred, sequence_lengths):
         lab = lab[:length]
         lab_pred = lab_pred[:length]
         accs += [a == b for (a, b) in zip(lab, lab_pred)]
-        lab_chunks = set(get_chunks(lab, tags))
-        lab_pred_chunks = set(get_chunks(lab_pred, tags))
+        lab_chunks = set(get_entities(lab))
+        lab_pred_chunks = set(get_entities(lab_pred))
         correct_preds += len(lab_chunks & lab_pred_chunks)
         total_preds += len(lab_pred_chunks)
         total_correct += len(lab_chunks)
