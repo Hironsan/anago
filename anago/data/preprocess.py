@@ -10,27 +10,6 @@ PAD = '<PAD>'
 Vocab = collections.namedtuple('Vocab', ['word', 'char', 'tag'])
 
 
-def load_word_embeddings(vocab, glove_filename, dim):
-    """Loads GloVe vectors in numpy array
-
-    Arguments:
-        vocab: dictionary vocab[word] = index
-        glove_filename: a path to a glove file
-        dim: (int) dimension of embeddings
-    """
-    embeddings = np.zeros([len(vocab), dim])
-    with open(glove_filename) as f:
-        for line in f:
-            line = line.strip().split(' ')
-            word = line[0]
-            embedding = [float(x) for x in line[1:]]
-            if word in vocab:
-                word_idx = vocab[word]
-                embeddings[word_idx] = np.asarray(embedding)
-
-    return embeddings
-
-
 class WordPreprocessor(BaseEstimator, TransformerMixin):
 
     def __init__(self, lowercase=True, num_norm=True, char_feature=True, vocab_init=None):
@@ -142,9 +121,7 @@ def pad_sequences(sequences, pad_tok, nlevels=1):
     """
     if nlevels == 1:
         max_length = max(map(lambda x: len(x), sequences))
-        sequence_padded, sequence_length = _pad_sequences(sequences,
-                                                          pad_tok, max_length)
-
+        sequence_padded, sequence_length = _pad_sequences(sequences, pad_tok, max_length)
     elif nlevels == 2:
         max_length_word = max([max(map(lambda x: len(x), seq)) for seq in sequences])
         sequence_padded, sequence_length = [], []
@@ -155,17 +132,32 @@ def pad_sequences(sequences, pad_tok, nlevels=1):
             sequence_length += [sl]
 
         max_length_sentence = max(map(lambda x: len(x), sequences))
-        sequence_padded, _ = _pad_sequences(sequence_padded, [pad_tok] * max_length_word,
-                                            max_length_sentence)
+        sequence_padded, _ = _pad_sequences(sequence_padded, [pad_tok] * max_length_word, max_length_sentence)
         sequence_length, _ = _pad_sequences(sequence_length, 0, max_length_sentence)
+    else:
+        raise ValueError('nlevels can take 1 or 2, not take {}.'.format(nlevels))
 
     return sequence_padded, sequence_length
 
 
-def dense_to_one_hot(labels_dense, num_classes):
+def dense_to_one_hot(labels_dense, num_classes, nlevels=1):
     """Convert class labels from scalars to one-hot vectors."""
-    num_labels = labels_dense.shape[0]
-    index_offset = np.arange(num_labels) * num_classes
-    labels_one_hot = np.zeros((num_labels, num_classes))
-    labels_one_hot.flat[index_offset + labels_dense.ravel()] = 1
-    return labels_one_hot
+    if nlevels == 1:
+        num_labels = labels_dense.shape[0]
+        index_offset = np.arange(num_labels) * num_classes
+        labels_one_hot = np.zeros((num_labels, num_classes))
+        labels_one_hot.flat[index_offset + labels_dense.ravel()] = 1
+        return labels_one_hot
+    elif nlevels == 2:
+        # assume that labels_dense has same column length
+        num_labels = labels_dense.shape[0]
+        num_length = labels_dense.shape[1]
+        labels_one_hot = np.zeros((num_labels, num_length, num_classes))
+        layer_idx = np.arange(num_labels).reshape(num_labels, 1)
+        # this index selects each component separately
+        component_idx = np.tile(np.arange(num_length), (num_labels, 1))
+        # then we use `a` to select indices according to category label
+        labels_one_hot[layer_idx, component_idx, labels_dense] = 1
+        return labels_one_hot
+    else:
+        raise ValueError('nlevels can take 1 or 2, not take {}.'.format(nlevels))

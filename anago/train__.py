@@ -7,9 +7,8 @@ import os
 import numpy as np
 import tensorflow as tf
 
-from anago.data.reader import load_glove_vocab, WordPreprocessor, DataSet
+from anago.data.reader import load_glove_vocab, WordPreprocessor, DataSet, load_word_embeddings
 from anago.data.metrics import get_chunks
-from anago.data.preprocess import load_word_embeddings
 from anago.data.utils import Progbar, get_logger
 from anago.models.model import LstmCrfModel
 

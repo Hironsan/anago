@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from anago.data.reader import DataSet, extract_data, load_glove_vocab
+from anago.data.reader import DataSet, extract_data, load_glove_vocab, load_word_embeddings
 from anago.data.preprocess import WordPreprocessor
 
 
@@ -44,3 +44,22 @@ class ReaderTest(unittest.TestCase):
         vocab = load_glove_vocab(filename)
         true_vocab = {'the', ',', '.'}
         self.assertEqual(vocab, true_vocab)
+
+    def test_load_word_embeddings(self):
+        self.DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
+        filename = os.path.join(self.DATA_DIR, 'glove.50d.txt')
+        vocab = load_glove_vocab(filename)
+        vocab = {w: i for i, w in enumerate(vocab)}
+        dim = 50
+        embeddings = load_word_embeddings(vocab, filename, dim=dim)
+        self.assertEqual(embeddings.shape[1], dim)
+
+        dim = 10
+        embeddings = load_word_embeddings(vocab, filename, dim=dim)
+        self.assertEqual(embeddings.shape[1], dim)
+
+        dim = 1000
+        actual_dim = 50
+        embeddings = load_word_embeddings(vocab, filename, dim=dim)
+        self.assertNotEqual(embeddings.shape[1], dim)
+        self.assertEqual(embeddings.shape[1], actual_dim)

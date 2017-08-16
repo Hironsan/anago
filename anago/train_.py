@@ -1,7 +1,6 @@
 import argparse
 
 from anago.data import reader
-from anago.data.preprocess import load_word_embeddings
 from anago.models.bilstm_crf import LstmCrfModel
 
 
@@ -37,7 +36,7 @@ def main():
     vocab_word = datasets.train._preprocessor.vocab_word
     vocab_char = datasets.train._preprocessor.vocab_char
     vocab_tag  = datasets.train._preprocessor.vocab_tag
-    embeddings = load_word_embeddings(vocab_word, config.glove_path, config.word_dim)
+    embeddings = reader.load_word_embeddings(vocab_word, config.glove_path, config.word_dim)
     print('{} words, {} chars'.format(len(vocab_word), len(vocab_char)))
 
     model = LstmCrfModel(config, embeddings, vocab_char, vocab_tag)

@@ -10,9 +10,9 @@ import tensorflow as tf
 from keras.optimizers import Adam
 from keras.utils.np_utils import to_categorical
 
-from anago.data.reader import WordPreprocessor, DataSet
+from anago.data.reader import WordPreprocessor, DataSet, load_word_embeddings
 from anago.data.metrics import get_chunks
-from anago.data.preprocess import load_word_embeddings, pad_sequences
+from anago.data.preprocess import pad_sequences
 from anago.data.utils import Progbar, get_logger
 from anago.models.keras_model import LSTMCrf
 

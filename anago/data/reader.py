@@ -132,3 +132,24 @@ def load_glove_vocab(filename):
         vocab = {line.strip().split()[0] for line in f}
     print('- done. {} tokens'.format(len(vocab)))
     return vocab
+
+
+def load_word_embeddings(vocab, glove_filename, dim):
+    """Loads GloVe vectors in numpy array
+
+    Arguments:
+        vocab: dictionary vocab[word] = index
+        glove_filename: a path to a glove file
+        dim: (int) dimension of embeddings
+    """
+    embeddings = np.zeros([len(vocab), dim])
+    with open(glove_filename) as f:
+        for line in f:
+            line = line.strip().split(' ')
+            word = line[0]
+            embedding = [float(x) for x in line[1:dim+1]]
+            if word in vocab:
+                word_idx = vocab[word]
+                embeddings[word_idx] = np.asarray(embedding)
+
+    return embeddings
