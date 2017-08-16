@@ -2,7 +2,7 @@ import os
 import unittest
 
 import anago
-from anago.data.reader import DataSet, extract_data
+from anago.data.reader import DataSet, load_data_and_labels
 from anago.data.metrics import get_entities, run_evaluate
 
 
@@ -10,7 +10,7 @@ class TrainTest(unittest.TestCase):
 
     def test_train(self):
         filename = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/train.txt')
-        sents, labels = extract_data(filename)
+        sents, labels = load_data_and_labels(filename)
         dataset = DataSet(sents, labels)
 
         hyperparams = None

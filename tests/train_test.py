@@ -2,7 +2,7 @@ import os
 import unittest
 
 import anago
-from anago.data.reader import extract_data
+from anago.data.reader import load_data_and_labels
 from anago.config import Config
 
 
@@ -17,8 +17,8 @@ class TrainTest(unittest.TestCase):
 
         train_path = os.path.join(config.data_path, 'train.txt')
         valid_path = os.path.join(config.data_path, 'valid.txt')
-        x_train, y_train = extract_data(train_path)
-        x_valid, y_valid = extract_data(valid_path)
+        x_train, y_train = load_data_and_labels(train_path)
+        x_valid, y_valid = load_data_and_labels(valid_path)
 
         trainer = anago.Trainer(config)
         trainer.train(x_train, y_train, x_valid, y_valid)
@@ -35,8 +35,8 @@ class TrainerTest(unittest.TestCase):
 
         train_path = os.path.join(config.data_path, 'train.txt')
         valid_path = os.path.join(config.data_path, 'valid.txt')
-        x_train, y_train = extract_data(train_path)
-        x_valid, y_valid = extract_data(valid_path)
+        x_train, y_train = load_data_and_labels(train_path)
+        x_valid, y_valid = load_data_and_labels(valid_path)
 
         trainer = anago.Trainer1(config)
         trainer.train(x_train, y_train, x_valid, y_valid)

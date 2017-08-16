@@ -7,7 +7,7 @@ from tensorflow.python.framework import random_seed
 from anago.data.preprocess import WordPreprocessor
 
 
-def extract_data(filename):
+def load_data_and_labels(filename):
     sents, labels = [], []
     with open(filename) as f:
         words, tags = [], []
@@ -102,9 +102,9 @@ def read_datasets(train_dir, glove_file, one_hot=False, valid_size=5000, seed=No
     train_path = os.path.join(train_dir, 'train.txt')
     valid_path = os.path.join(train_dir, 'valid.txt')
     test_path = os.path.join(train_dir, 'test.txt')
-    x_train, y_train = extract_data(train_path)
-    x_valid, y_valid = extract_data(valid_path)
-    x_test, y_test = extract_data(test_path)
+    x_train, y_train = load_data_and_labels(train_path)
+    x_valid, y_valid = load_data_and_labels(valid_path)
+    x_test, y_test = load_data_and_labels(test_path)
 
     vocab_glove = load_glove_vocab(glove_file)
 
@@ -153,3 +153,31 @@ def load_word_embeddings(vocab, glove_filename, dim):
                 embeddings[word_idx] = np.asarray(embedding)
 
     return embeddings
+
+
+def batch_iter(data, batch_size, num_epochs, shuffle=True, preprocessor=None):
+    num_batches_per_epoch = int((len(data) - 1) / batch_size) + 1
+
+    def data_generator():
+        """
+        Generates a batch iterator for a dataset.
+        """
+        data = np.array(data)
+        data_size = len(data)
+        for epoch in range(num_epochs):
+            # Shuffle the data at each epoch
+            if shuffle:
+                shuffle_indices = np.random.permutation(np.arange(data_size))
+                shuffled_data = data[shuffle_indices]
+            else:
+                shuffled_data = data
+            for batch_num in range(num_batches_per_epoch):
+                start_index = batch_num * batch_size
+                end_index = min((batch_num + 1) * batch_size, data_size)
+                X, y = shuffled_data[start_index:end_index]
+                try:
+                    yield preprocessor.transform(X, y)
+                except AttributeError:
+                    yield X, y
+
+    return num_batches_per_epoch, data_generator()

@@ -15,7 +15,7 @@ class WordPreprocessorTest(unittest.TestCase):
         self.filename = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/train.txt')
 
     def test_preprocessor(self):
-        X, y = reader.extract_data(self.filename)
+        X, y = reader.load_data_and_labels(self.filename)
         preprocessor = WordPreprocessor()
         p = preprocessor.fit(X, y)
         X, y = p.transform(X, y)
@@ -28,7 +28,7 @@ class WordPreprocessorTest(unittest.TestCase):
         self.assertIsInstance(p.inverse_transform(y[0])[0], str)
 
     def test_unknown_word(self):
-        X, y = reader.extract_data(self.filename)
+        X, y = reader.load_data_and_labels(self.filename)
         preprocessor = WordPreprocessor()
         p = preprocessor.fit(X, y)
         X = [['$unknownword$', 'あ']]
@@ -36,7 +36,7 @@ class WordPreprocessorTest(unittest.TestCase):
         X, y = p.transform(X, y)
 
     def test_vocab_init(self):
-        X, y = reader.extract_data(self.filename)
+        X, y = reader.load_data_and_labels(self.filename)
         unknown_word = 'unknownword'
         X_test, y_test = [[unknown_word]], [['O']]
 
@@ -62,7 +62,7 @@ class WordPreprocessorTest(unittest.TestCase):
             os.remove(filename)
 
     def test_load(self):
-        X, y = reader.extract_data(self.filename)
+        X, y = reader.load_data_and_labels(self.filename)
         preprocessor = WordPreprocessor()
         p = preprocessor.fit(X, y)
         filename = os.path.join(os.path.dirname(__file__), 'data/preprocessor.pkl')
@@ -141,28 +141,28 @@ class PerformanceTest(unittest.TestCase):
         print('{}: {:.3f}'.format(self.id(), elapsed))
 
     def test_data_loading(self):
-        X, y = reader.extract_data(self.filename)
+        X, y = reader.load_data_and_labels(self.filename)
 
     def test_fit(self):
-        X, y = reader.extract_data(self.filename)
+        X, y = reader.load_data_and_labels(self.filename)
         preprocessor = WordPreprocessor()
         p = preprocessor.fit(X, y)
 
     def test_transform(self):
-        X, y = reader.extract_data(self.filename)
+        X, y = reader.load_data_and_labels(self.filename)
         preprocessor = WordPreprocessor()
         p = preprocessor.fit(X, y)
         X, y = p.transform(X, y)
 
     def test_to_numpy_array(self):
-        X, y = reader.extract_data(self.filename)
+        X, y = reader.load_data_and_labels(self.filename)
         preprocessor = WordPreprocessor()
         p = preprocessor.fit(X, y)
         X, y = p.transform(X, y)
         y = np.asarray(y)
 
     def test_pad_sequences(self):
-        X, y = reader.extract_data(self.filename)
+        X, y = reader.load_data_and_labels(self.filename)
         preprocessor = WordPreprocessor()
         p = preprocessor.fit(X, y)
         X, y = p.transform(X, y)
@@ -172,7 +172,7 @@ class PerformanceTest(unittest.TestCase):
         char_ids = pad_sequences(char_ids, pad_tok=0, nlevels=2)
 
     def test_dense_to_onehot(self):
-        X, y = reader.extract_data(self.filename)
+        X, y = reader.load_data_and_labels(self.filename)
         preprocessor = WordPreprocessor()
         p = preprocessor.fit(X, y)
         _, y = p.transform(X, y)
@@ -181,7 +181,7 @@ class PerformanceTest(unittest.TestCase):
         labels_one_hot = dense_to_one_hot(y, num_classes=len(p.vocab_tag), nlevels=2)
 
     def test_calc_sequence_lengths(self):
-        X, y = reader.extract_data(self.filename)
+        X, y = reader.load_data_and_labels(self.filename)
         preprocessor = WordPreprocessor()
         p = preprocessor.fit(X, y)
         _, y = p.transform(X, y)

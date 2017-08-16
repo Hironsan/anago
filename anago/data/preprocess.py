@@ -120,10 +120,12 @@ def pad_sequences(sequences, pad_tok, nlevels=1):
         a list of list where each sublist has same length
     """
     if nlevels == 1:
-        max_length = max(map(lambda x: len(x), sequences))
+        #max_length = max(map(lambda x: len(x), sequences))
+        max_length = len(max(sequences, key=len))
         sequence_padded, sequence_length = _pad_sequences(sequences, pad_tok, max_length)
     elif nlevels == 2:
-        max_length_word = max([max(map(lambda x: len(x), seq)) for seq in sequences])
+        # max_length_word = max([max(map(lambda x: len(x), seq)) for seq in sequences])
+        max_length_word = max(len(max(seq, key=len)) for seq in sequences)
         sequence_padded, sequence_length = [], []
         for seq in sequences:
             # all words are same length now
