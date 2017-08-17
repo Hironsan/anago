@@ -19,7 +19,7 @@ class BaseModel(object):
                        callbacks=self._get_callbacks(),
                        )
 
-    def predict(self, X):
+    def predict(self, X, *args, **kwargs):
         y_pred = self.model.predict(X, batch_size=1)
         return y_pred
 

@@ -90,6 +90,21 @@ class SeqLabeling(BaseModel):
         self.model = Model(inputs=[word_ids, char_ids], outputs=[pred])
         self.transition_params = K.softmax(K.random_uniform_variable(low=0, high=1, shape=(ntags, ntags)))
 
+    def predict(self, X, sequence_lengths):
+        logits = self.model.predict_on_batch(X)
+        if self.config.crf:
+            viterbi_sequences = []
+            # iterate over the sentences
+            for logit, sequence_length in zip(logits, sequence_lengths):
+                # keep only the valid time steps
+                logit = logit[:sequence_length]
+                viterbi_sequence, viterbi_score = tf.contrib.crf.viterbi_decode(logit, K.eval(self.transition_params))
+                viterbi_sequences += [viterbi_sequence]
+
+            return viterbi_sequences
+        else:
+            raise NotImplementedError('not implemented')
+
     def loss(self, y_true, y_pred):
         y_t = K.argmax(y_true, -1)
         y_t = K.cast(y_t, tf.int32)
