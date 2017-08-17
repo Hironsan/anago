@@ -163,3 +163,35 @@ def dense_to_one_hot(labels_dense, num_classes, nlevels=1):
         return labels_one_hot
     else:
         raise ValueError('nlevels can take 1 or 2, not take {}.'.format(nlevels))
+
+
+def prepare_preprocessor(X, y, use_char=True):
+    p = WordPreprocessor()
+    p.fit(X, y)
+
+    def pad_sequence(words, labels, ntags):
+        if labels:
+            labels, _ = pad_sequences(labels, 0)
+            labels = np.asarray(labels)
+            labels = dense_to_one_hot(labels, ntags, nlevels=2)
+
+        if use_char:
+            char_ids, word_ids = zip(*words)
+            word_ids, sequence_lengths = pad_sequences(word_ids, 0)
+            char_ids, word_lengths = pad_sequences(char_ids, pad_tok=0, nlevels=2)
+            word_ids, char_ids = np.asarray(word_ids), np.asarray(char_ids)
+            return [word_ids, char_ids], labels
+        else:
+            word_ids, sequence_lengths = pad_sequences(words, 0)
+            word_ids = np.asarray(word_ids)
+            return word_ids, labels
+
+    def func(X, y):
+        X, y = p.transform(X, y)
+        X, y = pad_sequence(X, y, len(p.vocab_tag))
+        return X, y
+
+    func.vocab_word = p.vocab_word
+    func.vocab_char = p.vocab_char
+    func.vocab_tag  = p.vocab_tag
+    return func

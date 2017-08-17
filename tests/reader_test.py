@@ -2,7 +2,7 @@ import os
 import unittest
 
 from anago.data.reader import DataSet, load_data_and_labels, load_glove_vocab, load_word_embeddings, batch_iter
-from anago.data.preprocess import WordPreprocessor
+from anago.data.preprocess import WordPreprocessor, prepare_preprocessor
 
 
 class ReaderTest(unittest.TestCase):
@@ -65,8 +65,10 @@ class ReaderTest(unittest.TestCase):
         self.assertEqual(embeddings.shape[1], actual_dim)
 
     def test_batch_iter(self):
+
         sents, labels = load_data_and_labels(self.filename)
         batch_size = 32
         num_epoch = 1
-        steps, batches = batch_iter([sents, labels], batch_size, num_epoch)
+        p = prepare_preprocessor(sents, labels)
+        steps, batches = batch_iter(list(zip(sents, labels)), batch_size, num_epoch, preprocessor=p)
         self.assertEqual(len([_ for _ in batches]), steps)

@@ -89,7 +89,7 @@ def get_entities(seq):
     return chunks
 
 
-def run_evaluate(y_true, y_pred, sequence_lengths):
+def f1_score(y_true, y_pred, sequence_lengths):
     """
     Evaluates performance on test set
     Args:

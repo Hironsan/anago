@@ -155,14 +155,14 @@ def load_word_embeddings(vocab, glove_filename, dim):
     return embeddings
 
 
-def batch_iter(data, batch_size, num_epochs, shuffle=True, preprocessor=None):
-    num_batches_per_epoch = int((len(data) - 1) / batch_size) + 1
+def batch_iter(dataset, batch_size, num_epochs, shuffle=True, preprocessor=None):
+    num_batches_per_epoch = int((len(dataset) - 1) / batch_size) + 1
 
     def data_generator():
         """
         Generates a batch iterator for a dataset.
         """
-        data = np.array(data)
+        data = np.array(dataset)
         data_size = len(data)
         for epoch in range(num_epochs):
             # Shuffle the data at each epoch
@@ -174,10 +174,10 @@ def batch_iter(data, batch_size, num_epochs, shuffle=True, preprocessor=None):
             for batch_num in range(num_batches_per_epoch):
                 start_index = batch_num * batch_size
                 end_index = min((batch_num + 1) * batch_size, data_size)
-                X, y = shuffled_data[start_index:end_index]
-                try:
-                    yield preprocessor.transform(X, y)
-                except AttributeError:
+                X, y = zip(*shuffled_data[start_index:end_index])
+                if preprocessor:
+                    yield preprocessor(X, y)
+                else:
                     yield X, y
 
     return num_batches_per_epoch, data_generator()

@@ -3,7 +3,7 @@ import unittest
 
 import anago
 from anago.data.reader import DataSet, load_data_and_labels
-from anago.data.metrics import get_entities, run_evaluate
+from anago.data.metrics import get_entities, f1_score
 
 
 class TrainTest(unittest.TestCase):
@@ -50,7 +50,7 @@ class EvalTest(unittest.TestCase):
         y_true = [['B-PERSON', 'I-PERSON', 'O', 'O', 'B-LOC']]
         y_pred = [['B-PERSON', 'I-PERSON', 'O', 'O', 'I-ORG']]
         seq_len = [5]
-        acc, f1 = run_evaluate(y_true, y_pred, seq_len)
+        acc, f1 = f1_score(y_true, y_pred, seq_len)
         self.assertEqual(acc, 0.8)
         recall = 1.0 / 2
         precision = 1.0

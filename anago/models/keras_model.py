@@ -88,13 +88,19 @@ class SeqLabeling(BaseModel):
         pred = Dense(ntags)(x)
 
         self.model = Model(inputs=[word_ids, char_ids], outputs=[pred])
+        self.transition_params = K.softmax(K.random_uniform_variable(low=0, high=1, shape=(ntags, ntags)))
 
     def loss(self, y_true, y_pred):
         y_t = K.argmax(y_true, -1)
         y_t = K.cast(y_t, tf.int32)
         sequence_lengths = K.argmin(y_t, -1)
-        log_likelihood, transition_params = tf.contrib.crf.crf_log_likelihood(y_pred, y_t, sequence_lengths)
+        log_likelihood, transition_params = tf.contrib.crf.crf_log_likelihood(
+            y_pred, y_t, sequence_lengths, self.transition_params)
         loss = tf.reduce_mean(-log_likelihood)
-        self.transition_params = transition_params
 
         return loss
+
+    def compile(self, loss, optimizer):
+        self.model.compile(loss=loss,
+                           optimizer=optimizer
+                           )
