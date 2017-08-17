@@ -1,4 +1,6 @@
+import keras
 import numpy as np
+import sklearn.metrics as sklm
 
 NONE = 'O'
 
@@ -100,14 +102,14 @@ def f1_score(y_true, y_pred, sequence_lengths):
         accuracy
         f1 score
     """
-    accs = []
     correct_preds, total_correct, total_preds = 0., 0., 0.
     for lab, lab_pred, length in zip(y_true, y_pred, sequence_lengths):
         lab = lab[:length]
         lab_pred = lab_pred[:length]
-        accs += [a == b for (a, b) in zip(lab, lab_pred)]
+
         lab_chunks = set(get_entities(lab))
         lab_pred_chunks = set(get_entities(lab_pred))
+
         correct_preds += len(lab_chunks & lab_pred_chunks)
         total_preds += len(lab_pred_chunks)
         total_correct += len(lab_chunks)
@@ -115,5 +117,28 @@ def f1_score(y_true, y_pred, sequence_lengths):
     p = correct_preds / total_preds if correct_preds > 0 else 0
     r = correct_preds / total_correct if correct_preds > 0 else 0
     f1 = 2 * p * r / (p + r) if correct_preds > 0 else 0
-    acc = np.mean(accs)
-    return acc, f1
+    return f1
+
+
+class Metrics(keras.callbacks.Callback):
+    def on_train_begin(self, logs={}):
+        self.confusion = []
+        self.precision = []
+        self.recall = []
+        self.f1s = []
+        self.kappa = []
+        self.auc = []
+
+    def on_epoch_end(self, epoch, logs={}):
+        score = np.asarray(self.model.predict(self.validation_data[0]))
+        predict = np.round(np.asarray(self.model.predict(self.validation_data[0])))
+        targ = self.validation_data[1]
+
+        self.auc.append(sklm.roc_auc_score(targ, score))
+        self.confusion.append(sklm.confusion_matrix(targ, predict))
+        self.precision.append(sklm.precision_score(targ, predict))
+        self.recall.append(sklm.recall_score(targ, predict))
+        self.f1s.append(f1_score(targ, predict))
+        self.kappa.append(sklm.cohen_kappa_score(targ, predict))
+
+        return
