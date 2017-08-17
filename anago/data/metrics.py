@@ -120,25 +120,25 @@ def f1_score(y_true, y_pred, sequence_lengths):
     return f1
 
 
-class Metrics(keras.callbacks.Callback):
+class Fscore(keras.callbacks.Callback):
+
+    def __init__(self, valid_batchs, preprocessor):
+        super(Fscore, self).__init__()
+        self.p = preprocessor
+        self.validation_data = valid_batchs
+
     def on_train_begin(self, logs={}):
-        self.confusion = []
-        self.precision = []
-        self.recall = []
-        self.f1s = []
-        self.kappa = []
-        self.auc = []
+        self.f1 = []
 
     def on_epoch_end(self, epoch, logs={}):
-        score = np.asarray(self.model.predict(self.validation_data[0]))
-        predict = np.round(np.asarray(self.model.predict(self.validation_data[0])))
-        targ = self.validation_data[1]
-
-        self.auc.append(sklm.roc_auc_score(targ, score))
-        self.confusion.append(sklm.confusion_matrix(targ, predict))
-        self.precision.append(sklm.precision_score(targ, predict))
-        self.recall.append(sklm.recall_score(targ, predict))
-        self.f1s.append(f1_score(targ, predict))
-        self.kappa.append(sklm.cohen_kappa_score(targ, predict))
+        for data, label in self.validation_data:
+            y_pred = np.asarray(self.model.predict(data))
+            y_true = label
+            y_true = np.argmax(y_true, -1)
+            sequence_lengths = np.argmin(y_true, -1)
+            y_pred = [self.p.inverse_transform(y) for y in y_pred]
+            y_true = [self.p.inverse_transform(y) for y in y_true]
+            self.f1.append(f1_score(y_true, y_pred, sequence_lengths))
+        print(self.f1)
 
         return

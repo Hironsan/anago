@@ -3,7 +3,7 @@ import unittest
 
 import anago
 from anago.data.reader import DataSet, load_data_and_labels
-from anago.data.metrics import get_entities, f1_score
+from anago.data.metrics import get_entities, f1_score, Fscore
 
 
 class TrainTest(unittest.TestCase):
@@ -56,3 +56,34 @@ class EvalTest(unittest.TestCase):
         precision = 1.0
         f_true = 2 * recall * precision / (recall + precision)
         self.assertEqual(f1, f_true)
+
+
+class CallbackTest(unittest.TestCase):
+
+    def test_fscore(self):
+        from anago.config import Config
+        from anago.data.preprocess import prepare_preprocessor
+        from anago.data.reader import batch_iter, load_word_embeddings
+        from anago.models.keras_model import SeqLabeling
+        from keras.optimizers import Adam
+
+        config = Config()
+        config.data_path = os.path.join(os.path.dirname(__file__), '../data/conll2003/en')
+        config.glove_path = os.path.join(os.path.dirname(__file__), '../data/glove.6B/glove.6B.300d.txt')
+        valid_path = os.path.join(config.data_path, 'valid.txt')
+        x_valid, y_valid = load_data_and_labels(valid_path)
+
+        p = prepare_preprocessor(x_valid, y_valid)
+        valid_steps, valid_batches = batch_iter(
+            list(zip(x_valid, y_valid)), config.batch_size, config.max_epoch, preprocessor=p)
+
+        embeddings = load_word_embeddings(p.vocab_word, config.glove_path, config.word_dim)
+        config.char_vocab_size = len(p.vocab_char)
+        model = SeqLabeling(config, embeddings, len(p.vocab_tag))
+        model.compile(loss=model.loss,
+                      optimizer=Adam(lr=config.learning_rate)
+                      )
+        for x, y in valid_batches:
+            print(model.model.predict(x))
+
+        fscore = Fscore(valid_batches, preprocessor=p)

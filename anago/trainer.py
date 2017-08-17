@@ -1,6 +1,7 @@
 from keras.optimizers import Adam
 
 from anago.data.reader import load_word_embeddings, batch_iter
+from anago.data.metrics import Fscore
 from anago.data.preprocess import prepare_preprocessor
 from anago.models.keras_model import SeqLabeling
 
@@ -20,9 +21,12 @@ class Trainer(object):
         embeddings = load_word_embeddings(p.vocab_word, self.config.glove_path, self.config.word_dim)
         self.config.char_vocab_size = len(p.vocab_char)
 
+        fscore = Fscore(valid_batches, preprocessor=p)
+
         model = SeqLabeling(self.config, embeddings, len(p.vocab_tag))
         model.compile(loss=model.loss,
                       optimizer=Adam(lr=self.config.learning_rate)
                       )
         model.model.fit_generator(train_batches, train_steps, self.config.max_epoch,
-                                  validation_data=valid_batches, validation_steps=valid_steps)
+                                  validation_data=valid_batches, validation_steps=valid_steps,
+                                  callbacks=[fscore])

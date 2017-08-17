@@ -194,4 +194,5 @@ def prepare_preprocessor(X, y, use_char=True):
     func.vocab_word = p.vocab_word
     func.vocab_char = p.vocab_char
     func.vocab_tag  = p.vocab_tag
+    func.inverse_transform = p.inverse_transform
     return func
