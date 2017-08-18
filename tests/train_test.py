@@ -21,5 +21,4 @@ class TrainerTest(unittest.TestCase):
         x_valid, y_valid = load_data_and_labels(valid_path)
 
         trainer = anago.Trainer(config)
-        trainer.train(x_valid, y_valid, x_valid, y_valid)
         trainer.train(x_train, y_train, x_valid, y_valid)

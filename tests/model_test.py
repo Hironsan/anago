@@ -45,17 +45,15 @@ class ModelTest(unittest.TestCase):
                       optimizer=Adam(lr=self.config.learning_rate)
                       )
 
-        model.model.fit_generator(train_batches, train_steps, epochs=15,
-                                  validation_data=valid_batches, validation_steps=valid_steps)
+        model.model.fit_generator(train_batches, train_steps, epochs=15)
+         #                         validation_data=valid_batches, validation_steps=valid_steps)
 
-        X, y = p(X, y)
-        y_true = np.argmax(y, -1)
-        seq_length = np.argmin(y_true, -1)
-        y_pred = model.predict(X, seq_length)
-        print(y_true)
-        print(type(y_true))
-        print(y_pred)
-        print(type(y_pred))
+        from anago.data.metrics import Fscore
+        fscore = Fscore(valid_steps, valid_batches, p)
+        #model.model.fit_generator(train_batches, train_steps, epochs=15,
+         #                         callbacks=[fscore])
+        fscore.model = model
+        fscore.on_epoch_end(epoch=1)
 
     def test_save(self):
         pass

@@ -121,7 +121,7 @@ def pad_sequences(sequences, pad_tok, nlevels=1):
     """
     if nlevels == 1:
         #max_length = max(map(lambda x: len(x), sequences))
-        max_length = len(max(sequences, key=len))
+        max_length = len(max(sequences, key=len)) + 1  # +1 is sentinel
         sequence_padded, sequence_length = _pad_sequences(sequences, pad_tok, max_length)
     elif nlevels == 2:
         # max_length_word = max([max(map(lambda x: len(x), seq)) for seq in sequences])
@@ -133,7 +133,7 @@ def pad_sequences(sequences, pad_tok, nlevels=1):
             sequence_padded += [sp]
             sequence_length += [sl]
 
-        max_length_sentence = max(map(lambda x: len(x), sequences))
+        max_length_sentence = max(map(lambda x: len(x), sequences)) + 1  # +1 is sentinel
         sequence_padded, _ = _pad_sequences(sequence_padded, [pad_tok] * max_length_word, max_length_sentence)
         sequence_length, _ = _pad_sequences(sequence_length, 0, max_length_sentence)
     else:

@@ -122,23 +122,29 @@ def f1_score(y_true, y_pred, sequence_lengths):
 
 class Fscore(keras.callbacks.Callback):
 
-    def __init__(self, valid_batchs, preprocessor):
+    def __init__(self, valid_steps, valid_batchs, preprocessor):
         super(Fscore, self).__init__()
-        self.p = preprocessor
+        self.valid_steps = valid_steps
         self.validation_data = valid_batchs
+        self.p = preprocessor
+        self.f1 = []
 
     def on_train_begin(self, logs={}):
         self.f1 = []
 
     def on_epoch_end(self, epoch, logs={}):
-        for data, label in self.validation_data:
-            y_pred = np.asarray(self.model.predict(data))
+        for i, (data, label) in enumerate(self.validation_data):
+            if i == self.valid_steps:
+                break
             y_true = label
             y_true = np.argmax(y_true, -1)
             sequence_lengths = np.argmin(y_true, -1)
-            y_pred = [self.p.inverse_transform(y) for y in y_pred]
-            y_true = [self.p.inverse_transform(y) for y in y_true]
-            self.f1.append(f1_score(y_true, y_pred, sequence_lengths))
-        print(self.f1)
+            #sequence_lengths[sequence_lengths==0] = len(y_true[0])
+            #print(sequence_lengths)
+            y_pred = np.asarray(self.model.predict(data, sequence_lengths))
 
-        return
+            y_pred = [self.p.inverse_transform(y[:l]) for y, l in zip(y_pred, sequence_lengths)]
+            y_true = [self.p.inverse_transform(y[:l]) for y, l in zip(y_true, sequence_lengths)]
+            self.f1.append(f1_score(y_true, y_pred, sequence_lengths))
+        print('f1: {}'.format(np.mean(self.f1)))
+        return np.mean(self.f1)
