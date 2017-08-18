@@ -74,8 +74,7 @@ class CallbackTest(unittest.TestCase):
         x_valid, y_valid = load_data_and_labels(valid_path)
 
         p = prepare_preprocessor(x_valid, y_valid)
-        valid_steps, valid_batches = batch_iter(
-            list(zip(x_valid, y_valid)), config.batch_size, config.max_epoch, preprocessor=p)
+        valid_steps, valid_batches = batch_iter(list(zip(x_valid, y_valid)), config.batch_size, preprocessor=p)
 
         embeddings = load_word_embeddings(p.vocab_word, config.glove_path, config.word_dim)
         config.char_vocab_size = len(p.vocab_char)

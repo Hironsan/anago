@@ -89,6 +89,7 @@ class SeqLabeling(BaseModel):
 
         self.model = Model(inputs=[word_ids, char_ids], outputs=[pred])
         self.transition_params = K.softmax(K.random_uniform_variable(low=0, high=1, shape=(ntags, ntags)))
+        self.config = config
 
     def predict(self, X, sequence_lengths):
         logits = self.model.predict_on_batch(X)

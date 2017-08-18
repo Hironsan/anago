@@ -65,10 +65,8 @@ class ReaderTest(unittest.TestCase):
         self.assertEqual(embeddings.shape[1], actual_dim)
 
     def test_batch_iter(self):
-
         sents, labels = load_data_and_labels(self.filename)
         batch_size = 32
-        num_epoch = 1
         p = prepare_preprocessor(sents, labels)
-        steps, batches = batch_iter(list(zip(sents, labels)), batch_size, num_epoch, preprocessor=p)
-        self.assertEqual(len([_ for _ in batches]), steps)
+        steps, batches = batch_iter(list(zip(sents, labels)), batch_size, preprocessor=p)
+        self.assertEqual(len([_ for _ in batches]), steps)  # Todo: infinite loop

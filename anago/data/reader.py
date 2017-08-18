@@ -155,7 +155,7 @@ def load_word_embeddings(vocab, glove_filename, dim):
     return embeddings
 
 
-def batch_iter(dataset, batch_size, num_epochs, shuffle=True, preprocessor=None):
+def batch_iter(dataset, batch_size, shuffle=True, preprocessor=None):
     num_batches_per_epoch = int((len(dataset) - 1) / batch_size) + 1
 
     def data_generator():
@@ -164,13 +164,14 @@ def batch_iter(dataset, batch_size, num_epochs, shuffle=True, preprocessor=None)
         """
         data = np.array(dataset)
         data_size = len(data)
-        for epoch in range(num_epochs):
+        while True:
             # Shuffle the data at each epoch
             if shuffle:
                 shuffle_indices = np.random.permutation(np.arange(data_size))
                 shuffled_data = data[shuffle_indices]
             else:
                 shuffled_data = data
+
             for batch_num in range(num_batches_per_epoch):
                 start_index = batch_num * batch_size
                 end_index = min((batch_num + 1) * batch_size, data_size)
