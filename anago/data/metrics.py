@@ -148,3 +148,53 @@ class Fscore(keras.callbacks.Callback):
             self.f1.append(f1_score(y_true, y_pred, sequence_lengths))
         print('f1: {}'.format(np.mean(self.f1)))
         return np.mean(self.f1)
+
+
+class F1Eval(keras.callbacks.Callback):
+    def __init__(self, valid_steps, valid_batches, preprocessor=None, model=None):
+        super(F1Eval, self).__init__()
+        self.valid_steps = valid_steps
+        self.valid_batches = valid_batches
+        self.p = preprocessor
+        self.model_ = model
+
+    def on_epoch_end(self, epoch, logs={}):
+        correct_preds, total_correct, total_preds = 0., 0., 0.
+        for i, (data, label) in enumerate(self.valid_batches):
+            if i == self.valid_steps:
+                break
+            y_true = label
+            y_true = np.argmax(y_true, -1)
+            sequence_lengths = np.argmin(y_true, -1)
+            y_pred = np.asarray(self.model_.predict(data, sequence_lengths))
+
+            y_pred = [self.p.inverse_transform(y[:l]) for y, l in zip(y_pred, sequence_lengths)]
+            y_true = [self.p.inverse_transform(y[:l]) for y, l in zip(y_true, sequence_lengths)]
+
+            a, b, c = self.count_correct_and_pred(y_true, y_pred, sequence_lengths)
+            correct_preds += a
+            total_preds += b
+            total_correct += c
+
+        f1 = self._calc_f1(correct_preds, total_correct, total_preds)
+        print(' - f1: {:04.2f}'.format(f1 * 100))
+
+    def _calc_f1(self, correct_preds, total_correct, total_preds):
+        p = correct_preds / total_preds if correct_preds > 0 else 0
+        r = correct_preds / total_correct if correct_preds > 0 else 0
+        f1 = 2 * p * r / (p + r) if correct_preds > 0 else 0
+        return f1
+
+    def count_correct_and_pred(self, y_true, y_pred, sequence_lengths):
+        correct_preds, total_correct, total_preds = 0., 0., 0.
+        for lab, lab_pred, length in zip(y_true, y_pred, sequence_lengths):
+            lab = lab[:length]
+            lab_pred = lab_pred[:length]
+
+            lab_chunks = set(get_entities(lab))
+            lab_pred_chunks = set(get_entities(lab_pred))
+
+            correct_preds += len(lab_chunks & lab_pred_chunks)
+            total_preds += len(lab_pred_chunks)
+            total_correct += len(lab_chunks)
+        return correct_preds, total_correct, total_preds

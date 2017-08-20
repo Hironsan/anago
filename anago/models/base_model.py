@@ -39,3 +39,6 @@ class BaseModel(object):
     def _get_callbacks(self):
         callbacks = [TensorBoard(self.config.log_dir)]
         return callbacks
+
+    def __getattr__(self, name):
+        return getattr(self.model, name)
