@@ -8,16 +8,6 @@ NONE = 'O'
 
 def get_callbacks(log_dir=None, save_dir=None, valid=()):
     callbacks = []
-    """
-    if save_dir:
-        if not os.path.exists(save_dir):
-            print('Successfully made a directory: {}'.format(save_dir))
-            os.mkdir(save_dir)
-
-        file_name = '_'.join(['model_weights', '{epoch:02d}', '{val_acc:.2f}']) + '.h5'
-        save_callback = ModelCheckpoint(os.path.join(save_dir, file_name), save_weights_only=True)
-        callbacks += [save_callback]
-    """
 
     if log_dir:
         if not os.path.exists(log_dir):
@@ -27,6 +17,16 @@ def get_callbacks(log_dir=None, save_dir=None, valid=()):
 
     if valid:
         callbacks.append(F1score(*valid))
+
+    if save_dir:
+        if not os.path.exists(save_dir):
+            print('Successfully made a directory: {}'.format(save_dir))
+            os.mkdir(save_dir)
+
+        file_name = '_'.join(['model_weights', '{epoch:02d}', '{f1:.2f}']) + '.h5'
+        save_callback = ModelCheckpoint(os.path.join(save_dir, file_name),
+                                        save_weights_only=True)
+        callbacks += [save_callback]
 
     return callbacks
 
@@ -204,6 +204,7 @@ class F1score(Callback):
 
         f1 = self._calc_f1(correct_preds, total_correct, total_preds)
         print(' - f1: {:04.2f}'.format(f1 * 100))
+        logs['f1'] = f1
 
     def _calc_f1(self, correct_preds, total_correct, total_preds):
         p = correct_preds / total_preds if correct_preds > 0 else 0

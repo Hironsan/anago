@@ -115,8 +115,3 @@ class SeqLabeling(BaseModel):
         loss = tf.reduce_mean(-log_likelihood)
 
         return loss
-
-    def compile(self, loss, optimizer):
-        self.model.compile(loss=loss,
-                           optimizer=optimizer
-                           )

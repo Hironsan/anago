@@ -23,9 +23,10 @@ class Trainer(object):
 
         model = SeqLabeling(self.config, embeddings, len(p.vocab_tag))
         model.compile(loss=model.loss,
-                      optimizer=Adam(lr=self.config.learning_rate)
+                      optimizer=Adam(lr=self.config.learning_rate),
                       )
         callbacks = get_callbacks(log_dir=self.config.log_dir,
+                                  save_dir=self.config.save_path,
                                   valid=(valid_steps, valid_batches, p, model))
         model.fit_generator(train_batches, train_steps, epochs=self.config.max_epoch,
                             callbacks=callbacks)
