@@ -6,7 +6,7 @@ from keras.callbacks import Callback, TensorBoard, EarlyStopping, ModelCheckpoin
 NONE = 'O'
 
 
-def get_callbacks(log_dir=None, save_dir=None, valid=()):
+def get_callbacks(log_dir=None, save_dir=None, valid=(), eary_stopping=True):
     callbacks = []
 
     if log_dir:
@@ -25,8 +25,12 @@ def get_callbacks(log_dir=None, save_dir=None, valid=()):
 
         file_name = '_'.join(['model_weights', '{epoch:02d}', '{f1:.2f}']) + '.h5'
         save_callback = ModelCheckpoint(os.path.join(save_dir, file_name),
+                                        monitor='f1',
                                         save_weights_only=True)
-        callbacks += [save_callback]
+        callbacks.append(save_callback)
+
+    if eary_stopping:
+        callbacks.append(EarlyStopping(monitor='f1'))
 
     return callbacks
 
