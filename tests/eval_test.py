@@ -2,20 +2,24 @@ import os
 import unittest
 
 import anago
-from anago.data.reader import DataSet, load_data_and_labels
-from anago.data.metrics import get_entities, f1_score, Fscore
+from anago.data.reader import load_data_and_labels
+from anago.data.metrics import get_entities, f1_score, F1score
+from anago.config import Config
 
 
-class TrainTest(unittest.TestCase):
+class EvaluatorTest(unittest.TestCase):
 
     def test_train(self):
-        filename = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/train.txt')
-        sents, labels = load_data_and_labels(filename)
-        dataset = DataSet(sents, labels)
+        config = Config()
+        config.save_path = os.path.join(os.path.dirname(__file__), '../models/')
+        config.log_dir = os.path.join(os.path.dirname(__file__), '../logs/')
+        config.glove_path = os.path.join(os.path.dirname(__file__), '../data/glove.6B/glove.6B.300d.txt')
 
-        hyperparams = None
-        evaluator = anago.Evaluator(hyperparams)
-        evaluator.eval(dataset)
+        test_path = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/test.txt')
+        x_test, y_test = load_data_and_labels(test_path)
+
+        evaluator = anago.Evaluator(config)
+        evaluator.eval(x_test, y_test)
 
 
 class EvalTest(unittest.TestCase):
@@ -50,39 +54,17 @@ class EvalTest(unittest.TestCase):
         y_true = [['B-PERSON', 'I-PERSON', 'O', 'O', 'B-LOC']]
         y_pred = [['B-PERSON', 'I-PERSON', 'O', 'O', 'I-ORG']]
         seq_len = [5]
-        acc, f1 = f1_score(y_true, y_pred, seq_len)
-        self.assertEqual(acc, 0.8)
+        f1 = f1_score(y_true, y_pred, seq_len)
         recall = 1.0 / 2
         precision = 1.0
         f_true = 2 * recall * precision / (recall + precision)
         self.assertEqual(f1, f_true)
 
 
-class CallbackTest(unittest.TestCase):
+class F1scoreTest(unittest.TestCase):
 
-    def test_fscore(self):
-        from anago.config import Config
-        from anago.data.preprocess import prepare_preprocessor
-        from anago.data.reader import batch_iter, load_word_embeddings
-        from anago.models.models import SeqLabeling
-        from keras.optimizers import Adam
+    def test_calc_f1score(self):
+        f1score = F1score()
 
-        config = Config()
-        config.data_path = os.path.join(os.path.dirname(__file__), '../data/conll2003/en')
-        config.glove_path = os.path.join(os.path.dirname(__file__), '../data/glove.6B/glove.6B.300d.txt')
-        valid_path = os.path.join(config.data_path, 'valid.txt')
-        x_valid, y_valid = load_data_and_labels(valid_path)
-
-        p = prepare_preprocessor(x_valid, y_valid)
-        valid_steps, valid_batches = batch_iter(list(zip(x_valid, y_valid)), config.batch_size, preprocessor=p)
-
-        embeddings = load_word_embeddings(p.vocab_word, config.glove_path, config.word_dim)
-        config.char_vocab_size = len(p.vocab_char)
-        model = SeqLabeling(config, embeddings, len(p.vocab_tag))
-        model.compile(loss=model.loss,
-                      optimizer=Adam(lr=config.learning_rate)
-                      )
-        for x, y in valid_batches:
-            print(model.model.predict(x))
-
-        fscore = Fscore(valid_batches, preprocessor=p)
+    def test_count_correct_and_pred(self):
+        f1score = F1score()

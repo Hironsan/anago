@@ -4,7 +4,7 @@ import unittest
 import numpy as np
 from keras.optimizers import Adam
 
-from anago.data.reader import load_data_and_labels, batch_iter
+from anago.data.reader import load_data_and_labels
 from anago.data.preprocess import prepare_preprocessor
 from anago.models.models import SeqLabeling
 from anago.config import Config
@@ -33,27 +33,11 @@ class ModelTest(unittest.TestCase):
         p = prepare_preprocessor(X, y)
         self.config.char_vocab_size = len(p.vocab_char)
 
-        train_steps, train_batches = batch_iter(
-            list(zip(X, y)), self.config.batch_size, preprocessor=p)
-
-        valid_steps, valid_batches = batch_iter(
-            list(zip(X, y)), self.config.batch_size, preprocessor=p)
-
-
         model = SeqLabeling(self.config, self.embeddings, ntags=len(p.vocab_tag))
         model.compile(loss=model.loss,
                       optimizer=Adam(lr=self.config.learning_rate)
                       )
-
-        model.model.fit_generator(train_batches, train_steps, epochs=15)
-         #                         validation_data=valid_batches, validation_steps=valid_steps)
-
-        from anago.data.metrics import Fscore
-        fscore = Fscore(valid_steps, valid_batches, p)
-        #model.model.fit_generator(train_batches, train_steps, epochs=15,
-         #                         callbacks=[fscore])
-        fscore.model = model
-        fscore.on_epoch_end(epoch=1)
+        model.predict(X, sequence_lengths)
 
     def test_save(self):
         pass
