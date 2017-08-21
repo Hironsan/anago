@@ -1,8 +1,34 @@
-import keras
+import os
+
 import numpy as np
-import sklearn.metrics as sklm
+from keras.callbacks import Callback, TensorBoard, EarlyStopping, ModelCheckpoint
 
 NONE = 'O'
+
+
+def get_callbacks(log_dir=None, save_dir=None, valid=()):
+    callbacks = []
+    """
+    if save_dir:
+        if not os.path.exists(save_dir):
+            print('Successfully made a directory: {}'.format(save_dir))
+            os.mkdir(save_dir)
+
+        file_name = '_'.join(['model_weights', '{epoch:02d}', '{val_acc:.2f}']) + '.h5'
+        save_callback = ModelCheckpoint(os.path.join(save_dir, file_name), save_weights_only=True)
+        callbacks += [save_callback]
+    """
+
+    if log_dir:
+        if not os.path.exists(log_dir):
+            print('Successfully made a directory: {}'.format(log_dir))
+            os.mkdir(log_dir)
+        callbacks.append(TensorBoard(log_dir))
+
+    if valid:
+        callbacks.append(F1score(*valid))
+
+    return callbacks
 
 
 def get_chunk_type(tok, idx_to_tag):
@@ -120,7 +146,7 @@ def f1_score(y_true, y_pred, sequence_lengths):
     return f1
 
 
-class Fscore(keras.callbacks.Callback):
+class Fscore(Callback):
 
     def __init__(self, valid_steps, valid_batchs, preprocessor):
         super(Fscore, self).__init__()
@@ -150,9 +176,9 @@ class Fscore(keras.callbacks.Callback):
         return np.mean(self.f1)
 
 
-class F1Eval(keras.callbacks.Callback):
+class F1score(Callback):
     def __init__(self, valid_steps, valid_batches, preprocessor=None, model=None):
-        super(F1Eval, self).__init__()
+        super(F1score, self).__init__()
         self.valid_steps = valid_steps
         self.valid_batches = valid_batches
         self.p = preprocessor
