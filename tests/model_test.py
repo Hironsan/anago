@@ -6,7 +6,7 @@ from keras.optimizers import Adam
 
 from anago.data.reader import load_data_and_labels, batch_iter
 from anago.data.preprocess import prepare_preprocessor
-from anago.models.keras_model import SeqLabeling
+from anago.models.models import SeqLabeling
 from anago.config import Config
 
 

@@ -11,7 +11,7 @@ class TrainerTest(unittest.TestCase):
     def test_train(self):
         config = Config()
         config.data_path = os.path.join(os.path.dirname(__file__), '../data/conll2003/en')
-        config.save_path = os.path.join(os.path.dirname(__file__), '../garbage/')
+        config.save_path = os.path.join(os.path.dirname(__file__), '../models/')
         config.log_dir = os.path.join(os.path.dirname(__file__), '../logs/')
         config.glove_path = os.path.join(os.path.dirname(__file__), '../data/glove.6B/glove.6B.300d.txt')
 
@@ -19,7 +19,7 @@ class TrainerTest(unittest.TestCase):
         valid_path = os.path.join(config.data_path, 'valid.txt')
         x_train, y_train = load_data_and_labels(train_path)
         x_valid, y_valid = load_data_and_labels(valid_path)
-        x_train, y_train = x_train[:100], y_train[:100]
-        x_valid, y_valid = x_train[:100], y_train[:100]
+        #x_train, y_train = x_train[:100], y_train[:100]
+        #x_valid, y_valid = x_train[:100], y_train[:100]
         trainer = anago.Trainer(config)
         trainer.train(x_train, y_train, x_valid, y_valid)

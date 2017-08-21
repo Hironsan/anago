@@ -64,7 +64,7 @@ class CallbackTest(unittest.TestCase):
         from anago.config import Config
         from anago.data.preprocess import prepare_preprocessor
         from anago.data.reader import batch_iter, load_word_embeddings
-        from anago.models.keras_model import SeqLabeling
+        from anago.models.models import SeqLabeling
         from keras.optimizers import Adam
 
         config = Config()

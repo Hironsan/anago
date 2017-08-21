@@ -44,6 +44,7 @@ class Config(object):
     reload=False             # Reload model
     nepoch_no_imprv = 3      # For early stopping
     train_embeddings = True  # Fine-tune word embeddings
+    early_stopping = True
 
 
 class ModelConfig(object):
