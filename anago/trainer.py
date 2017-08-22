@@ -15,7 +15,6 @@ class Trainer(object):
 
     def train(self, x_train, y_train, x_valid=None, y_valid=None):
         p = prepare_preprocessor(x_train, y_train)
-        p.save(os.path.join(self.config.save_path, 'preprocessor.pkl'))
 
         train_steps, train_batches = batch_iter(
             list(zip(x_train, y_train)), self.config.batch_size, preprocessor=p)
@@ -34,3 +33,4 @@ class Trainer(object):
                                   valid=(valid_steps, valid_batches, p, model))
         model.fit_generator(train_batches, train_steps, epochs=self.config.max_epoch,
                             callbacks=callbacks)
+        p.save(os.path.join(self.config.save_path, 'preprocessor.pkl'))
