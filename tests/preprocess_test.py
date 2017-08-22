@@ -3,7 +3,6 @@ import time
 import unittest
 
 import numpy as np
-from sklearn.externals import joblib
 
 from anago.data import reader
 from anago.data.preprocess import WordPreprocessor, UNK, dense_to_one_hot, pad_sequences, _pad_sequences
@@ -55,25 +54,24 @@ class WordPreprocessorTest(unittest.TestCase):
 
     def test_save(self):
         preprocessor = WordPreprocessor()
-        filename = os.path.join(os.path.dirname(__file__), 'data/preprocessor.pkl')
-        joblib.dump(preprocessor, filename)
-        self.assertTrue(os.path.exists(filename))
-        if os.path.exists(filename):
-            os.remove(filename)
+        filepath = os.path.join(os.path.dirname(__file__), 'data/preprocessor.pkl')
+        preprocessor.save(filepath)
+        self.assertTrue(os.path.exists(filepath))
+        if os.path.exists(filepath):
+            os.remove(filepath)
 
     def test_load(self):
         X, y = reader.load_data_and_labels(self.filename)
-        preprocessor = WordPreprocessor()
-        p = preprocessor.fit(X, y)
-        filename = os.path.join(os.path.dirname(__file__), 'data/preprocessor.pkl')
-        joblib.dump(p, filename)
-        self.assertTrue(os.path.exists(filename))
-        loaded_p = joblib.load(filename)
+        p = WordPreprocessor()
+        p.fit(X, y)
+        filepath = os.path.join(os.path.dirname(__file__), 'data/preprocessor.pkl')
+        p.save(filepath)
+        self.assertTrue(os.path.exists(filepath))
 
+        loaded_p = WordPreprocessor.load(filepath)
         self.assertEqual(loaded_p.transform(X, y), p.transform(X, y))
-
-        if os.path.exists(filename):
-            os.remove(filename)
+        if os.path.exists(filepath):
+            os.remove(filepath)
 
 
 class PreprocessTest(unittest.TestCase):

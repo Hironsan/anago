@@ -4,6 +4,7 @@ import re
 
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.externals import joblib
 
 UNK = '<UNK>'
 PAD = '<PAD>'
@@ -90,6 +91,14 @@ class WordPreprocessor(BaseEstimator, TransformerMixin):
             return re.sub(r'[0-9０１２３４５６７８９]', r'0', word)
         else:
             return word
+
+    def save(self, file_path):
+        joblib.dump(self, file_path)
+
+    @classmethod
+    def load(cls, file_path):
+        p = joblib.load(file_path)
+        return p
 
 
 def _pad_sequences(sequences, pad_tok, max_length):
