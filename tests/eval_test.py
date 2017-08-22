@@ -11,9 +11,6 @@ class EvaluatorTest(unittest.TestCase):
 
     def test_eval(self):
         config = Config()
-        config.save_path = os.path.join(os.path.dirname(__file__), '../models/')
-        config.log_dir = os.path.join(os.path.dirname(__file__), '../logs/')
-        config.glove_path = os.path.join(os.path.dirname(__file__), '../data/glove.6B/glove.6B.300d.txt')
         weights_file = 'model_weights_01_0.02.h5'
 
         test_path = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/test.txt')

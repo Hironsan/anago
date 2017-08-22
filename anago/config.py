@@ -1,29 +1,12 @@
-"""
-class Config(object):
+import os
 
-    learning_rate = 0.01
-    max_grad_norm = 5
-    num_layers = 1
-    num_steps = 50  # cut texts after this number of words (among top max_features most common words)
-    hidden_size = 100
-    epoch_size = 5
-    dropout = 0.5
-    lr_decay = 0.9
-    batch_size = 32
-    vocab_size = 10000
-    max_word_len = 20
-
-    use_char = True
-    nb_filters = 30
-    nb_kernels = 3
-"""
 
 class Config(object):
     # data settings
-    data_path = None  # Where the training/test data is stored
-    save_path = None  # Where the trained model is stored
-    log_dir = None    # Where log data is stored
-    glove_path = None # Where GloVe embedding is stored
+    data_path = os.path.join(os.path.dirname(__file__), '../data/conll2003/en')
+    save_path = os.path.join(os.path.dirname(__file__), '../models/')
+    log_dir = os.path.join(os.path.dirname(__file__), '../logs/')
+    glove_path = os.path.join(os.path.dirname(__file__), '../data/glove.6B/glove.6B.300d.txt')
 
     # model settings
     dropout = 0.5           # The probability of keeping weights in the dropout layer
