@@ -77,7 +77,7 @@ def batch_iter(dataset, batch_size, shuffle=True, preprocessor=None):
                 end_index = min((batch_num + 1) * batch_size, data_size)
                 X, y = zip(*shuffled_data[start_index:end_index])
                 if preprocessor:
-                    yield preprocessor(X, y)
+                    yield preprocessor.transform(X, y)
                 else:
                     yield X, y
 

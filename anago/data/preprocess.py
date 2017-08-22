@@ -13,10 +13,11 @@ Vocab = collections.namedtuple('Vocab', ['word', 'char', 'tag'])
 
 class WordPreprocessor(BaseEstimator, TransformerMixin):
 
-    def __init__(self, lowercase=True, num_norm=True, char_feature=True, vocab_init=None):
+    def __init__(self, lowercase=True, num_norm=True, char_feature=True, vocab_init=None, padding=True):
         self.lowercase = lowercase
         self.num_norm = num_norm
         self.char_feature = char_feature
+        self.padding = padding
         self.vocab_word = None
         self.vocab_char = None
         self.vocab_tag  = None
@@ -73,6 +74,8 @@ class WordPreprocessor(BaseEstimator, TransformerMixin):
                 sents.append(word_ids)
 
         y = [[self.vocab_tag[t] for t in sent] for sent in y]
+        if self.padding:
+            sents, y = self.pad_sequence(sents, y)
 
         return sents, y
 
@@ -91,6 +94,23 @@ class WordPreprocessor(BaseEstimator, TransformerMixin):
             return re.sub(r'[0-9０１２３４５６７８９]', r'0', word)
         else:
             return word
+
+    def pad_sequence(self, words, labels=None):
+        if labels:
+            labels, _ = pad_sequences(labels, 0)
+            labels = np.asarray(labels)
+            labels = dense_to_one_hot(labels, len(self.vocab_tag), nlevels=2)
+
+        if self.char_feature:
+            char_ids, word_ids = zip(*words)
+            word_ids, sequence_lengths = pad_sequences(word_ids, 0)
+            char_ids, word_lengths = pad_sequences(char_ids, pad_tok=0, nlevels=2)
+            word_ids, char_ids = np.asarray(word_ids), np.asarray(char_ids)
+            return [word_ids, char_ids], labels
+        else:
+            word_ids, sequence_lengths = pad_sequences(words, 0)
+            word_ids = np.asarray(word_ids)
+            return word_ids, labels
 
     def save(self, file_path):
         joblib.dump(self, file_path)
@@ -156,14 +176,14 @@ def dense_to_one_hot(labels_dense, num_classes, nlevels=1):
     if nlevels == 1:
         num_labels = labels_dense.shape[0]
         index_offset = np.arange(num_labels) * num_classes
-        labels_one_hot = np.zeros((num_labels, num_classes))
+        labels_one_hot = np.zeros((num_labels, num_classes), dtype=np.int32)
         labels_one_hot.flat[index_offset + labels_dense.ravel()] = 1
         return labels_one_hot
     elif nlevels == 2:
         # assume that labels_dense has same column length
         num_labels = labels_dense.shape[0]
         num_length = labels_dense.shape[1]
-        labels_one_hot = np.zeros((num_labels, num_length, num_classes))
+        labels_one_hot = np.zeros((num_labels, num_length, num_classes), dtype=np.int32)
         layer_idx = np.arange(num_labels).reshape(num_labels, 1)
         # this index selects each component separately
         component_idx = np.tile(np.arange(num_length), (num_labels, 1))
@@ -178,30 +198,4 @@ def prepare_preprocessor(X, y, use_char=True):
     p = WordPreprocessor()
     p.fit(X, y)
 
-    def pad_sequence(words, labels, ntags):
-        if labels:
-            labels, _ = pad_sequences(labels, 0)
-            labels = np.asarray(labels)
-            labels = dense_to_one_hot(labels, ntags, nlevels=2)
-
-        if use_char:
-            char_ids, word_ids = zip(*words)
-            word_ids, sequence_lengths = pad_sequences(word_ids, 0)
-            char_ids, word_lengths = pad_sequences(char_ids, pad_tok=0, nlevels=2)
-            word_ids, char_ids = np.asarray(word_ids), np.asarray(char_ids)
-            return [word_ids, char_ids], labels
-        else:
-            word_ids, sequence_lengths = pad_sequences(words, 0)
-            word_ids = np.asarray(word_ids)
-            return word_ids, labels
-
-    def func(X, y):
-        X, y = p.transform(X, y)
-        X, y = pad_sequence(X, y, len(p.vocab_tag))
-        return X, y
-
-    func.vocab_word = p.vocab_word
-    func.vocab_char = p.vocab_char
-    func.vocab_tag  = p.vocab_tag
-    func.inverse_transform = p.inverse_transform
-    return func
+    return p

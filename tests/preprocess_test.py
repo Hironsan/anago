@@ -11,11 +11,11 @@ from anago.data.preprocess import WordPreprocessor, UNK, dense_to_one_hot, pad_s
 class WordPreprocessorTest(unittest.TestCase):
 
     def setUp(self):
-        self.filename = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/train.txt')
+        self.filename = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/test.txt')
 
     def test_preprocessor(self):
         X, y = reader.load_data_and_labels(self.filename)
-        preprocessor = WordPreprocessor()
+        preprocessor = WordPreprocessor(padding=False)
         p = preprocessor.fit(X, y)
         X, y = p.transform(X, y)
         chars, words = X[0]
@@ -28,7 +28,7 @@ class WordPreprocessorTest(unittest.TestCase):
 
     def test_unknown_word(self):
         X, y = reader.load_data_and_labels(self.filename)
-        preprocessor = WordPreprocessor()
+        preprocessor = WordPreprocessor(padding=False)
         p = preprocessor.fit(X, y)
         X = [['$unknownword$', 'あ']]
         y = [['O', 'O']]
@@ -39,14 +39,14 @@ class WordPreprocessorTest(unittest.TestCase):
         unknown_word = 'unknownword'
         X_test, y_test = [[unknown_word]], [['O']]
 
-        preprocessor = WordPreprocessor()
+        preprocessor = WordPreprocessor(padding=False)
         p = preprocessor.fit(X, y)
         X_pred, _ = p.transform(X_test, y_test)
         words = X_pred[0][1]
         self.assertEqual(words, [p.vocab_word[UNK]])
 
         vocab_init = {unknown_word}
-        preprocessor = WordPreprocessor(vocab_init=vocab_init)
+        preprocessor = WordPreprocessor(vocab_init=vocab_init, padding=False)
         p = preprocessor.fit(X, y)
         X_pred, _ = p.transform(X_test, y_test)
         words = X_pred[0][1]
@@ -69,7 +69,11 @@ class WordPreprocessorTest(unittest.TestCase):
         self.assertTrue(os.path.exists(filepath))
 
         loaded_p = WordPreprocessor.load(filepath)
-        self.assertEqual(loaded_p.transform(X, y), p.transform(X, y))
+        x_test1, y_test1 = p.transform(X, y)
+        x_test2, y_test2 = loaded_p.transform(X, y)
+        np.testing.assert_array_equal(x_test1[0], x_test2[0])  # word
+        np.testing.assert_array_equal(x_test1[1], x_test2[1])  # char
+        np.testing.assert_array_equal(y_test1, y_test2)
         if os.path.exists(filepath):
             os.remove(filepath)
 
@@ -148,44 +152,28 @@ class PerformanceTest(unittest.TestCase):
 
     def test_transform(self):
         X, y = reader.load_data_and_labels(self.filename)
-        preprocessor = WordPreprocessor()
+        preprocessor = WordPreprocessor(padding=False)
         p = preprocessor.fit(X, y)
         X, y = p.transform(X, y)
 
     def test_to_numpy_array(self):
         X, y = reader.load_data_and_labels(self.filename)
-        preprocessor = WordPreprocessor()
+        preprocessor = WordPreprocessor(padding=False)
         p = preprocessor.fit(X, y)
         X, y = p.transform(X, y)
         y = np.asarray(y)
 
     def test_pad_sequences(self):
         X, y = reader.load_data_and_labels(self.filename)
-        preprocessor = WordPreprocessor()
+        preprocessor = WordPreprocessor(padding=True)
         p = preprocessor.fit(X, y)
         X, y = p.transform(X, y)
-        y, _ = pad_sequences(y, pad_tok=0)
-        char_ids, word_ids = zip(*X)
-        word_ids = pad_sequences(word_ids, pad_tok=0)
-        char_ids = pad_sequences(char_ids, pad_tok=0, nlevels=2)
-
-    def test_dense_to_onehot(self):
-        X, y = reader.load_data_and_labels(self.filename)
-        preprocessor = WordPreprocessor()
-        p = preprocessor.fit(X, y)
-        _, y = p.transform(X, y)
-        y, _ = pad_sequences(y, pad_tok=0)
-        y = np.asarray(y)
-        labels_one_hot = dense_to_one_hot(y, num_classes=len(p.vocab_tag), nlevels=2)
 
     def test_calc_sequence_lengths(self):
         X, y = reader.load_data_and_labels(self.filename)
-        preprocessor = WordPreprocessor()
+        preprocessor = WordPreprocessor(padding=True)
         p = preprocessor.fit(X, y)
         _, y = p.transform(X, y)
-        y, _ = pad_sequences(y, pad_tok=0)
-        y = np.asarray(y)
-        labels_one_hot = dense_to_one_hot(y, num_classes=len(p.vocab_tag), nlevels=2)
-        y_t = np.argmax(labels_one_hot, -1)
+        y_t = np.argmax(y, -1)
         y_t = y_t.astype(np.int32)
         sequence_lengths = np.argmin(y_t, -1)
