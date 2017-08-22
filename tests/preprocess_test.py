@@ -31,8 +31,7 @@ class WordPreprocessorTest(unittest.TestCase):
         preprocessor = WordPreprocessor(padding=False)
         p = preprocessor.fit(X, y)
         X = p.transform(X)
-        print(X[0])
-        chars, words = X
+        chars, words = X[0]
         char, word = chars[0][0], words[0]
         self.assertIsInstance(word, int)
         self.assertIsInstance(char, int)
