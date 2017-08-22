@@ -1,8 +1,10 @@
+<!--
 <div align="center">
   <img src="https://github.com/Hironsan/anago/blob/develop/docs/images/anago.png?raw=true" width="350">
 </div>
 
 -----------------
+-->
 
 # anaGo
 anaGo is a state-of-the-art library for sequence labeling using Keras.
