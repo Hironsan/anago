@@ -1,3 +1,5 @@
+import os
+
 from keras.optimizers import Adam
 
 from anago.data.reader import load_word_embeddings, batch_iter
@@ -13,6 +15,8 @@ class Trainer(object):
 
     def train(self, x_train, y_train, x_valid=None, y_valid=None):
         p = prepare_preprocessor(x_train, y_train)
+        p.save(os.path.join(self.config.save_path, 'preprocessor.pkl'))
+
         train_steps, train_batches = batch_iter(
             list(zip(x_train, y_train)), self.config.batch_size, preprocessor=p)
         valid_steps, valid_batches = batch_iter(
