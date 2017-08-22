@@ -1,11 +1,28 @@
+import os
 from collections import defaultdict
+
+from keras.optimizers import Adam
+
+from anago.data.preprocess import WordPreprocessor
+from anago.data.reader import load_word_embeddings
+from anago.models.models import SeqLabeling
 
 
 class Tagger(object):
 
-    def __init__(self, tokenizer=str.split):
+    def __init__(self, config, weights, tokenizer=str.split):
+        self.config = config
         self._tokenizer = tokenizer
-        self._model = None  # needs to load model
+        self.p = WordPreprocessor.load(os.path.join(self.config.save_path, 'preprocessor.pkl'))
+
+        embeddings = load_word_embeddings(self.p.vocab_word, self.config.glove_path, self.config.word_dim)
+        self.config.char_vocab_size = len(self.p.vocab_char)
+
+        self.model = SeqLabeling(self.config, embeddings, len(self.p.vocab_tag))
+        self.model.compile(loss=self.model.loss,
+                           optimizer=Adam(lr=self.config.learning_rate),
+                           )
+        self.model.load(filepath=os.path.join(self.config.save_path, weights))
 
     def tag(self, sent):
         """Tags a sentence named entities.
