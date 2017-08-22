@@ -26,6 +26,17 @@ class WordPreprocessorTest(unittest.TestCase):
         self.assertIsInstance(tag, int)
         self.assertIsInstance(p.inverse_transform(y[0])[0], str)
 
+    def test_transform_only_words(self):
+        X, y = reader.load_data_and_labels(self.filename)
+        preprocessor = WordPreprocessor(padding=False)
+        p = preprocessor.fit(X, y)
+        X = p.transform(X)
+        print(X[0])
+        chars, words = X
+        char, word = chars[0][0], words[0]
+        self.assertIsInstance(word, int)
+        self.assertIsInstance(char, int)
+
     def test_unknown_word(self):
         X, y = reader.load_data_and_labels(self.filename)
         preprocessor = WordPreprocessor(padding=False)

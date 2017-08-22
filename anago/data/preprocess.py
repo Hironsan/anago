@@ -1,4 +1,3 @@
-import collections
 import itertools
 import re
 
@@ -8,7 +7,6 @@ from sklearn.externals import joblib
 
 UNK = '<UNK>'
 PAD = '<PAD>'
-Vocab = collections.namedtuple('Vocab', ['word', 'char', 'tag'])
 
 
 class WordPreprocessor(BaseEstimator, TransformerMixin):
@@ -50,7 +48,7 @@ class WordPreprocessor(BaseEstimator, TransformerMixin):
 
         return self
 
-    def transform(self, X, y):
+    def transform(self, X, y=None):
         sents = []
         for sent in X:
             word_ids = []
@@ -73,11 +71,14 @@ class WordPreprocessor(BaseEstimator, TransformerMixin):
             else:
                 sents.append(word_ids)
 
-        y = [[self.vocab_tag[t] for t in sent] for sent in y]
+        if y is None:
+            pass
+        else:
+            y = [[self.vocab_tag[t] for t in sent] for sent in y]
         if self.padding:
             sents, y = self.pad_sequence(sents, y)
 
-        return sents, y
+        return sents, y if y else sents
 
     def inverse_transform(self, y):
         indice_tag = {i: t for t, i in self.vocab_tag.items()}
