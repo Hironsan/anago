@@ -23,9 +23,10 @@ def load_glove_vocab(filename):
     """Loads GloVe's vocab from a file.
 
     Args:
-        filename: path to the glove vectors
+        filename (str): path to the glove vectors.
+
     Returns:
-        a set of all words in GloVe
+        set: a set of all words in GloVe.
     """
     print('Building vocab...')
     with open(filename) as f:
@@ -35,12 +36,15 @@ def load_glove_vocab(filename):
 
 
 def load_word_embeddings(vocab, glove_filename, dim):
-    """Loads GloVe vectors in numpy array
+    """Loads GloVe vectors in numpy array.
 
-    Arguments:
-        vocab: dictionary vocab[word] = index
-        glove_filename: a path to a glove file
-        dim: (int) dimension of embeddings
+    Args:
+        vocab (): dictionary vocab[word] = index.
+        glove_filename (str): a path to a glove file.
+        dim (int): dimension of embeddings.
+
+    Returns:
+        numpy array: an array of word embeddings.
     """
     embeddings = np.zeros([len(vocab), dim])
     with open(glove_filename) as f:

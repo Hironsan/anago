@@ -32,8 +32,7 @@ class BaseModel(object):
 
 
 class SeqLabeling(BaseModel):
-    """
-    A Keras implementation of BiLSTM-CRF for named-entity recognition.
+    """A Keras implementation of BiLSTM-CRF for named-entity recognition.
 
     References
     --

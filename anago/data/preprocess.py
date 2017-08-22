@@ -123,11 +123,12 @@ class WordPreprocessor(BaseEstimator, TransformerMixin):
 
 def _pad_sequences(sequences, pad_tok, max_length):
     """
-    Arguments:
-        sequences: a generator of list or tuple
-        pad_tok: the char to pad with
+    Args:
+        sequences: a generator of list or tuple.
+        pad_tok: the char to pad with.
+
     Returns:
-        a list of list where each sublist has same length
+        a list of list where each sublist has same length.
     """
     sequence_padded, sequence_length = [], []
 
@@ -142,11 +143,12 @@ def _pad_sequences(sequences, pad_tok, max_length):
 
 def pad_sequences(sequences, pad_tok, nlevels=1):
     """
-    Arguments:
-        sequences: a generator of list or tuple
-        pad_tok: the char to pad with
+    Args:
+        sequences: a generator of list or tuple.
+        pad_tok: the char to pad with.
+
     Returns:
-        a list of list where each sublist has same length
+        a list of list where each sublist has same length.
     """
     if nlevels == 1:
         #max_length = max(map(lambda x: len(x), sequences))

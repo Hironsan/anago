@@ -5,6 +5,17 @@ from keras.callbacks import Callback, TensorBoard, EarlyStopping, ModelCheckpoin
 
 
 def get_callbacks(log_dir=None, save_dir=None, valid=(), eary_stopping=True):
+    """Get callbacks.
+
+    Args:
+        log_dir (str): the destination to save logs(for TensorBoard).
+        save_dir (str): the destination to save models.
+        valid (tuple): data for validation.
+        eary_stopping (bool): whether to use early stopping.
+
+    Returns:
+        list: list of callbacks
+    """
     callbacks = []
 
     if log_dir:
@@ -34,15 +45,18 @@ def get_callbacks(log_dir=None, save_dir=None, valid=(), eary_stopping=True):
 
 
 def get_entities(seq):
-    """
-    Arguments:
-        seq: ["B-PER", "I-PER", "O", "B-LOC", ...] sequence of labels
+    """Gets entities from sequence.
+
+    Args:
+        seq (list): sequence of labels.
+
     Returns:
-        list of (chunk_type, chunk_start, chunk_end)
+        list: list of (chunk_type, chunk_start, chunk_end).
 
     Example:
-        seq: ["B-PER", "I-PER", "O", "B-LOC"]
-        result = [("PER", 0, 2), ("LOC", 3, 4)]
+        >>> seq = ['B-PER', 'I-PER', 'O', 'B-LOC']
+        >>> print(get_entities(seq))
+        [('PER', 0, 2), ('LOC', 3, 4)]
     """
     i = 0
     chunks = []
@@ -62,15 +76,22 @@ def get_entities(seq):
 
 
 def f1_score(y_true, y_pred, sequence_lengths):
-    """
-    Evaluates performance on test set
+    """Evaluates f1 score.
+
     Args:
-        sess: tensorflow session
-        test: dataset that yields tuple of sentences, tags
-        tags: {tag: index} dictionary
+        y_true (list): true labels.
+        y_pred (list): predicted labels.
+        sequence_lengths (list): sequence lengths.
+
     Returns:
-        accuracy
-        f1 score
+        float: f1 score.
+
+    Example:
+        >>> y_true = []
+        >>> y_pred = []
+        >>> sequence_lengths = []
+        >>> print(f1_score(y_true, y_pred, sequence_lengths))
+        0.8
     """
     correct_preds, total_correct, total_preds = 0., 0., 0.
     for lab, lab_pred, length in zip(y_true, y_pred, sequence_lengths):
