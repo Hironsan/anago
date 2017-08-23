@@ -18,8 +18,8 @@ class WordPreprocessorTest(unittest.TestCase):
         preprocessor = WordPreprocessor(padding=False)
         p = preprocessor.fit(X, y)
         X, y = p.transform(X, y)
-        chars, words = X[0]
-        char, word = chars[0][0], words[0]
+        words, chars = X
+        char, word = chars[0][0][0], words[0][0]
         tag = y[0][0]
         self.assertIsInstance(word, int)
         self.assertIsInstance(char, int)
@@ -31,10 +31,20 @@ class WordPreprocessorTest(unittest.TestCase):
         preprocessor = WordPreprocessor(padding=False)
         p = preprocessor.fit(X, y)
         X = p.transform(X)
-        chars, words = X[0]
-        char, word = chars[0][0], words[0]
+        words, chars = X
+        char, word = chars[0][0][0], words[0][0]
         self.assertIsInstance(word, int)
         self.assertIsInstance(char, int)
+
+    def test_transform_with_padding(self):
+        X, y = reader.load_data_and_labels(self.filename)
+        preprocessor = WordPreprocessor(padding=True)
+        p = preprocessor.fit(X, y)
+        X = p.transform(X)
+        words, chars = X
+        word, char = words[0][0], chars[0][0][0]
+        self.assertIsInstance(int(word), int)
+        self.assertIsInstance(int(char), int)
 
     def test_unknown_word(self):
         X, y = reader.load_data_and_labels(self.filename)
