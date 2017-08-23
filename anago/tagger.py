@@ -24,26 +24,33 @@ class Tagger(object):
                            )
         self.model.load(filepath=os.path.join(self.config.save_path, weights))
 
+    def predict(self, words):
+        sequence_lengths = [len(words)]
+        X = self.p.transform([words])
+        pred = self.model.predict(X, sequence_lengths)
+        pred = self.p.inverse_transform(pred[0])
+        return pred
+
     def tag(self, sent):
         """Tags a sentence named entities.
 
         Args:
             sent: a sentence
+
         Return:
             labels_pred: list of (word, tag) for a sentence
 
         Example:
-            sent = 'President Obama is speaking at the White House.'
-            result = [('President', 'O'), ('Obama', 'PERSON'), ('is', 'O'),
-                      ('speaking', 'O'), ('at', 'O'), ('the', 'O'),
-                      ('White', 'LOCATION'), ('House', 'LOCATION'), ('.', 'O')]
+            >>> sent = 'President Obama is speaking at the White House.'
+            >>> print(self.tag(sent))
+            [('President', 'O'), ('Obama', 'PERSON'), ('is', 'O'),
+             ('speaking', 'O'), ('at', 'O'), ('the', 'O'),
+             ('White', 'LOCATION'), ('House', 'LOCATION'), ('.', 'O')]
         """
         assert isinstance(sent, str)
 
         words = self._tokenizer(sent)
-        words = ['President', 'Obama', 'is', 'speaking', 'at', 'the', 'White', 'House', '.']
-        # pred = self._model.predict(words)
-        pred = ['O', 'B-Person', 'O', 'O', 'O', 'O', 'B-Location', 'I-Location', 'O']
+        pred = self.predict(words)
         pred = [t.split('-')[-1] for t in pred]  # remove prefix: e.g. B-Person -> Person
 
         return list(zip(words, pred))
@@ -53,6 +60,7 @@ class Tagger(object):
 
         Args:
             sent: a sentence
+
         Return:
             labels_pred: dict of entities for a sentence
 
@@ -63,9 +71,7 @@ class Tagger(object):
         assert isinstance(sent, str)
 
         words = self._tokenizer(sent)
-        words = ['President', 'Obama', 'is', 'speaking', 'at', 'the', 'White', 'House', '.']
-        # pred = self._model.predict(words)
-        pred = ['O', 'B-Person', 'O', 'O', 'O', 'O', 'B-Location', 'I-Location', 'O']
+        pred = self.predict(words)
         entities = self.get_chunks(words, pred)
 
         return entities
@@ -75,6 +81,7 @@ class Tagger(object):
         Args:
             words: sequence of word
             tags: sequence of labels
+
         Returns:
             dict of entities for a sequence
 

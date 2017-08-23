@@ -1,16 +1,19 @@
 import unittest
 
 import anago
+from anago.config import Config
 
 
 class TaggerTest(unittest.TestCase):
 
     def setUp(self):
+        config = Config()
+        weights_file = 'model_weights_02_0.09.h5'
+        self.tagger = anago.Tagger(config, weights_file)
         self.sent = 'President Obama is speaking at the White House.'
 
     def test_tagging(self):
-        tagger = anago.Tagger()
-        res = tagger.tag(self.sent)
+        res = self.tagger.tag(self.sent)
 
         self.assertIsInstance(res, list)
         self.assertIsInstance(res[0], tuple)
@@ -23,8 +26,7 @@ class TaggerTest(unittest.TestCase):
             self.assertIn(tag, tag_set)
 
     def test_get_entities(self):
-        tagger = anago.Tagger()
-        res = tagger.get_entities(self.sent)
+        res = self.tagger.get_entities(self.sent)
 
         self.assertIsInstance(list(res.keys())[0], str)
         self.assertIsInstance(list(res.values())[0], list)
