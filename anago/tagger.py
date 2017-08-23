@@ -5,7 +5,7 @@ from keras.optimizers import Adam
 
 from anago.data.preprocess import WordPreprocessor
 from anago.data.reader import load_word_embeddings
-from anago.models.models import SeqLabeling
+from anago.models import SeqLabeling
 
 
 class Tagger(object):

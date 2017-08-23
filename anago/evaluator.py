@@ -2,10 +2,10 @@ import os
 
 from keras.optimizers import Adam
 
-from anago.data.reader import batch_iter, load_word_embeddings
-from anago.data.preprocess import WordPreprocessor
 from anago.data.metrics import F1score
-from anago.models.models import SeqLabeling
+from anago.data.preprocess import WordPreprocessor
+from anago.data.reader import batch_iter, load_word_embeddings
+from anago.models import SeqLabeling
 
 
 class Evaluator(object):

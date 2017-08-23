@@ -2,10 +2,10 @@ import os
 
 from keras.optimizers import Adam
 
-from anago.data.reader import load_word_embeddings, batch_iter
 from anago.data.metrics import get_callbacks
 from anago.data.preprocess import prepare_preprocessor
-from anago.models.models import SeqLabeling
+from anago.data.reader import load_word_embeddings, batch_iter
+from anago.models import SeqLabeling
 
 
 class Trainer(object):

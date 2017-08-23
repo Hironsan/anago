@@ -4,10 +4,10 @@ import unittest
 import numpy as np
 from keras.optimizers import Adam
 
-from anago.data.reader import load_data_and_labels
-from anago.data.preprocess import prepare_preprocessor
-from anago.models.models import SeqLabeling
 from anago.config import Config
+from anago.data.preprocess import prepare_preprocessor
+from anago.data.reader import load_data_and_labels
+from anago.models import SeqLabeling
 
 
 class ModelTest(unittest.TestCase):
