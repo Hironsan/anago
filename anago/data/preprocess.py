@@ -1,4 +1,3 @@
-import collections
 import itertools
 import re
 
@@ -8,7 +7,6 @@ from sklearn.externals import joblib
 
 UNK = '<UNK>'
 PAD = '<PAD>'
-Vocab = collections.namedtuple('Vocab', ['word', 'char', 'tag'])
 
 
 class WordPreprocessor(BaseEstimator, TransformerMixin):
@@ -50,15 +48,42 @@ class WordPreprocessor(BaseEstimator, TransformerMixin):
 
         return self
 
-    def transform(self, X, y):
-        sents = []
+    def transform(self, X, y=None):
+        """transforms input(s)
+
+        Args:
+            X: list of list of words
+            y: list of list of tags
+
+        Returns:
+            numpy array: sentences
+            numpy array: tags
+
+        Examples:
+            >>> X = [['President', 'Obama', 'is', 'speaking']]
+            >>> print(self.transform(X))
+            [
+                [
+                    [1999, 1037, 22123, 48388],       # word ids
+                ],
+                [
+                    [
+                        [1, 2, 3, 4, 5, 6, 7, 8, 9],  # list of char ids
+                        [1, 2, 3, 4, 5, 0, 0, 0, 0],  # 0 is a pad
+                        [1, 2, 0, 0, 0, 0, 0, 0, 0],
+                        [1, 2, 3, 4, 5, 6, 7, 8, 0]
+                    ]
+                ]
+            ]
+        """
+        words = []
+        chars = []
         for sent in X:
             word_ids = []
-            char_word_ids = []
+            char_ids = []
             for w in sent:
                 if self.char_feature:
-                    char_ids = self._get_char_ids(w)
-                    char_word_ids.append(char_ids)
+                    char_ids.append(self._get_char_ids(w))
 
                 w = self._lower(w)
                 w = self._normalize_num(w)
@@ -68,16 +93,19 @@ class WordPreprocessor(BaseEstimator, TransformerMixin):
                     word_id = self.vocab_word[UNK]
                 word_ids.append(word_id)
 
+            words.append(word_ids)
             if self.char_feature:
-                sents.append((char_word_ids, word_ids))
-            else:
-                sents.append(word_ids)
+                chars.append(char_ids)
 
-        y = [[self.vocab_tag[t] for t in sent] for sent in y]
+        if y is not None:
+            y = [[self.vocab_tag[t] for t in sent] for sent in y]
+
         if self.padding:
-            sents, y = self.pad_sequence(sents, y)
+            sents, y = self.pad_sequence(words, chars, y)
+        else:
+            sents = [words, chars]
 
-        return sents, y
+        return (sents, y) if y is not None else sents
 
     def inverse_transform(self, y):
         indice_tag = {i: t for t, i in self.vocab_tag.items()}
@@ -95,21 +123,20 @@ class WordPreprocessor(BaseEstimator, TransformerMixin):
         else:
             return word
 
-    def pad_sequence(self, words, labels=None):
+    def pad_sequence(self, word_ids, char_ids, labels=None):
         if labels:
             labels, _ = pad_sequences(labels, 0)
             labels = np.asarray(labels)
             labels = dense_to_one_hot(labels, len(self.vocab_tag), nlevels=2)
 
+        word_ids, sequence_lengths = pad_sequences(word_ids, 0)
+        word_ids = np.asarray(word_ids)
+
         if self.char_feature:
-            char_ids, word_ids = zip(*words)
-            word_ids, sequence_lengths = pad_sequences(word_ids, 0)
             char_ids, word_lengths = pad_sequences(char_ids, pad_tok=0, nlevels=2)
-            word_ids, char_ids = np.asarray(word_ids), np.asarray(char_ids)
+            char_ids = np.asarray(char_ids)
             return [word_ids, char_ids], labels
         else:
-            word_ids, sequence_lengths = pad_sequences(words, 0)
-            word_ids = np.asarray(word_ids)
             return word_ids, labels
 
     def save(self, file_path):
