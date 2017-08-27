@@ -11,11 +11,13 @@ PAD = '<PAD>'
 
 class WordPreprocessor(BaseEstimator, TransformerMixin):
 
-    def __init__(self, lowercase=True, num_norm=True, char_feature=True, vocab_init=None, padding=True):
+    def __init__(self, lowercase=True, num_norm=True, char_feature=True, vocab_init=None, padding=True,
+                 return_lengths=True):
         self.lowercase = lowercase
         self.num_norm = num_norm
         self.char_feature = char_feature
         self.padding = padding
+        self.return_lengths = return_lengths
         self.vocab_word = None
         self.vocab_char = None
         self.vocab_tag  = None
@@ -78,9 +80,11 @@ class WordPreprocessor(BaseEstimator, TransformerMixin):
         """
         words = []
         chars = []
+        lengths = []
         for sent in X:
             word_ids = []
             char_ids = []
+            lengths.append(len(sent))
             for w in sent:
                 if self.char_feature:
                     char_ids.append(self._get_char_ids(w))
@@ -104,6 +108,11 @@ class WordPreprocessor(BaseEstimator, TransformerMixin):
             sents, y = self.pad_sequence(words, chars, y)
         else:
             sents = [words, chars]
+
+        if self.return_lengths:
+            lengths = np.asarray(lengths, dtype=np.int32)
+            lengths = lengths.reshape((lengths.shape[0], 1))
+            sents.append(lengths)
 
         return (sents, y) if y is not None else sents
 
@@ -178,11 +187,9 @@ def pad_sequences(sequences, pad_tok, nlevels=1):
         a list of list where each sublist has same length.
     """
     if nlevels == 1:
-        #max_length = max(map(lambda x: len(x), sequences))
-        max_length = len(max(sequences, key=len)) + 1  # +1 is sentinel
+        max_length = len(max(sequences, key=len))
         sequence_padded, sequence_length = _pad_sequences(sequences, pad_tok, max_length)
     elif nlevels == 2:
-        # max_length_word = max([max(map(lambda x: len(x), seq)) for seq in sequences])
         max_length_word = max(len(max(seq, key=len)) for seq in sequences)
         sequence_padded, sequence_length = [], []
         for seq in sequences:
@@ -191,7 +198,7 @@ def pad_sequences(sequences, pad_tok, nlevels=1):
             sequence_padded += [sp]
             sequence_length += [sl]
 
-        max_length_sentence = max(map(lambda x: len(x), sequences)) + 1  # +1 is sentinel
+        max_length_sentence = max(map(lambda x: len(x), sequences))
         sequence_padded, _ = _pad_sequences(sequence_padded, [pad_tok] * max_length_word, max_length_sentence)
         sequence_length, _ = _pad_sequences(sequence_length, 0, max_length_sentence)
     else:

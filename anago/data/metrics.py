@@ -126,7 +126,8 @@ class F1score(Callback):
                 break
             y_true = label
             y_true = np.argmax(y_true, -1)
-            sequence_lengths = np.argmin(y_true, -1)
+            sequence_lengths = data[-1] # shape of (batch_size, 1)
+            sequence_lengths = np.reshape(sequence_lengths, (-1,))
             y_pred = np.asarray(self.model_.predict(data, sequence_lengths))
 
             y_pred = [self.p.inverse_transform(y[:l]) for y, l in zip(y_pred, sequence_lengths)]
