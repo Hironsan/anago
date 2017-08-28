@@ -11,7 +11,7 @@ from anago.data.preprocess import WordPreprocessor, UNK, dense_to_one_hot, pad_s
 class WordPreprocessorTest(unittest.TestCase):
 
     def setUp(self):
-        self.filename = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/test.txt')
+        self.filename = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/ner/test.txt')
 
     def test_preprocessor(self):
         X, y = reader.load_data_and_labels(self.filename)
@@ -156,7 +156,7 @@ class PerformanceTest(unittest.TestCase):
     """
     def setUp(self):
         self.start_time = time.time()
-        self.filename = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/train.txt')
+        self.filename = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/ner/train.txt')
 
     def tearDown(self):
         elapsed = time.time() - self.start_time

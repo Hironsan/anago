@@ -15,10 +15,10 @@ class Tagger(object):
         self._tokenizer = tokenizer
         self.p = WordPreprocessor.load(os.path.join(self.config.save_path, 'preprocessor.pkl'))
 
-        embeddings = load_word_embeddings(self.p.vocab_word, self.config.glove_path, self.config.word_dim)
         self.config.char_vocab_size = len(self.p.vocab_char)
+        self.config.vocab_size = len(self.p.vocab_word)
 
-        self.model = SeqLabeling(self.config, embeddings, len(self.p.vocab_tag))
+        self.model = SeqLabeling(self.config, ntags=len(self.p.vocab_tag))
         self.model.compile(loss=self.model.loss,
                            optimizer=Adam(lr=self.config.learning_rate),
                            )

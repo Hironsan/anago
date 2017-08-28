@@ -17,8 +17,8 @@ class ModelTest(unittest.TestCase):
         vocab = 10000
         self.config.char_vocab_size = 80
         self.embeddings = np.zeros((vocab, self.config.word_dim))
-        self.filename = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/test.txt')
-        self.valid_file = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/valid.txt')
+        self.filename = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/ner/test.txt')
+        self.valid_file = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/ner/valid.txt')
 
     def test_build(self):
         model = SeqLabeling(self.config, self.embeddings, ntags=10)

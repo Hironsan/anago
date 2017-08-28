@@ -41,13 +41,18 @@ class SeqLabeling(BaseModel):
     https://arxiv.org/abs/1603.01360
     """
 
-    def __init__(self, config, embeddings, ntags):
+    def __init__(self, config, embeddings=None, ntags=None):
         # build word embedding
         word_ids = Input(batch_shape=(None, None), dtype='int32')
-        word_embeddings = Embedding(input_dim=embeddings.shape[0],
-                                    output_dim=embeddings.shape[1],
-                                    mask_zero=True,
-                                    weights=[embeddings])(word_ids)
+        if embeddings is None:
+            word_embeddings = Embedding(input_dim=config.vocab_size,
+                                        output_dim=config.word_dim,
+                                        mask_zero=True)(word_ids)
+        else:
+            word_embeddings = Embedding(input_dim=embeddings.shape[0],
+                                        output_dim=embeddings.shape[1],
+                                        mask_zero=True,
+                                        weights=[embeddings])(word_ids)
 
         # build character based word embedding
         char_ids = Input(batch_shape=(None, None, None), dtype='int32')

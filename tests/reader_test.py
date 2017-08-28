@@ -8,7 +8,7 @@ from anago.data.preprocess import prepare_preprocessor
 class ReaderTest(unittest.TestCase):
 
     def setUp(self):
-        self.filename = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/test.txt')
+        self.filename = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/ner/test.txt')
 
     def test_extract(self):
         sents, labels = load_data_and_labels(self.filename)
