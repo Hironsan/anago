@@ -13,7 +13,7 @@ def load_data_and_labels(filename):
                     labels.append(tags)
                     words, tags = [], []
             else:
-                word, _, _, tag = line.split(' ')
+                word, tag = line.split('\t')
                 words.append(word)
                 tags.append(tag)
     return np.asarray(sents), np.asarray(labels)

@@ -3,7 +3,7 @@ import os
 
 class Config(object):
     # data settings
-    data_path = os.path.join(os.path.dirname(__file__), '../data/conll2003/en')
+    data_path = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/ner')
     save_path = os.path.join(os.path.dirname(__file__), '../models/')
     log_dir = os.path.join(os.path.dirname(__file__), '../logs/')
     glove_path = os.path.join(os.path.dirname(__file__), '../data/glove.6B/glove.6B.300d.txt')
