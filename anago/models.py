@@ -71,6 +71,7 @@ class SeqLabeling(BaseModel):
 
         # combine characters and word
         x = Concatenate(axis=-1)([word_embeddings, char_embeddings])
+        x = Dropout(config.dropout)(x)
 
         x = Bidirectional(LSTM(units=config.lstm_size, return_sequences=True))(x)
         x = Dropout(config.dropout)(x)

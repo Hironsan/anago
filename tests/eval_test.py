@@ -11,7 +11,7 @@ class EvaluatorTest(unittest.TestCase):
 
     def test_eval(self):
         config = Config()
-        weights_file = 'model_weights_01_0.03.h5'
+        weights_file = 'model_weights_03_0.92.h5'
 
         test_path = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/ner/test.txt')
         x_test, y_test = load_data_and_labels(test_path)

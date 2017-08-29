@@ -12,10 +12,12 @@ class TrainerTest(unittest.TestCase):
         config = Config()
         train_path = os.path.join(config.data_path, 'train.txt')
         valid_path = os.path.join(config.data_path, 'valid.txt')
+        test_path = os.path.join(config.data_path, 'test.txt')
         x_train, y_train = load_data_and_labels(train_path)
         x_valid, y_valid = load_data_and_labels(valid_path)
+        x_test, y_test = load_data_and_labels(test_path)
 
-        x_train, y_train = x_train[:100], y_train[:100]
-        x_valid, y_valid = x_train[:100], y_train[:100]
+        #x_train, y_train = x_train[:100], y_train[:100]
+        #x_valid, y_valid = x_train[:100], y_train[:100]
         trainer = anago.Trainer(config)
-        trainer.train(x_train, y_train, x_valid, y_valid)
+        trainer.train(x_train, y_train, x_valid, y_valid, x_test, y_test)

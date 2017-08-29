@@ -13,8 +13,9 @@ class Trainer(object):
     def __init__(self, config):
         self.config = config
 
-    def train(self, x_train, y_train, x_valid=None, y_valid=None):
-        p = prepare_preprocessor(x_train, y_train)
+    def train(self, x_train, y_train, x_valid=None, y_valid=None, x_test=None, y_test=None):
+        import numpy as np
+        p = prepare_preprocessor(np.r_[x_train, x_valid, x_test], y_train)
 
         train_steps, train_batches = batch_iter(
             list(zip(x_train, y_train)), self.config.batch_size, preprocessor=p)

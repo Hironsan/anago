@@ -39,7 +39,7 @@ def get_callbacks(log_dir=None, save_dir=None, valid=(), eary_stopping=True):
         callbacks.append(save_callback)
 
     if eary_stopping:
-        callbacks.append(EarlyStopping(monitor='f1'))
+        callbacks.append(EarlyStopping(monitor='f1', patience=3, mode='max'))
 
     return callbacks
 
