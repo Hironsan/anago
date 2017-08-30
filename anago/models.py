@@ -4,7 +4,7 @@ from keras.layers import Dense, LSTM, Bidirectional, Embedding, Input, Dropout, 
 from keras.layers.merge import Concatenate
 from keras.models import Model
 
-from anago.crf import ChainCRF
+from anago.layers import ChainCRF
 
 
 class BaseModel(object):
