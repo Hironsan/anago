@@ -112,12 +112,11 @@ def f1_score(y_true, y_pred, sequence_lengths):
 
 
 class F1score(Callback):
-    def __init__(self, valid_steps, valid_batches, preprocessor=None, model=None):
+    def __init__(self, valid_steps, valid_batches, preprocessor=None):
         super(F1score, self).__init__()
         self.valid_steps = valid_steps
         self.valid_batches = valid_batches
         self.p = preprocessor
-        self.model_ = model
 
     def on_epoch_end(self, epoch, logs={}):
         correct_preds, total_correct, total_preds = 0., 0., 0.
@@ -129,7 +128,7 @@ class F1score(Callback):
             sequence_lengths = data[-1] # shape of (batch_size, 1)
             sequence_lengths = np.reshape(sequence_lengths, (-1,))
             #y_pred = np.asarray(self.model_.predict(data, sequence_lengths))
-            y_pred = self.model_.predict_on_batch(data)
+            y_pred = self.model.predict_on_batch(data)
             y_pred = np.argmax(y_pred, -1)
 
             y_pred = [self.p.inverse_transform(y[:l]) for y, l in zip(y_pred, sequence_lengths)]

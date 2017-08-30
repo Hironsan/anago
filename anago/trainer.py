@@ -29,7 +29,7 @@ class Trainer(object):
                       )
         callbacks = get_callbacks(log_dir=self.config.log_dir,
                                   save_dir=self.config.save_path,
-                                  valid=(valid_steps, valid_batches, p, model))
+                                  valid=(valid_steps, valid_batches, p))
         model.fit_generator(generator=train_batches,
                             steps_per_epoch=train_steps,
                             epochs=self.config.max_epoch,
