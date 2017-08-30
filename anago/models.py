@@ -24,10 +24,10 @@ class BaseModel(object):
         return score
 
     def save(self, filepath):
-        self.model.save(filepath)
+        self.model.save_weights(filepath)
 
     def load(self, filepath):
-        self.model.load(filepath=filepath)
+        self.model.load_weights(filepath=filepath)
 
     def __getattr__(self, name):
         return getattr(self.model, name)
@@ -82,20 +82,5 @@ class SeqLabeling(BaseModel):
         pred = self.crf(x)
 
         self.sequence_lengths = Input(batch_shape=(None, 1), dtype='int32')
-        #self.model = Model(inputs=[word_ids, char_ids], outputs=[pred])
         self.model = Model(inputs=[word_ids, char_ids, self.sequence_lengths], outputs=[pred])
         self.config = config
-
-
-if __name__ == '__main__':
-    from anago.config import Config
-    from keras.optimizers import Adam
-    config = Config()
-    config.vocab_size = 10000
-    config.char_vocab_size = 100
-    model = SeqLabeling(config, ntags=10)
-    model.compile(loss=model.crf.loss,
-                  optimizer=Adam(lr=config.learning_rate),
-                  )
-    #model.save_weights("nekoneko")
-    model.load_weights("nekoneko")

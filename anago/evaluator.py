@@ -1,7 +1,5 @@
 import os
 
-from keras.optimizers import Adam
-
 from anago.data.metrics import F1score
 from anago.data.preprocess import WordPreprocessor
 from anago.data.reader import batch_iter
@@ -23,9 +21,6 @@ class Evaluator(object):
         self.config.vocab_size = len(p.vocab_word)
 
         model = SeqLabeling(self.config, ntags=len(p.vocab_tag))
-        model.compile(loss=model.crf.loss,
-                      optimizer=Adam(lr=self.config.learning_rate),
-                      )
         model.load(filepath=os.path.join(self.config.save_path, self.weights))
         f1score = F1score(train_steps, train_batches, p, model)
         f1score.on_epoch_end(epoch=-1)  # epoch is some value

@@ -6,14 +6,14 @@ class Config(object):
     data_path = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/ner')
     save_path = os.path.join(os.path.dirname(__file__), '../models/')
     log_dir = os.path.join(os.path.dirname(__file__), '../logs/')
-    glove_path = os.path.join(os.path.dirname(__file__), '../data/glove.6B/glove.6B.300d.txt')
+    glove_path = os.path.join(os.path.dirname(__file__), '../data/glove.6B/glove.6B.100d.txt')
 
     # model settings
     dropout = 0.5           # The probability of keeping weights in the dropout layer
-    char_dim = 100          # Character embedding dimension
-    word_dim = 300          # Word embedding dimension
-    lstm_size = 300         # The number of hidden units in lstm
-    char_lstm_size = 100    # The number of hidden units in char lstm
+    char_dim = 25          # Character embedding dimension
+    word_dim = 100          # Word embedding dimension
+    lstm_size = 100         # The number of hidden units in lstm
+    char_lstm_size = 25    # The number of hidden units in char lstm
     use_char = True         # Use character feature
     crf = True              # Use CRF
 
