@@ -4,6 +4,8 @@ from keras.layers import Dense, LSTM, Bidirectional, Embedding, Input, Dropout, 
 from keras.layers.merge import Concatenate
 from keras.models import Model
 
+from anago.crf import ChainCRF
+
 
 class BaseModel(object):
 
@@ -22,10 +24,10 @@ class BaseModel(object):
         return score
 
     def save(self, filepath):
-        self.model.save_weights(filepath)
+        self.model.save(filepath)
 
     def load(self, filepath):
-        self.model.load_weights(filepath=filepath)
+        self.model.load(filepath=filepath)
 
     def __getattr__(self, name):
         return getattr(self.model, name)
@@ -75,34 +77,25 @@ class SeqLabeling(BaseModel):
 
         x = Bidirectional(LSTM(units=config.lstm_size, return_sequences=True))(x)
         x = Dropout(config.dropout)(x)
-        pred = Dense(ntags)(x)
+        x = Dense(ntags)(x)
+        self.crf = ChainCRF()
+        pred = self.crf(x)
 
         self.sequence_lengths = Input(batch_shape=(None, 1), dtype='int32')
+        #self.model = Model(inputs=[word_ids, char_ids], outputs=[pred])
         self.model = Model(inputs=[word_ids, char_ids, self.sequence_lengths], outputs=[pred])
-        self.transition_params = K.softmax(K.random_uniform_variable(low=0, high=1, shape=(ntags, ntags)))
         self.config = config
 
-    def predict(self, X, sequence_lengths):
-        logits = self.model.predict_on_batch(X)
-        if self.config.crf:
-            viterbi_sequences = []
-            transition_params = K.eval(self.transition_params)
-            for logit, sequence_length in zip(logits, sequence_lengths):
-                # keep only the valid time steps
-                logit = logit[:sequence_length]
-                #viterbi_sequence, viterbi_score = tf.contrib.crf.viterbi_decode(logit, K.eval(self.transition_params))
-                viterbi_sequence, viterbi_score = tf.contrib.crf.viterbi_decode(logit, transition_params)
-                viterbi_sequences += [viterbi_sequence]
-            return viterbi_sequences
-        else:
-            raise NotImplementedError('not implemented')
 
-    def loss(self, y_true, y_pred):
-        y_t = K.argmax(y_true, -1)
-        y_t = K.cast(y_t, tf.int32)
-        sequence_lengths = K.reshape(self.sequence_lengths, (-1,))
-        log_likelihood, transition_params = tf.contrib.crf.crf_log_likelihood(
-            y_pred, y_t, sequence_lengths, self.transition_params)
-        loss = tf.reduce_mean(-log_likelihood)
-
-        return loss
+if __name__ == '__main__':
+    from anago.config import Config
+    from keras.optimizers import Adam
+    config = Config()
+    config.vocab_size = 10000
+    config.char_vocab_size = 100
+    model = SeqLabeling(config, ntags=10)
+    model.compile(loss=model.crf.loss,
+                  optimizer=Adam(lr=config.learning_rate),
+                  )
+    #model.save_weights("nekoneko")
+    model.load_weights("nekoneko")

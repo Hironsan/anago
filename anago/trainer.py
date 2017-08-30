@@ -26,7 +26,7 @@ class Trainer(object):
         self.config.char_vocab_size = len(p.vocab_char)
 
         model = SeqLabeling(self.config, embeddings, len(p.vocab_tag))
-        model.compile(loss=model.loss,
+        model.compile(loss=model.crf.loss,
                       optimizer=Adam(lr=self.config.learning_rate),
                       )
         callbacks = get_callbacks(log_dir=self.config.log_dir,

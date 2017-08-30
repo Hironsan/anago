@@ -23,11 +23,9 @@ class Evaluator(object):
         self.config.vocab_size = len(p.vocab_word)
 
         model = SeqLabeling(self.config, ntags=len(p.vocab_tag))
-        model.compile(loss=model.loss,
+        model.compile(loss=model.crf.loss,
                       optimizer=Adam(lr=self.config.learning_rate),
                       )
         model.load(filepath=os.path.join(self.config.save_path, self.weights))
         f1score = F1score(train_steps, train_batches, p, model)
         f1score.on_epoch_end(epoch=-1)  # epoch is some value
-        # score = model.evaluate_generator(train_batches, train_steps)  # score is accuracy
-        # print(score)
