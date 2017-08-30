@@ -14,14 +14,10 @@ class Tagger(object):
         self.config = config
         self._tokenizer = tokenizer
         self.p = WordPreprocessor.load(os.path.join(self.config.save_path, 'preprocessor.pkl'))
-
         self.config.char_vocab_size = len(self.p.vocab_char)
         self.config.vocab_size = len(self.p.vocab_word)
 
         self.model = SeqLabeling(self.config, ntags=len(self.p.vocab_tag))
-        self.model.compile(loss=self.model.loss,
-                           optimizer=Adam(lr=self.config.learning_rate),
-                           )
         self.model.load(filepath=os.path.join(self.config.save_path, weights))
 
     def predict(self, words):

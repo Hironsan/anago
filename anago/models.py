@@ -34,7 +34,7 @@ class BaseModel(object):
 
 
 class SeqLabeling(BaseModel):
-    """A Keras implementation of BiLSTM-CRF for named-entity recognition.
+    """A Keras implementation of BiLSTM-CRF for sequence labeling.
 
     References
     --
@@ -81,6 +81,6 @@ class SeqLabeling(BaseModel):
         self.crf = ChainCRF()
         pred = self.crf(x)
 
-        self.sequence_lengths = Input(batch_shape=(None, 1), dtype='int32')
-        self.model = Model(inputs=[word_ids, char_ids, self.sequence_lengths], outputs=[pred])
+        sequence_lengths = Input(batch_shape=(None, 1), dtype='int32')
+        self.model = Model(inputs=[word_ids, char_ids, sequence_lengths], outputs=[pred])
         self.config = config

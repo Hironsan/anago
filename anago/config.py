@@ -10,10 +10,10 @@ class Config(object):
 
     # model settings
     dropout = 0.5           # The probability of keeping weights in the dropout layer
-    char_dim = 25          # Character embedding dimension
+    char_dim = 25           # Character embedding dimension
     word_dim = 100          # Word embedding dimension
     lstm_size = 100         # The number of hidden units in lstm
-    char_lstm_size = 25    # The number of hidden units in char lstm
+    char_lstm_size = 25     # The number of hidden units in char lstm
     use_char = True         # Use character feature
     crf = True              # Use CRF
 

@@ -13,17 +13,15 @@ class Trainer(object):
     def __init__(self, config):
         self.config = config
 
-    def train(self, x_train, y_train, x_valid=None, y_valid=None, x_test=None, y_test=None):
-        import numpy as np
-        p = prepare_preprocessor(np.r_[x_train, x_valid, x_test], y_train)
+    def train(self, x_train, y_train, x_valid=None, y_valid=None):
+        p = prepare_preprocessor(x_train, y_train)
+        embeddings = load_word_embeddings(p.vocab_word, self.config.glove_path, self.config.word_dim)
+        self.config.char_vocab_size = len(p.vocab_char)
 
         train_steps, train_batches = batch_iter(
             list(zip(x_train, y_train)), self.config.batch_size, preprocessor=p)
         valid_steps, valid_batches = batch_iter(
             list(zip(x_valid, y_valid)), self.config.batch_size, preprocessor=p)
-
-        embeddings = load_word_embeddings(p.vocab_word, self.config.glove_path, self.config.word_dim)
-        self.config.char_vocab_size = len(p.vocab_char)
 
         model = SeqLabeling(self.config, embeddings, len(p.vocab_tag))
         model.compile(loss=model.crf.loss,
@@ -32,6 +30,8 @@ class Trainer(object):
         callbacks = get_callbacks(log_dir=self.config.log_dir,
                                   save_dir=self.config.save_path,
                                   valid=(valid_steps, valid_batches, p, model))
-        model.fit_generator(train_batches, train_steps, epochs=self.config.max_epoch,
+        model.fit_generator(generator=train_batches,
+                            steps_per_epoch=train_steps,
+                            epochs=self.config.max_epoch,
                             callbacks=callbacks)
         p.save(os.path.join(self.config.save_path, 'preprocessor.pkl'))
