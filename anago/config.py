@@ -1,38 +1,3 @@
-import os
-
-
-class Config(object):
-
-    def __init__(self):
-        # data settings
-        self.data_path = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/ner')
-        self.save_path = os.path.join(os.path.dirname(__file__), '../models/')
-        self.log_dir = os.path.join(os.path.dirname(__file__), '../logs/')
-        self.glove_path = os.path.join(os.path.dirname(__file__), '../data/glove.6B/glove.6B.100d.txt')
-
-        # model settings
-        self.dropout = 0.5              # The probability of keeping weights in the dropout layer
-        self.char_embedding_size = 25   # Character embedding dimension
-        self.num_char_lstm_units = 25   # The number of hidden units in char lstm
-        self.word_embedding_size = 100  # Word embedding dimension
-        self.num_word_lstm_units = 100  # The number of hidden units in lstm
-        self.vocab_size = None
-        self.char_vocab_size = None
-        self.use_char = True         # Use character feature
-        self.crf = True              # Use CRF
-
-        # training settings
-        self.batch_size = 20          # The batch size
-        self.clip_gradients = 5.0     # The clip value
-        self.learning_rate = 0.001    # The initial value of the learning rate
-        self.lr_decay = 0.9           # The decay of the learning rate for each epoch
-        self.optimizer = 'adam'       # The learning method
-        self.max_epoch = 15           # The number of epochs
-        self.nepoch_no_imprv = 3      # For early stopping
-        self.train_embeddings = True  # Fine-tune word embeddings
-        self.early_stopping = True
-
-
 class ModelConfig(object):
     """Wrapper class for model hyperparameters."""
 
