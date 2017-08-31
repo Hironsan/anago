@@ -1,5 +1,5 @@
 # anaGo
-anaGo is a state-of-the-art library for sequence labeling using Keras. 
+***anaGo*** is a state-of-the-art library for sequence labeling using Keras. 
 
 anaGo can performs named-entity recognition (NER), part-of-speech tagging (POS tagging), semantic role labeling (SRL) and so on. 
 
@@ -76,7 +76,7 @@ Now we are ready for training :)
 
 
 ### Training a model
-Let's train a model. For training a model, we can use *Trainer*. 
+Let's train a model. For training a model, we can use ***Trainer***. 
 Trainer manages everything about training.
 Prepare an instance of Trainer class and give train data and valid data to train method:
 ```
@@ -103,7 +103,7 @@ Epoch 5/15
 
 
 ### Evaluation for a model
-To evaluate the trained model, we can use *Evaluator*.
+To evaluate the trained model, we can use ***Evaluator***.
 Evaluator performs evaluation.
 Prepare an instance of Evaluator class and give test data to eval method:
 
@@ -112,7 +112,7 @@ p = WordPreprocessor.load(os.path.join(SAVE_ROOT, 'preprocessor.pkl'))
 model_config.vocab_size = len(p.vocab_word)
 model_config.char_vocab_size = len(p.vocab_char)
 
-weights = os.path.join(SAVE_ROOT, '../logs/model_weights_00_0.85.h5')
+weights = os.path.join(SAVE_ROOT, 'model_weights.h5')
 
 evaluator = anago.Evaluator(model_config, weights, save_path=SAVE_ROOT, preprocessor=p)
 evaluator.eval(x_test, y_test)
@@ -124,14 +124,14 @@ After evaluation, F1 value is output:
 ```
 
 ### Tagging a sentence
-To tag any text, we can use *Tagger*.
+To tag any text, we can use ***Tagger***.
 Prepare an instance of Tagger class and give text to tag method:
 ```
 p = WordPreprocessor.load(os.path.join(SAVE_ROOT, 'preprocessor.pkl'))
 model_config.vocab_size = len(p.vocab_word)
 model_config.char_vocab_size = len(p.vocab_char)
 
-weights = os.path.join(SAVE_ROOT, '../logs/model_weights_00_0.85.h5')
+weights = os.path.join(SAVE_ROOT, 'model_weights.h5')
 
 tagger = anago.Tagger(model_config, weights, save_path=SAVE_ROOT, preprocessor=p)
 ```
