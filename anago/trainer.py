@@ -3,35 +3,56 @@ import os
 from keras.optimizers import Adam
 
 from anago.data.metrics import get_callbacks
-from anago.data.preprocess import prepare_preprocessor
-from anago.data.reader import load_word_embeddings, batch_iter
+from anago.data.reader import batch_iter
 from anago.models import SeqLabeling
 
 
 class Trainer(object):
 
-    def __init__(self, config):
-        self.config = config
+    def __init__(self,
+                 model_config,
+                 training_config,
+                 checkpoint_path='',
+                 save_path='',
+                 tensorboard=True,
+                 preprocessor=None,
+                 embeddings=None
+                 ):
+
+        self.model_config = model_config
+        self.training_config = training_config
+        self.checkpoint_path = checkpoint_path
+        self.save_path = save_path
+        self.tensorboard = tensorboard
+        self.preprocessor = preprocessor
+        self.embeddings = embeddings
 
     def train(self, x_train, y_train, x_valid=None, y_valid=None):
-        p = prepare_preprocessor(x_train, y_train)
-        embeddings = load_word_embeddings(p.vocab_word, self.config.glove_path, self.config.word_embedding_size)
-        self.config.char_vocab_size = len(p.vocab_char)
 
+        # Prepare training and validation data(steps, generator)
         train_steps, train_batches = batch_iter(
-            list(zip(x_train, y_train)), self.config.batch_size, preprocessor=p)
+            list(zip(x_train, y_train)), self.training_config.batch_size, preprocessor=self.preprocessor)
         valid_steps, valid_batches = batch_iter(
-            list(zip(x_valid, y_valid)), self.config.batch_size, preprocessor=p)
+            list(zip(x_valid, y_valid)), self.training_config.batch_size, preprocessor=self.preprocessor)
 
-        model = SeqLabeling(self.config, embeddings, len(p.vocab_tag))
+        # Build the model
+        model = SeqLabeling(self.model_config, self.embeddings, len(self.preprocessor.vocab_tag))
         model.compile(loss=model.crf.loss,
-                      optimizer=Adam(lr=self.config.learning_rate),
+                      optimizer=Adam(lr=self.training_config.learning_rate),
                       )
-        callbacks = get_callbacks(log_dir=self.config.log_dir,
-                                  save_dir=self.config.save_path,
-                                  valid=(valid_steps, valid_batches, p))
+
+        # Prepare callbacks for training
+        callbacks = get_callbacks(log_dir=self.checkpoint_path,
+                                  tensorboard=self.tensorboard,
+                                  eary_stopping=self.training_config.early_stopping,
+                                  valid=(valid_steps, valid_batches, self.preprocessor))
+
+        # Train the model
         model.fit_generator(generator=train_batches,
                             steps_per_epoch=train_steps,
-                            epochs=self.config.max_epoch,
+                            epochs=self.training_config.max_epoch,
                             callbacks=callbacks)
-        p.save(os.path.join(self.config.save_path, 'preprocessor.pkl'))
+
+        # Save the preprocessor and model
+        self.preprocessor.save(os.path.join(self.save_path, 'preprocessor.pkl'))
+        model.save(os.path.join(self.save_path, 'model_weights.h5'))

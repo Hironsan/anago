@@ -4,13 +4,13 @@ import numpy as np
 from keras.callbacks import Callback, TensorBoard, EarlyStopping, ModelCheckpoint
 
 
-def get_callbacks(log_dir=None, save_dir=None, valid=(), eary_stopping=True):
+def get_callbacks(log_dir=None, valid=(), tensorboard=True, eary_stopping=True):
     """Get callbacks.
 
     Args:
         log_dir (str): the destination to save logs(for TensorBoard).
-        save_dir (str): the destination to save models.
         valid (tuple): data for validation.
+        tensorboard (bool): Whether to use tensorboard.
         eary_stopping (bool): whether to use early stopping.
 
     Returns:
@@ -18,7 +18,7 @@ def get_callbacks(log_dir=None, save_dir=None, valid=(), eary_stopping=True):
     """
     callbacks = []
 
-    if log_dir:
+    if log_dir and tensorboard:
         if not os.path.exists(log_dir):
             print('Successfully made a directory: {}'.format(log_dir))
             os.mkdir(log_dir)
@@ -27,13 +27,13 @@ def get_callbacks(log_dir=None, save_dir=None, valid=(), eary_stopping=True):
     if valid:
         callbacks.append(F1score(*valid))
 
-    if save_dir:
-        if not os.path.exists(save_dir):
-            print('Successfully made a directory: {}'.format(save_dir))
-            os.mkdir(save_dir)
+    if log_dir:
+        if not os.path.exists(log_dir):
+            print('Successfully made a directory: {}'.format(log_dir))
+            os.mkdir(log_dir)
 
-        file_name = '_'.join(['model_weights', '{epoch:02d}', '{f1:.2f}']) + '.h5'
-        save_callback = ModelCheckpoint(os.path.join(save_dir, file_name),
+        file_name = '_'.join(['model_weights', '{epoch:02d}', '{f1:2.2f}']) + '.h5'
+        save_callback = ModelCheckpoint(os.path.join(log_dir, file_name),
                                         monitor='f1',
                                         save_weights_only=True)
         callbacks.append(save_callback)
