@@ -23,7 +23,7 @@ class EvaluatorTest(unittest.TestCase):
         model_config.vocab_size = len(p.vocab_word)
         model_config.char_vocab_size = len(p.vocab_char)
 
-        weights = os.path.join(SAVE_ROOT, '../logs/model_weights_00_0.85.h5')
+        weights = 'model_weights.h5'
 
         evaluator = anago.Evaluator(model_config, weights, save_path=SAVE_ROOT, preprocessor=p)
         evaluator.eval(x_test, y_test)

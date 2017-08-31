@@ -107,7 +107,7 @@ Evaluator performs evaluation.
 Prepare an instance of Evaluator class and give test data to eval method:
 
 ```
-weights = os.path.join(SAVE_ROOT, 'model_weights.h5')
+weights = 'model_weights.h5'
 
 evaluator = anago.Evaluator(model_config, weights, save_path=SAVE_ROOT, preprocessor=p)
 evaluator.eval(x_test, y_test)
@@ -122,7 +122,7 @@ After evaluation, F1 value is output:
 To tag any text, we can use ***Tagger***.
 Prepare an instance of Tagger class and give text to tag method:
 ```
-weights = os.path.join(SAVE_ROOT, 'model_weights.h5')
+weights = 'model_weights.h5'
 tagger = anago.Tagger(model_config, weights, save_path=SAVE_ROOT, preprocessor=p)
 ```
 
