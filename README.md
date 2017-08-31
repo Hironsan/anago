@@ -66,9 +66,8 @@ x_test, y_test = load_data_and_labels(test_path)
 After reading the data, prepare preprocessor and pre-trained word embeddings:
 ```python
 p = prepare_preprocessor(x_train, y_train)
-p.save(os.path.join(SAVE_ROOT, 'preprocessor.pkl'))
-
 embeddings = load_word_embeddings(p.vocab_word, embedding_path, model_config.word_embedding_size)
+model_config.vocab_size = len(p.vocab_word)
 model_config.char_vocab_size = len(p.vocab_char)
 ```
 
@@ -108,10 +107,6 @@ Evaluator performs evaluation.
 Prepare an instance of Evaluator class and give test data to eval method:
 
 ```
-p = WordPreprocessor.load(os.path.join(SAVE_ROOT, 'preprocessor.pkl'))
-model_config.vocab_size = len(p.vocab_word)
-model_config.char_vocab_size = len(p.vocab_char)
-
 weights = os.path.join(SAVE_ROOT, 'model_weights.h5')
 
 evaluator = anago.Evaluator(model_config, weights, save_path=SAVE_ROOT, preprocessor=p)
@@ -127,12 +122,7 @@ After evaluation, F1 value is output:
 To tag any text, we can use ***Tagger***.
 Prepare an instance of Tagger class and give text to tag method:
 ```
-p = WordPreprocessor.load(os.path.join(SAVE_ROOT, 'preprocessor.pkl'))
-model_config.vocab_size = len(p.vocab_word)
-model_config.char_vocab_size = len(p.vocab_char)
-
 weights = os.path.join(SAVE_ROOT, 'model_weights.h5')
-
 tagger = anago.Tagger(model_config, weights, save_path=SAVE_ROOT, preprocessor=p)
 ```
 
