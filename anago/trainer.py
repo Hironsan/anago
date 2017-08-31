@@ -15,7 +15,7 @@ class Trainer(object):
 
     def train(self, x_train, y_train, x_valid=None, y_valid=None):
         p = prepare_preprocessor(x_train, y_train)
-        embeddings = load_word_embeddings(p.vocab_word, self.config.glove_path, self.config.word_dim)
+        embeddings = load_word_embeddings(p.vocab_word, self.config.glove_path, self.config.word_embedding_size)
         self.config.char_vocab_size = len(p.vocab_char)
 
         train_steps, train_batches = batch_iter(

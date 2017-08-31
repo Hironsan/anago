@@ -16,7 +16,7 @@ class ModelTest(unittest.TestCase):
         self.config = Config()
         vocab = 10000
         self.config.char_vocab_size = 80
-        self.embeddings = np.zeros((vocab, self.config.word_dim))
+        self.embeddings = np.zeros((vocab, self.config.word_embedding_size))
         self.filename = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/ner/test.txt')
         self.valid_file = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/ner/valid.txt')
 
@@ -37,7 +37,7 @@ class ModelTest(unittest.TestCase):
         model.compile(loss=model.loss,
                       optimizer=Adam(lr=self.config.learning_rate)
                       )
-        model.predict(X, sequence_lengths)
+        model.predict(X)
 
     def test_save(self):
         pass
