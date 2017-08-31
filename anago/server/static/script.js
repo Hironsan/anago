@@ -1,20 +1,16 @@
 function getMarkupText(val, data){
     var res = [];
     var dic = {"PER": "person", "LOC": "location", "ORG": "organization", "MISC": "misc"};
-    var words = val.split(" ");
-    for (var i = 0; i < words.length; i++) {
-        var w = words[i];
-        for(key in data){
-            if (data[key].indexOf(w) >= 0) {
-                var text = '<small class="axlabel ' + dic[key] + '">' + w + '</small>';
-                break;
-            } else {
-                var text = w;
-            }
+
+    for (key in data) {
+        for (var i = 0; i < data[key].length; i++) {
+            var w = data[key][i];
+            var text = '<small class="axlabel ' + dic[key] + '">' + w + '</small>';
+            var regExp = new RegExp(w, "g" ) ;
+            val = val.replace(regExp, text)
         }
-        res.push(text);
     }
-    return res.join(" ");
+    return val;
 }
 
 $(function () {
