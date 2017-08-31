@@ -1,16 +1,18 @@
-function getMarkupText(data){
+function getMarkupText(val, data){
     var res = [];
     var dic = {"PER": "person", "LOC": "location", "ORG": "organization", "MISC": "misc"};
-    for (var i=0;i<data.length;i++) {
-	var words = data[i][0];
-	var tag = data[i][1];
-	var chunk = words.join(" ");
-	if (tag == 'O') {
-	    text = chunk;
-	} else {
-	    var text = '<small class="axlabel ' + dic[tag] + '">' + chunk + '</small>';
-	}
-	res.push(text)
+    var words = val.split(" ");
+    for (var i = 0; i < words.length; i++) {
+        var w = words[i];
+        for(key in data){
+            if (data[key].indexOf(w) >= 0) {
+                var text = '<small class="axlabel ' + dic[key] + '">' + w + '</small>';
+                break;
+            } else {
+                var text = w;
+            }
+        }
+        res.push(text);
     }
     return res.join(" ");
 }
@@ -23,7 +25,8 @@ $(function () {
 		    console.log("value"+val);
 		    $.post("/", {"sent": val},
 			   function(data, status){
-			       var text = getMarkupText(JSON.parse(data));
+			       console.log(data);
+			       var text = getMarkupText(val, JSON.parse(data));
 			       $(".message-body").html(text);
 			       console.log(text);
 			});
