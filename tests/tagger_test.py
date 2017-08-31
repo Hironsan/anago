@@ -37,7 +37,7 @@ class TaggerTest(unittest.TestCase):
 
     def test_get_entities(self):
         res = self.tagger.get_entities(self.sent)
-
+        print(res)
         self.assertIsInstance(list(res.keys())[0], str)
         self.assertIsInstance(list(res.values())[0], list)
         self.assertIsInstance(list(res.values())[0][0], str)

@@ -4,6 +4,7 @@ from collections import defaultdict
 import numpy as np
 
 from anago.models import SeqLabeling
+from anago.data.metrics import get_entities
 
 
 class Tagger(object):
@@ -89,32 +90,7 @@ class Tagger(object):
             tags = ['O', 'B-Person', 'O', 'O', 'O', 'O', 'B-Location', 'I-Location', 'O']
             result = {'Person': ['Obama'], 'LOCATION': ['White House']}
         """
-        chunks = []
-        chunk_type, chunk_start = None, None
-        for i, tok in enumerate(tags):
-            # End of a chunk 1
-            if tok == 'O' and chunk_type is not None:
-                # Add a chunk.
-                chunk = (chunk_type, chunk_start, i)
-                chunks.append(chunk)
-                chunk_type, chunk_start = None, None
-
-            # End of a chunk + start of a chunk!
-            elif tok != 'O':
-                tok_chunk_class, tok_chunk_type = tok.split('-')
-                if chunk_type is None:
-                    chunk_type, chunk_start = tok_chunk_type, i
-                elif tok_chunk_type != chunk_type or tok_chunk_class == "B":
-                    chunk = (chunk_type, chunk_start, i)
-                    chunks.append(chunk)
-                    chunk_type, chunk_start = tok_chunk_type, i
-            else:
-                pass
-        # end condition
-        if chunk_type is not None:
-            chunk = (chunk_type, chunk_start, len(tags))
-            chunks.append(chunk)
-
+        chunks = get_entities(tags)
         res = defaultdict(list)
         for chunk_type, chunk_start, chunk_end in chunks:
             res[chunk_type].append(' '.join(words[chunk_start: chunk_end]))  # todo delimiter changeable
