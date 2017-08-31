@@ -4,19 +4,28 @@ import unittest
 import anago
 from anago.data.reader import load_data_and_labels
 from anago.data.metrics import get_entities, f1_score, F1score
-from anago.config import Config
+from anago.data.preprocess import WordPreprocessor
+from anago.config import ModelConfig
 
 
 class EvaluatorTest(unittest.TestCase):
 
     def test_eval(self):
-        config = Config()
-        weights_file = 'model_weights_14_0.93.h5'
+        DATA_ROOT = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/ner')
+        SAVE_ROOT = os.path.join(os.path.dirname(__file__), '../models')
 
-        test_path = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/ner/test.txt')
+        model_config = ModelConfig()
+
+        test_path = os.path.join(DATA_ROOT, 'test.txt')
         x_test, y_test = load_data_and_labels(test_path)
 
-        evaluator = anago.Evaluator(config, weights_file)
+        p = WordPreprocessor.load(os.path.join(SAVE_ROOT, 'preprocessor.pkl'))
+        model_config.vocab_size = len(p.vocab_word)
+        model_config.char_vocab_size = len(p.vocab_char)
+
+        weights = os.path.join(SAVE_ROOT, '../logs/model_weights_00_0.85.h5')
+
+        evaluator = anago.Evaluator(model_config, weights, save_path=SAVE_ROOT, preprocessor=p)
         evaluator.eval(x_test, y_test)
 
 

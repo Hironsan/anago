@@ -53,6 +53,5 @@ class Trainer(object):
                             epochs=self.training_config.max_epoch,
                             callbacks=callbacks)
 
-        # Save the preprocessor and model
-        self.preprocessor.save(os.path.join(self.save_path, 'preprocessor.pkl'))
+        # Save the model
         model.save(os.path.join(self.save_path, 'model_weights.h5'))

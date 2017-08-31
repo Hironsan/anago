@@ -24,6 +24,7 @@ class TrainerTest(unittest.TestCase):
         x_valid, y_valid = load_data_and_labels(valid_path)
 
         p = prepare_preprocessor(x_train, y_train)
+        p.save(os.path.join(SAVE_ROOT, 'preprocessor.pkl'))
         embeddings = load_word_embeddings(p.vocab_word, embedding_path, model_config.word_embedding_size)
         model_config.char_vocab_size = len(p.vocab_char)
 
