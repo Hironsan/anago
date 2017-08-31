@@ -1,12 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import codecs
+import io
 import os
 import sys
 
 from setuptools import find_packages, setup
-
-from pypandoc import convert
 
 # Package meta-data.
 NAME = 'anago'
@@ -17,9 +15,8 @@ AUTHOR = 'Hironsan'
 LICENSE = 'MIT'
 
 here = os.path.abspath(os.path.dirname(__file__))
-
-with codecs.open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
-    long_description = '\n' + convert(f, 'rst')
+with io.open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
+    long_description = '\n' + f.read()
 
 about = {}
 with open(os.path.join(here, NAME, '__version__.py')) as f:
@@ -30,7 +27,7 @@ if sys.argv[-1] == 'publish':
     sys.exit()
 
 required = [
-    'keras', 'h5py', 'scikit-learn', 'numpy', 'tensorflow'
+    'Keras>=2.0.5', 'h5py>=2.7.0', 'scikit-learn>0.18.2', 'numpy>=1.13.0', 'tensorflow>=1.2.0',
 ]
 
 setup(
