@@ -1,15 +1,25 @@
+import os
 import unittest
 
 import anago
-from anago.config import Config
+from anago.config import ModelConfig
+from anago.data.preprocess import WordPreprocessor
 
 
 class TaggerTest(unittest.TestCase):
 
     def setUp(self):
-        config = Config()
-        weights_file = 'model_weights_02_0.09.h5'
-        self.tagger = anago.Tagger(config, weights_file)
+        SAVE_ROOT = os.path.join(os.path.dirname(__file__), '../models')
+
+        model_config = ModelConfig()
+
+        p = WordPreprocessor.load(os.path.join(SAVE_ROOT, 'preprocessor.pkl'))
+        model_config.vocab_size = len(p.vocab_word)
+        model_config.char_vocab_size = len(p.vocab_char)
+
+        weights = os.path.join(SAVE_ROOT, '../logs/model_weights_00_0.85.h5')
+
+        self.tagger = anago.Tagger(model_config, weights, save_path=SAVE_ROOT, preprocessor=p)
         self.sent = 'President Obama is speaking at the White House.'
 
     def test_tagging(self):
@@ -21,7 +31,7 @@ class TaggerTest(unittest.TestCase):
         self.assertIsInstance(res[0][0], str)
         self.assertIsInstance(res[0][1], str)
 
-        tag_set = {'O', 'Location', 'Person', 'Organization', 'Misc'}
+        tag_set = {'O', 'LOC', 'PER', 'ORG', 'MISC'}
         for _, tag in res:
             self.assertIn(tag, tag_set)
 

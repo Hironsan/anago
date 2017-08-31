@@ -1,30 +1,33 @@
 import os
 from collections import defaultdict
 
-from keras.optimizers import Adam
+import numpy as np
 
-from anago.data.preprocess import WordPreprocessor
-from anago.data.reader import load_word_embeddings
 from anago.models import SeqLabeling
 
 
 class Tagger(object):
 
-    def __init__(self, config, weights, tokenizer=str.split):
-        self.config = config
-        self._tokenizer = tokenizer
-        self.p = WordPreprocessor.load(os.path.join(self.config.save_path, 'preprocessor.pkl'))
-        self.config.char_vocab_size = len(self.p.vocab_char)
-        self.config.vocab_size = len(self.p.vocab_word)
+    def __init__(self,
+                 config,
+                 weights,
+                 save_path='',
+                 preprocessor=None,
+                 tokenizer=str.split):
 
-        self.model = SeqLabeling(self.config, ntags=len(self.p.vocab_tag))
-        self.model.load(filepath=os.path.join(self.config.save_path, weights))
+        self.preprocessor = preprocessor
+        self.tokenizer = tokenizer
+
+        self.model = SeqLabeling(config, ntags=len(self.preprocessor.vocab_tag))
+        self.model.load(filepath=os.path.join(save_path, weights))
 
     def predict(self, words):
         sequence_lengths = [len(words)]
-        X = self.p.transform([words])
+        X = self.preprocessor.transform([words])
         pred = self.model.predict(X, sequence_lengths)
-        pred = self.p.inverse_transform(pred[0])
+        pred = np.argmax(pred, -1)
+        pred = self.preprocessor.inverse_transform(pred[0])
+
         return pred
 
     def tag(self, sent):
@@ -45,7 +48,7 @@ class Tagger(object):
         """
         assert isinstance(sent, str)
 
-        words = self._tokenizer(sent)
+        words = self.tokenizer(sent)
         pred = self.predict(words)
         pred = [t.split('-')[-1] for t in pred]  # remove prefix: e.g. B-Person -> Person
 
@@ -66,7 +69,7 @@ class Tagger(object):
         """
         assert isinstance(sent, str)
 
-        words = self._tokenizer(sent)
+        words = self.tokenizer(sent)
         pred = self.predict(words)
         entities = self.get_chunks(words, pred)
 
