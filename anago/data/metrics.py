@@ -112,6 +112,7 @@ def f1_score(y_true, y_pred, sequence_lengths):
 
 
 class F1score(Callback):
+
     def __init__(self, valid_steps, valid_batches, preprocessor=None):
         super(F1score, self).__init__()
         self.valid_steps = valid_steps

@@ -11,8 +11,14 @@ PAD = '<PAD>'
 
 class WordPreprocessor(BaseEstimator, TransformerMixin):
 
-    def __init__(self, lowercase=True, num_norm=True, char_feature=True, vocab_init=None, padding=True,
+    def __init__(self,
+                 lowercase=True,
+                 num_norm=True,
+                 char_feature=True,
+                 vocab_init=None,
+                 padding=True,
                  return_lengths=True):
+
         self.lowercase = lowercase
         self.num_norm = num_norm
         self.char_feature = char_feature

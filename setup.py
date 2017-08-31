@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 import codecs
 import os
 import sys
@@ -31,7 +30,7 @@ if sys.argv[-1] == 'publish':
     sys.exit()
 
 required = [
-    'keras', 'h5py', 'scikit-learn', 'numpy'
+    'keras', 'h5py', 'scikit-learn', 'numpy', 'tensorflow'
 ]
 
 setup(

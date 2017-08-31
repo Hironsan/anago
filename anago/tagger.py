@@ -19,6 +19,7 @@ class Tagger(object):
         self.preprocessor = preprocessor
         self.tokenizer = tokenizer
 
+        # Build the model
         self.model = SeqLabeling(config, ntags=len(self.preprocessor.vocab_tag))
         self.model.load(filepath=os.path.join(save_path, weights))
 
@@ -72,11 +73,11 @@ class Tagger(object):
 
         words = self.tokenizer(sent)
         pred = self.predict(words)
-        entities = self.get_chunks(words, pred)
+        entities = self._get_chunks(words, pred)
 
         return entities
 
-    def get_chunks(self, words, tags):
+    def _get_chunks(self, words, tags):
         """
         Args:
             words: sequence of word
