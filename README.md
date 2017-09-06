@@ -3,10 +3,10 @@
 
 anaGo can performs named-entity recognition (NER), part-of-speech tagging (POS tagging), semantic role labeling (SRL) and so on for **many languages**. 
 For example, English named-entity recognition is shown in the following picture:
-<img src="https://github.com/Hironsan/anago/blob/master/docs/images/example.en.png?raw=true">
+<img src="https://github.com/Hironsan/anago/blob/docs/docs/images/example.en.png?raw=true">
 
 Japanese named-entity recognition is shown in the following picture:
-<img src="https://github.com/Hironsan/anago/blob/master/docs/images/example.ja.png?raw=true">
+<img src="https://github.com/Hironsan/anago/blob/docs/docs/images/example.ja.png?raw=true">
 
 Similarly, **you can solve your task for your language.**
 You have only to prepare input and output data. :)
