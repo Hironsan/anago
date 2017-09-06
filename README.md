@@ -2,12 +2,9 @@
 ***anaGo*** is a state-of-the-art library for sequence labeling using Keras. 
 
 anaGo can performs named-entity recognition (NER), part-of-speech tagging (POS tagging), semantic role labeling (SRL) and so on for **many languages**. 
-
-#### English Example
 For example, English named-entity recognition is shown in the following picture:
 <img src="https://github.com/Hironsan/anago/blob/master/docs/images/example.en.png?raw=true">
 
-#### Japanese Example
 Japanese named-entity recognition is shown in the following picture:
 <img src="https://github.com/Hironsan/anago/blob/master/docs/images/example.ja.png?raw=true">
 
