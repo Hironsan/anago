@@ -2,13 +2,13 @@
 ***anaGo*** is a state-of-the-art library for sequence labeling using Keras. 
 
 anaGo can performs named-entity recognition (NER), part-of-speech tagging (POS tagging), semantic role labeling (SRL) and so on for **many languages**. 
-For example, English named-entity recognition is shown in the following picture:
-<img src="https://github.com/Hironsan/anago/blob/master/docs/images/example.en.png?raw=true">
+For example, **English Named-Entity Recognition** is shown in the following picture:
+<img src="https://github.com/Hironsan/anago/blob/docs/docs/images/example.en2.png?raw=true">
 
-Japanese named-entity recognition is shown in the following picture:
-<img src="https://github.com/Hironsan/anago/blob/master/docs/images/example.ja.png?raw=true">
+**Japanese Named-Entity Recognition** is shown in the following picture:
+<img src="https://github.com/Hironsan/anago/blob/docs/docs/images/example.ja2.png?raw=true">
 
-Similarly,**you can solve your task for your language.**
+Similarly, **you can solve your task for your language.**
 You have only to prepare input and output data. :)
 
 ## Feature Support
@@ -106,7 +106,7 @@ Epoch 5/15
 ```
 
 
-### Evaluation for a model
+### Evaluating a model
 To evaluate the trained model, we can use ***Evaluator***.
 Evaluator performs evaluation.
 Prepare an instance of Evaluator class and give test data to eval method:
