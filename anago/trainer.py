@@ -31,9 +31,9 @@ class Trainer(object):
 
         # Prepare training and validation data(steps, generator)
         train_steps, train_batches = batch_iter(
-            list(zip(x_train, y_train)), self.training_config.batch_size, preprocessor=self.preprocessor)
+            x_train, y_train, self.training_config.batch_size, preprocessor=self.preprocessor)
         valid_steps, valid_batches = batch_iter(
-            list(zip(x_valid, y_valid)), self.training_config.batch_size, preprocessor=self.preprocessor)
+            x_valid, y_valid, self.training_config.batch_size, preprocessor=self.preprocessor)
 
         # Build the model
         model = SeqLabeling(self.model_config, self.embeddings, len(self.preprocessor.vocab_tag))
