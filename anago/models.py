@@ -77,6 +77,7 @@ class SeqLabeling(BaseModel):
 
         x = Bidirectional(LSTM(units=config.num_word_lstm_units, return_sequences=True))(x)
         x = Dropout(config.dropout)(x)
+        x = Dense(config.num_word_lstm_units, activation='tanh')(x)
         x = Dense(ntags)(x)
         self.crf = ChainCRF()
         pred = self.crf(x)

@@ -34,4 +34,4 @@ class TrainerTest(unittest.TestCase):
 
         trainer = anago.Trainer(model_config, training_config, checkpoint_path=LOG_ROOT, save_path=SAVE_ROOT,
                                 preprocessor=p, embeddings=embeddings)
-        trainer.train(x_train, y_train, x_valid, y_valid)
+        trainer.train(x_train, y_train, x_test, y_test)
