@@ -33,6 +33,27 @@ $ cd anago
 $ pip install -r requirements.txt
 ```
 
+## Data and Word Vectors
+The data must be in the following format(tsv).
+We provide an example in train.txt:
+
+```
+EU	B-ORG
+rejects	O
+German	B-MISC
+call	O
+to	O
+boycott	O
+British	B-MISC
+lamb	O
+.	O
+
+Peter	B-PER
+Blackburn	I-PER
+```
+
+You also need to download [GloVe vectors](https://nlp.stanford.edu/projects/glove/) and store it in *data/glove.6B* directory.
+
 ## Get Started
 ### Import
 First, import the necessary modules:
