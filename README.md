@@ -15,7 +15,7 @@ You have only to prepare input and output data. :)
 anaGo provide following features:
 * learning your own task without any knowledge.
 * defining your own model.
-* downloading learned model for many tasks. (e.g. NER, POS Tagging, etc...)
+* ~~(Not yet supported)downloading learned model for many tasks. (e.g. NER, POS Tagging, etc...)~~
 
 
 ## Install
