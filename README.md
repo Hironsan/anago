@@ -162,6 +162,16 @@ We can do it as follows:
 >>> tagger.analyze(sent)
 {
   'text': 'President Obama is speaking at the White House.',
+  'words': [
+             'President',
+             'Obama',
+             'is',
+             'speaking',
+             'at',
+             'the',
+             'White',
+             'House.'
+            ],
   'entities': [
     {
       'beginOffset': 1,

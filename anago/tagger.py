@@ -35,14 +35,16 @@ class Tagger(object):
         return prob
 
     def _build_response(self, sent, tags, prob):
+        words = self.tokenizer(sent)
         res = {
             'text': sent,
+            'words': words,
             'entities': [
 
             ]
         }
         chunks = get_entities(tags)
-        words = self.tokenizer(sent)
+
         for chunk_type, chunk_start, chunk_end in chunks:
             entity = {
                 'text': ' '.join(words[chunk_start: chunk_end]),
