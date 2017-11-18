@@ -63,6 +63,7 @@ import anago
 from anago.data.reader import load_data_and_labels, load_word_embeddings
 from anago.data.preprocess import prepare_preprocessor
 from anago.config import ModelConfig, TrainingConfig
+from anago.models import SeqLabeling
 ```
 They include loading modules, a preprocessor and configs.
 
@@ -89,7 +90,7 @@ x_valid, y_valid = load_data_and_labels(valid_path)
 x_test, y_test = load_data_and_labels(test_path)
 ```
 
-After reading the data, prepare preprocessor and pre-trained word embeddings:
+After reading the data, build preprocessor and load pre-trained word embeddings:
 ```python
 p = prepare_preprocessor(x_train, y_train)
 embeddings = load_word_embeddings(p.vocab_word, embedding_path, model_config.word_embedding_size)
@@ -104,9 +105,14 @@ Now we are ready for training :)
 Let's train a model. For training a model, we can use ***Trainer***. 
 Trainer manages everything about training.
 Prepare an instance of Trainer class and give train data and valid data to train method:
-```
-trainer = anago.Trainer(model_config, training_config, checkpoint_path=LOG_ROOT, save_path=SAVE_ROOT,
-                        preprocessor=p, embeddings=embeddings)
+```python
+model = SeqLabeling(model_config, embeddings, len(p.vocab_tag))
+trainer = anago.Trainer(model,
+                        training_config,
+                        checkpoint_path=LOG_ROOT,
+                        save_path=SAVE_ROOT,
+                        preprocessor=p,
+                        embeddings=embeddings)
 trainer.train(x_train, y_train, x_valid, y_valid)
 ```
 

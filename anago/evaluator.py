@@ -21,8 +21,11 @@ class Evaluator(object):
     def eval(self, x_test, y_test):
 
         # Prepare test data(steps, generator)
-        train_steps, train_batches = batch_iter(
-            list(zip(x_test, y_test)), self.config.batch_size, preprocessor=self.preprocessor)
+        train_steps, train_batches = batch_iter(x_test,
+                                                y_test,
+                                                self.config.batch_size,
+                                                shuffle=False,
+                                                preprocessor=self.preprocessor)
 
         # Build the model
         model = SeqLabeling(self.config, ntags=len(self.preprocessor.vocab_tag))

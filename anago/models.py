@@ -1,4 +1,3 @@
-import tensorflow as tf
 import keras.backend as K
 from keras.layers import Dense, LSTM, Bidirectional, Embedding, Input, Dropout, Lambda
 from keras.layers.merge import Concatenate

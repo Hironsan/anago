@@ -8,9 +8,6 @@ class ModelConfig(object):
         self.vocab_size = None
         self.char_vocab_size = None
 
-        # Batch size.
-        self.batch_size = 32
-
         # Scale used to initialize model variables.
         self.initializer_scale = 0.08
 
