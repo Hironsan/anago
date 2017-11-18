@@ -6,26 +6,27 @@ from anago.data.reader import load_data_and_labels
 from anago.data.metrics import get_entities, f1_score, F1score
 from anago.data.preprocess import WordPreprocessor
 from anago.config import ModelConfig
+from anago.models import SeqLabeling
+
+DATA_ROOT = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/ner')
+SAVE_ROOT = os.path.join(os.path.dirname(__file__), 'models')
 
 
 class EvaluatorTest(unittest.TestCase):
 
     def test_eval(self):
-        DATA_ROOT = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/ner')
-        SAVE_ROOT = os.path.join(os.path.dirname(__file__), '../models')
-
-        model_config = ModelConfig()
-
         test_path = os.path.join(DATA_ROOT, 'test.txt')
         x_test, y_test = load_data_and_labels(test_path)
 
         p = WordPreprocessor.load(os.path.join(SAVE_ROOT, 'preprocessor.pkl'))
-        model_config.vocab_size = len(p.vocab_word)
-        model_config.char_vocab_size = len(p.vocab_char)
+        config = ModelConfig()
+        config.vocab_size = len(p.vocab_word)
+        config.char_vocab_size = len(p.vocab_char)
 
-        weights = 'model_weights.h5'
+        model = SeqLabeling(config, ntags=len(p.vocab_tag))
+        model.load(filepath=os.path.join(SAVE_ROOT, 'model_weights.h5'))
 
-        evaluator = anago.Evaluator(model_config, weights, save_path=SAVE_ROOT, preprocessor=p)
+        evaluator = anago.Evaluator(model, preprocessor=p)
         evaluator.eval(x_test, y_test)
 
 

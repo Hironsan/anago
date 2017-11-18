@@ -138,10 +138,8 @@ To evaluate the trained model, we can use ***Evaluator***.
 Evaluator performs evaluation.
 Prepare an instance of Evaluator class and give test data to eval method:
 
-```
-weights = 'model_weights.h5'
-
-evaluator = anago.Evaluator(model_config, weights, save_path=SAVE_ROOT, preprocessor=p)
+```python
+evaluator = anago.Evaluator(model, preprocessor=p)
 evaluator.eval(x_test, y_test)
 ```
 
