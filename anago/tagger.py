@@ -1,36 +1,70 @@
-import os
 from collections import defaultdict
 
 import numpy as np
 
-from anago.models import SeqLabeling
 from anago.data.metrics import get_entities
 
 
 class Tagger(object):
 
     def __init__(self,
-                 config,
-                 weights,
-                 save_path='',
+                 model,
                  preprocessor=None,
                  tokenizer=str.split):
 
+        self.model = model
         self.preprocessor = preprocessor
         self.tokenizer = tokenizer
 
-        # Build the model
-        self.model = SeqLabeling(config, ntags=len(self.preprocessor.vocab_tag))
-        self.model.load(filepath=os.path.join(save_path, weights))
-
     def predict(self, words):
-        sequence_lengths = [len(words)]
+        length = np.array([len(words)])
         X = self.preprocessor.transform([words])
-        pred = self.model.predict(X, sequence_lengths)
-        pred = np.argmax(pred, -1)
-        pred = self.preprocessor.inverse_transform(pred[0])
+        pred = self.model.predict(X, length)
 
         return pred
+
+    def _get_tags(self, pred):
+        pred = np.argmax(pred, -1)
+        tags = self.preprocessor.inverse_transform(pred[0])
+
+        return tags
+
+    def _get_prob(self, pred):
+        prob = np.max(pred, -1)[0]
+
+        return prob
+
+    def _build_response(self, sent, tags, prob):
+        res = {
+            'text': sent,
+            'entities': [
+
+            ]
+        }
+        chunks = get_entities(tags)
+        words = self.tokenizer(sent)
+        for chunk_type, chunk_start, chunk_end in chunks:
+            entity = {
+                'text': ' '.join(words[chunk_start: chunk_end]),
+                'type': chunk_type,
+                'score': float(np.average(prob[chunk_start: chunk_end])),
+                'beginOffset': chunk_start,
+                'endOffset': chunk_end
+            }
+            res['entities'].append(entity)
+
+        return res
+
+    def analyze(self, sent):
+        assert isinstance(sent, str)
+
+        words = self.tokenizer(sent)
+        pred = self.predict(words)
+        tags = self._get_tags(pred)
+        prob = self._get_prob(pred)
+        res = self._build_response(sent, tags, prob)
+
+        return res
 
     def tag(self, sent):
         """Tags a sentence named entities.

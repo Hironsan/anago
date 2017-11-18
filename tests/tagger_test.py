@@ -1,26 +1,34 @@
 import os
 import unittest
+from pprint import pprint
 
 import anago
 from anago.config import ModelConfig
 from anago.data.preprocess import WordPreprocessor
+from anago.models import SeqLabeling
+
+
+SAVE_ROOT = os.path.join(os.path.dirname(__file__), 'models')
 
 
 class TaggerTest(unittest.TestCase):
 
     def setUp(self):
-        SAVE_ROOT = os.path.join(os.path.dirname(__file__), '../models')
-
-        model_config = ModelConfig()
-
         p = WordPreprocessor.load(os.path.join(SAVE_ROOT, 'preprocessor.pkl'))
-        model_config.vocab_size = len(p.vocab_word)
-        model_config.char_vocab_size = len(p.vocab_char)
 
-        weights = 'model_weights.h5'
+        config = ModelConfig()
+        config.vocab_size = len(p.vocab_word)
+        config.char_vocab_size = len(p.vocab_char)
 
-        self.tagger = anago.Tagger(model_config, weights, save_path=SAVE_ROOT, preprocessor=p)
+        model = SeqLabeling(config, ntags=len(p.vocab_tag))
+        model.load(filepath=os.path.join(SAVE_ROOT, 'model_weights.h5'))
+
+        self.tagger = anago.Tagger(model, preprocessor=p)
         self.sent = 'President Obama is speaking at the White House.'
+
+    def test_analyze(self):
+        res = self.tagger.analyze(self.sent)
+        pprint(res)
 
     def test_tagging(self):
         res = self.tagger.tag(self.sent)

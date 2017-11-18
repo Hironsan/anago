@@ -153,21 +153,34 @@ After evaluation, F1 value is output:
 ### Tagging a sentence
 To tag any text, we can use ***Tagger***.
 Prepare an instance of Tagger class and give text to tag method:
-```
-weights = 'model_weights.h5'
-tagger = anago.Tagger(model_config, weights, save_path=SAVE_ROOT, preprocessor=p)
+```python
+tagger = anago.Tagger(model, preprocessor=p)
 ```
 
 Let's try tagging a sentence, "President Obama is speaking at the White House."
 We can do it as follows:
 ```python
 >>> sent = 'President Obama is speaking at the White House.'
->>> print(tagger.tag(sent))
-[('President', 'O'), ('Obama', 'PERSON'), ('is', 'O'),
- ('speaking', 'O'), ('at', 'O'), ('the', 'O'),
- ('White', 'LOCATION'), ('House', 'LOCATION'), ('.', 'O')]
->>> print(tagger.get_entities(sent))
-{'Person': ['Obama'], 'LOCATION': ['White House']}
+>>> tagger.analyze(sent)
+{
+  'text': 'President Obama is speaking at the White House.',
+  'entities': [
+    {
+      'beginOffset': 1,
+      'endOffset': 2,
+      'score': 1.0,
+      'text': 'Obama',
+      'type': 'PER'
+    },
+    {
+      'beginOffset': 6,
+      'endOffset': 8,
+      'score': 1.0,
+      'text': 'White House.',
+      'type': 'ORG'
+    }
+  ]
+}
 ```
 
 

@@ -1,5 +1,3 @@
-import os
-
 from keras.optimizers import Adam
 
 from anago.data.metrics import get_callbacks
@@ -29,10 +27,14 @@ class Trainer(object):
     def train(self, x_train, y_train, x_valid=None, y_valid=None):
 
         # Prepare training and validation data(steps, generator)
-        train_steps, train_batches = batch_iter(
-            x_train, y_train, self.training_config.batch_size, preprocessor=self.preprocessor)
-        valid_steps, valid_batches = batch_iter(
-            x_valid, y_valid, self.training_config.batch_size, preprocessor=self.preprocessor)
+        train_steps, train_batches = batch_iter(x_train,
+                                                y_train,
+                                                self.training_config.batch_size,
+                                                preprocessor=self.preprocessor)
+        valid_steps, valid_batches = batch_iter(x_valid,
+                                                y_valid,
+                                                self.training_config.batch_size,
+                                                preprocessor=self.preprocessor)
 
         self.model.compile(loss=self.model.crf.loss,
                            optimizer=Adam(lr=self.training_config.learning_rate),
