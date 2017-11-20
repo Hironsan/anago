@@ -53,7 +53,8 @@ class SeqLabeling(BaseModel):
             word_embeddings = Embedding(input_dim=embeddings.shape[0],
                                         output_dim=embeddings.shape[1],
                                         mask_zero=True,
-                                        weights=[embeddings])(word_ids)
+                                        weights=[embeddings],
+                                        trainable=config.pretrained_wv_trainable)(word_ids)
 
         # build character based word embedding
         char_ids = Input(batch_shape=(None, None, None), dtype='int32')
