@@ -25,7 +25,9 @@ class ModelConfig(object):
 
         # If True, use crf.
         self.crf = True
-
+        
+        # If true, make pre-trained word embeddinga trainable
+        self.pretrained_wv_trainable = False
 
 class TrainingConfig(object):
     """Wrapper class for training hyperparameters."""
