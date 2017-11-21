@@ -60,10 +60,7 @@ First, import the necessary modules:
 ```python
 import os
 import anago
-from anago.data.reader import load_data_and_labels, load_word_embeddings
-from anago.data.preprocess import prepare_preprocessor
-from anago.config import ModelConfig, TrainingConfig
-from anago.models import SeqLabeling
+from anago.data.reader import load_data_and_labels
 ```
 They include loading modules, a preprocessor and configs.
 
@@ -71,11 +68,6 @@ They include loading modules, a preprocessor and configs.
 And set parameters to use later:
 ```python
 DATA_ROOT = 'data/conll2003/en/ner'
-SAVE_ROOT = './models'  # trained model
-LOG_ROOT = './logs'     # checkpoint, tensorboard
-embedding_path = './data/glove.6B/glove.6B.100d.txt'
-model_config = ModelConfig()
-training_config = TrainingConfig()
 ```
 
 ### Loading data
@@ -85,35 +77,20 @@ After importing the modules, read data for training, validation and test:
 train_path = os.path.join(DATA_ROOT, 'train.txt')
 valid_path = os.path.join(DATA_ROOT, 'valid.txt')
 test_path = os.path.join(DATA_ROOT, 'test.txt')
+
 x_train, y_train = load_data_and_labels(train_path)
 x_valid, y_valid = load_data_and_labels(valid_path)
 x_test, y_test = load_data_and_labels(test_path)
-```
-
-After reading the data, build preprocessor and load pre-trained word embeddings:
-```python
-p = prepare_preprocessor(x_train, y_train)
-embeddings = load_word_embeddings(p.vocab_word, embedding_path, model_config.word_embedding_size)
-model_config.vocab_size = len(p.vocab_word)
-model_config.char_vocab_size = len(p.vocab_char)
 ```
 
 Now we are ready for training :)
 
 
 ### Training a model
-Let's train a model. For training a model, we can use ***Trainer***. 
-Trainer manages everything about training.
-Prepare an instance of Trainer class and give train data and valid data to train method:
+Let's train a model. For training a model, we can use train method:
 ```python
-model = SeqLabeling(model_config, embeddings, len(p.vocab_tag))
-trainer = anago.Trainer(model,
-                        training_config,
-                        checkpoint_path=LOG_ROOT,
-                        save_path=SAVE_ROOT,
-                        preprocessor=p,
-                        embeddings=embeddings)
-trainer.train(x_train, y_train, x_valid, y_valid)
+model = anago.Sequence()
+model.train(x_train, y_train, x_valid, y_valid)
 ```
 
 If training is progressing normally, progress bar will be displayed as follows:
@@ -134,13 +111,10 @@ Epoch 5/15
 
 
 ### Evaluating a model
-To evaluate the trained model, we can use ***Evaluator***.
-Evaluator performs evaluation.
-Prepare an instance of Evaluator class and give test data to eval method:
+To evaluate the trained model, we can use eval method:
 
 ```python
-evaluator = anago.Evaluator(model, preprocessor=p)
-evaluator.eval(x_test, y_test)
+model.eval(x_test, y_test)
 ```
 
 After evaluation, F1 value is output:
@@ -149,17 +123,11 @@ After evaluation, F1 value is output:
 ```
 
 ### Tagging a sentence
-To tag any text, we can use ***Tagger***.
-Prepare an instance of Tagger class and give text to tag method:
-```python
-tagger = anago.Tagger(model, preprocessor=p)
-```
-
 Let's try tagging a sentence, "President Obama is speaking at the White House."
 We can do it as follows:
 ```python
 >>> sent = 'President Obama is speaking at the White House.'
->>> tagger.analyze(sent)
+>>> model.analyze(sent)
 {
   'text': 'President Obama is speaking at the White House.',
   'words': [

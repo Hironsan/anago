@@ -91,6 +91,26 @@ def load_word_embeddings(vocab, glove_filename, dim):
     return embeddings
 
 
+def load_glove(file):
+    """Loads GloVe vectors in numpy array.
+
+    Args:
+        file (str): a path to a glove file.
+
+    Return:
+        dict: a dict of numpy arrays.
+    """
+    model = {}
+    with open(file) as f:
+        for line in f:
+            line = line.split(' ')
+            word = line[0]
+            vector = np.array([float(val) for val in line[1:]])
+            model[word] = vector
+
+    return model
+
+
 def batch_iter(data, labels, batch_size, shuffle=True, preprocessor=None):
     num_batches_per_epoch = int((len(data) - 1) / batch_size) + 1
 

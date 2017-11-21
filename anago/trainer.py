@@ -13,7 +13,6 @@ class Trainer(object):
                  save_path='',
                  tensorboard=True,
                  preprocessor=None,
-                 embeddings=None
                  ):
 
         self.model = model
@@ -22,7 +21,6 @@ class Trainer(object):
         self.save_path = save_path
         self.tensorboard = tensorboard
         self.preprocessor = preprocessor
-        self.embeddings = embeddings
 
     def train(self, x_train, y_train, x_valid=None, y_valid=None):
 
