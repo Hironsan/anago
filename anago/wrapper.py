@@ -1,12 +1,13 @@
 import os
 
 import numpy as np
-from anago.data.preprocess import prepare_preprocessor, WordPreprocessor, filter_embeddings
-from anago.models import SeqLabeling
-from anago.trainer import Trainer
-from anago.evaluator import Evaluator
-from anago.tagger import Tagger
+
 from anago.config import ModelConfig, TrainingConfig
+from anago.evaluator import Evaluator
+from anago.models import SeqLabeling
+from anago.preprocess import prepare_preprocessor, WordPreprocessor, filter_embeddings
+from anago.tagger import Tagger
+from anago.trainer import Trainer
 
 
 class Sequence(object):

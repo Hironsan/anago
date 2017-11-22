@@ -1,11 +1,11 @@
 import json
 import os
-import tornado.ioloop
+
 import tornado.web
 
 import anago
 from anago.config import ModelConfig
-from anago.data.preprocess import WordPreprocessor
+from anago.preprocess import WordPreprocessor
 
 SAVE_ROOT = os.path.join(os.path.dirname(__file__), '../../models')
 model_config = ModelConfig()

@@ -1,8 +1,9 @@
 import os
 import unittest
 
-from anago.data.reader import load_data_and_labels, load_glove_vocab, load_word_embeddings, batch_iter
-from anago.data.preprocess import prepare_preprocessor
+from anago.reader import load_data_and_labels, load_glove_vocab, load_word_embeddings, batch_iter
+
+from anago.preprocess import prepare_preprocessor
 
 
 class ReaderTest(unittest.TestCase):

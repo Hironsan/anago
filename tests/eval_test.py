@@ -1,12 +1,13 @@
 import os
 import unittest
 
+from anago.metrics import get_entities, f1_score, F1score
+from anago.reader import load_data_and_labels
+
 import anago
-from anago.data.reader import load_data_and_labels
-from anago.data.metrics import get_entities, f1_score, F1score
-from anago.data.preprocess import WordPreprocessor
 from anago.config import ModelConfig
 from anago.models import SeqLabeling
+from anago.preprocess import WordPreprocessor
 
 DATA_ROOT = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/ner')
 SAVE_ROOT = os.path.join(os.path.dirname(__file__), 'models')

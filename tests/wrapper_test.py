@@ -3,8 +3,7 @@ import unittest
 from pprint import pprint
 
 import anago
-from anago.data.reader import load_data_and_labels, load_glove
-
+from anago.reader import load_data_and_labels, load_glove
 
 get_path = lambda path: os.path.join(os.path.dirname(__file__), path)
 DATA_ROOT = get_path('../data/conll2003/en/ner')

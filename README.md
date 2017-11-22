@@ -59,7 +59,7 @@ You also need to download [GloVe vectors](https://nlp.stanford.edu/projects/glov
 First, import the necessary modules:
 ```python
 import anago
-from anago.data.reader import load_data_and_labels
+from anago.reader import load_data_and_labels
 ```
 
 ### Loading data

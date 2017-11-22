@@ -2,7 +2,7 @@ from collections import defaultdict
 
 import numpy as np
 
-from anago.data.metrics import get_entities
+from anago.metrics import get_entities
 
 
 class Tagger(object):

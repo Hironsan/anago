@@ -2,12 +2,12 @@ import os
 import unittest
 
 import numpy as np
+from anago.reader import load_data_and_labels
 from keras.optimizers import Adam
 
 from anago.config import ModelConfig, TrainingConfig
-from anago.data.preprocess import prepare_preprocessor
-from anago.data.reader import load_data_and_labels
 from anago.models import SeqLabeling
+from anago.preprocess import prepare_preprocessor
 
 
 class ModelTest(unittest.TestCase):

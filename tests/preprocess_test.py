@@ -4,8 +4,8 @@ import unittest
 
 import numpy as np
 
-from anago.data import reader
-from anago.data.preprocess import WordPreprocessor, UNK, dense_to_one_hot, pad_sequences, _pad_sequences
+from anago.reader import load_data_and_labels
+from anago.preprocess import WordPreprocessor, UNK, dense_to_one_hot, pad_sequences, _pad_sequences
 
 
 class WordPreprocessorTest(unittest.TestCase):
@@ -14,7 +14,7 @@ class WordPreprocessorTest(unittest.TestCase):
         self.filename = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/ner/test.txt')
 
     def test_preprocessor(self):
-        X, y = reader.load_data_and_labels(self.filename)
+        X, y = load_data_and_labels(self.filename)
         preprocessor = WordPreprocessor(padding=False)
         p = preprocessor.fit(X, y)
         X, y = p.transform(X, y)
@@ -27,7 +27,7 @@ class WordPreprocessorTest(unittest.TestCase):
         self.assertIsInstance(p.inverse_transform(y[0])[0], str)
 
     def test_transform_only_words(self):
-        X, y = reader.load_data_and_labels(self.filename)
+        X, y = load_data_and_labels(self.filename)
         preprocessor = WordPreprocessor(padding=False)
         p = preprocessor.fit(X, y)
         X = p.transform(X)
@@ -37,7 +37,7 @@ class WordPreprocessorTest(unittest.TestCase):
         self.assertIsInstance(char, int)
 
     def test_transform_with_padding(self):
-        X, y = reader.load_data_and_labels(self.filename)
+        X, y = load_data_and_labels(self.filename)
         preprocessor = WordPreprocessor(padding=True)
         p = preprocessor.fit(X, y)
         X = p.transform(X)
@@ -47,7 +47,7 @@ class WordPreprocessorTest(unittest.TestCase):
         self.assertIsInstance(int(char), int)
 
     def test_unknown_word(self):
-        X, y = reader.load_data_and_labels(self.filename)
+        X, y = load_data_and_labels(self.filename)
         preprocessor = WordPreprocessor(padding=False)
         p = preprocessor.fit(X, y)
         X = [['$unknownword$', 'あ']]
@@ -55,7 +55,7 @@ class WordPreprocessorTest(unittest.TestCase):
         X, y = p.transform(X, y)
 
     def test_vocab_init(self):
-        X, y = reader.load_data_and_labels(self.filename)
+        X, y = load_data_and_labels(self.filename)
         unknown_word = 'unknownword'
         X_test, y_test = [[unknown_word]], [['O']]
 
@@ -81,7 +81,7 @@ class WordPreprocessorTest(unittest.TestCase):
             os.remove(filepath)
 
     def test_load(self):
-        X, y = reader.load_data_and_labels(self.filename)
+        X, y = load_data_and_labels(self.filename)
         p = WordPreprocessor()
         p.fit(X, y)
         filepath = os.path.join(os.path.dirname(__file__), 'data/preprocessor.pkl')
@@ -163,34 +163,34 @@ class PerformanceTest(unittest.TestCase):
         print('{}: {:.3f}'.format(self.id(), elapsed))
 
     def test_data_loading(self):
-        X, y = reader.load_data_and_labels(self.filename)
+        X, y = load_data_and_labels(self.filename)
 
     def test_fit(self):
-        X, y = reader.load_data_and_labels(self.filename)
+        X, y = load_data_and_labels(self.filename)
         preprocessor = WordPreprocessor()
         p = preprocessor.fit(X, y)
 
     def test_transform(self):
-        X, y = reader.load_data_and_labels(self.filename)
+        X, y = load_data_and_labels(self.filename)
         preprocessor = WordPreprocessor(padding=False)
         p = preprocessor.fit(X, y)
         X, y = p.transform(X, y)
 
     def test_to_numpy_array(self):
-        X, y = reader.load_data_and_labels(self.filename)
+        X, y = load_data_and_labels(self.filename)
         preprocessor = WordPreprocessor(padding=False)
         p = preprocessor.fit(X, y)
         X, y = p.transform(X, y)
         y = np.asarray(y)
 
     def test_pad_sequences(self):
-        X, y = reader.load_data_and_labels(self.filename)
+        X, y = load_data_and_labels(self.filename)
         preprocessor = WordPreprocessor(padding=True)
         p = preprocessor.fit(X, y)
         X, y = p.transform(X, y)
 
     def test_calc_sequence_lengths(self):
-        X, y = reader.load_data_and_labels(self.filename)
+        X, y = load_data_and_labels(self.filename)
         preprocessor = WordPreprocessor(padding=True)
         p = preprocessor.fit(X, y)
         _, y = p.transform(X, y)

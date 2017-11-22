@@ -1,12 +1,12 @@
 import os
 import unittest
 
+from anago.reader import load_data_and_labels, load_word_embeddings
+
 import anago
-from anago.data.reader import load_data_and_labels, load_word_embeddings
-from anago.data.preprocess import prepare_preprocessor
 from anago.config import ModelConfig, TrainingConfig
 from anago.models import SeqLabeling
-
+from anago.preprocess import prepare_preprocessor
 
 get_path = lambda path: os.path.join(os.path.dirname(__file__), path)
 DATA_ROOT = get_path('../data/conll2003/en/ner')

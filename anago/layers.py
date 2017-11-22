@@ -4,7 +4,6 @@ from __future__ import absolute_import
 Author: Philipp Gross, https://github.com/phipleg/keras/blob/crf/keras/layers/crf.py
 """
 
-import tensorflow as tf
 from keras import backend as K
 from keras import initializers, regularizers, constraints
 from keras.engine import Layer, InputSpec

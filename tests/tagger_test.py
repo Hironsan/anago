@@ -4,9 +4,8 @@ from pprint import pprint
 
 import anago
 from anago.config import ModelConfig
-from anago.data.preprocess import WordPreprocessor
 from anago.models import SeqLabeling
-
+from anago.preprocess import WordPreprocessor
 
 SAVE_ROOT = os.path.join(os.path.dirname(__file__), 'models')
 

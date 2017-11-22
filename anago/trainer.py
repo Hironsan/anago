@@ -1,7 +1,7 @@
+from anago.reader import batch_iter
 from keras.optimizers import Adam
 
-from anago.data.metrics import get_callbacks
-from anago.data.reader import batch_iter
+from anago.metrics import get_callbacks
 
 
 class Trainer(object):

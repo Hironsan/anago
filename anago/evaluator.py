@@ -1,5 +1,6 @@
-from anago.data.metrics import F1score
-from anago.data.reader import batch_iter
+from anago.reader import batch_iter
+
+from anago.metrics import F1score
 
 
 class Evaluator(object):
