@@ -1,5 +1,6 @@
 import os
 
+import numpy as np
 from anago.data.preprocess import prepare_preprocessor, WordPreprocessor, filter_embeddings
 from anago.models import SeqLabeling
 from anago.trainer import Trainer
@@ -36,6 +37,7 @@ class Sequence(object):
         self.p = prepare_preprocessor(x_train, y_train)
         embeddings = filter_embeddings(self.embeddings, self.p.vocab_word,
                                        self.model_config.word_embedding_size)
+        self.model_config.vocab_size = len(self.p.vocab_word)
         self.model_config.char_vocab_size = len(self.p.vocab_char)
 
         self.model = SeqLabeling(self.model_config, embeddings, len(self.p.vocab_tag))
@@ -67,7 +69,12 @@ class Sequence(object):
 
     @classmethod
     def load(cls, dir_path):
-        cls.p = WordPreprocessor.load(os.path.join(dir_path, cls.preprocessor_file))
+        self = cls()
+        self.p = WordPreprocessor.load(os.path.join(dir_path, cls.preprocessor_file))
         config = ModelConfig.load(os.path.join(dir_path, cls.config_file))
-        cls.model = SeqLabeling(config, ntags=len(cls.p.vocab_tag))
-        cls.model.load(filepath=os.path.join(dir_path, cls.weight_file))
+        dummy_embeddings = np.zeros((config.vocab_size, config.word_embedding_size), dtype=np.float32)
+        self.model = SeqLabeling(config, dummy_embeddings, ntags=len(self.p.vocab_tag))
+        self.model.load(filepath=os.path.join(dir_path, cls.weight_file))
+
+        return self
+

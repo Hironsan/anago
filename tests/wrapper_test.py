@@ -35,6 +35,8 @@ class TrainerTest(unittest.TestCase):
 
         cls.sent = 'President Obama is speaking at the White House.'
 
+        cls.dir_path = 'models'
+
     def test_train(self):
         # Not use pre-trained word embeddings
         model = anago.Sequence(max_epoch=1)
@@ -62,14 +64,21 @@ class TrainerTest(unittest.TestCase):
     def test_save(self):
         model = anago.Sequence(max_epoch=1, embeddings=self.embeddings)
         model.train(self.x_train, self.y_train, self.x_valid, self.y_valid)
+        model.save(dir_path=self.dir_path)
 
-        dir_path = 'models'
-        model.save(dir_path=dir_path)
-
-        config_file = os.path.join(dir_path, model.config_file)
-        weight_file = os.path.join(dir_path, model.weight_file)
-        preprocessor_file = os.path.join(dir_path, model.preprocessor_file)
+        config_file = os.path.join(self.dir_path, model.config_file)
+        weight_file = os.path.join(self.dir_path, model.weight_file)
+        preprocessor_file = os.path.join(self.dir_path, model.preprocessor_file)
 
         self.assertTrue(os.path.exists(config_file))
         self.assertTrue(os.path.exists(weight_file))
         self.assertTrue(os.path.exists(preprocessor_file))
+
+    def test_load(self):
+        model = anago.Sequence(max_epoch=1, embeddings=self.embeddings)
+        model.train(self.x_train, self.y_train, self.x_valid, self.y_valid)
+        model.eval(self.x_test, self.y_test)
+        model.save(dir_path=self.dir_path)
+
+        model = anago.Sequence.load(self.dir_path)
+        model.eval(self.x_test, self.y_test)

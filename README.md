@@ -58,29 +58,16 @@ You also need to download [GloVe vectors](https://nlp.stanford.edu/projects/glov
 ### Import
 First, import the necessary modules:
 ```python
-import os
 import anago
 from anago.data.reader import load_data_and_labels
 ```
-They include loading modules, a preprocessor and configs.
-
-
-And set parameters to use later:
-```python
-DATA_ROOT = 'data/conll2003/en/ner'
-```
 
 ### Loading data
-
-After importing the modules, read data for training, validation and test:
+After importing the modules, load training, validation and test dataset:
 ```python
-train_path = os.path.join(DATA_ROOT, 'train.txt')
-valid_path = os.path.join(DATA_ROOT, 'valid.txt')
-test_path = os.path.join(DATA_ROOT, 'test.txt')
-
-x_train, y_train = load_data_and_labels(train_path)
-x_valid, y_valid = load_data_and_labels(valid_path)
-x_test, y_test = load_data_and_labels(test_path)
+x_train, y_train = load_data_and_labels('train.txt')
+x_valid, y_valid = load_data_and_labels('valid.txt')
+x_test, y_test = load_data_and_labels('test.txt')
 ```
 
 Now we are ready for training :)
