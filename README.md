@@ -113,10 +113,9 @@ After evaluation, F1 value is output:
 Let's try tagging a sentence, "President Obama is speaking at the White House."
 We can do it as follows:
 ```python
->>> sent = 'President Obama is speaking at the White House.'
->>> model.analyze(sent)
+>>> words = 'President Obama is speaking at the White House.'.split()
+>>> model.analyze(words)
 {
-  'text': 'President Obama is speaking at the White House.',
   'words': [
              'President',
              'Obama',

@@ -32,7 +32,7 @@ class TrainerTest(unittest.TestCase):
 
         cls.embeddings = load_glove(EMBEDDING_PATH)
 
-        cls.sent = 'President Obama is speaking at the White House.'
+        cls.words = 'President Obama is speaking at the White House.'.split()
 
         cls.dir_path = 'models'
 
@@ -53,10 +53,9 @@ class TrainerTest(unittest.TestCase):
     def test_analyze(self):
         model = anago.Sequence(max_epoch=1, embeddings=self.embeddings)
         model.train(self.x_train, self.y_train, self.x_valid, self.y_valid)
-        res = model.analyze(self.sent)
+        res = model.analyze(self.words)
         pprint(res)
 
-        self.assertIn('text', res)
         self.assertIn('words', res)
         self.assertIn('entities', res)
 

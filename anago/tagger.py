@@ -7,14 +7,9 @@ from anago.metrics import get_entities
 
 class Tagger(object):
 
-    def __init__(self,
-                 model,
-                 preprocessor=None,
-                 tokenizer=str.split):
-
+    def __init__(self, model, preprocessor=None):
         self.model = model
         self.preprocessor = preprocessor
-        self.tokenizer = tokenizer
 
     def predict(self, words):
         length = np.array([len(words)])
@@ -34,10 +29,8 @@ class Tagger(object):
 
         return prob
 
-    def _build_response(self, sent, tags, prob):
-        words = self.tokenizer(sent)
+    def _build_response(self, words, tags, prob):
         res = {
-            'text': sent,
             'words': words,
             'entities': [
 
@@ -57,18 +50,17 @@ class Tagger(object):
 
         return res
 
-    def analyze(self, sent):
-        assert isinstance(sent, str)
+    def analyze(self, words):
+        assert isinstance(words, list)
 
-        words = self.tokenizer(sent)
         pred = self.predict(words)
         tags = self._get_tags(pred)
         prob = self._get_prob(pred)
-        res = self._build_response(sent, tags, prob)
+        res = self._build_response(words, tags, prob)
 
         return res
 
-    def tag(self, sent):
+    def tag(self, words):
         """Tags a sentence named entities.
 
         Args:
@@ -84,15 +76,14 @@ class Tagger(object):
              ('speaking', 'O'), ('at', 'O'), ('the', 'O'),
              ('White', 'LOCATION'), ('House', 'LOCATION'), ('.', 'O')]
         """
-        assert isinstance(sent, str)
+        assert isinstance(words, list)
 
-        words = self.tokenizer(sent)
         pred = self.predict(words)
         pred = [t.split('-')[-1] for t in pred]  # remove prefix: e.g. B-Person -> Person
 
         return list(zip(words, pred))
 
-    def get_entities(self, sent):
+    def get_entities(self, words):
         """Gets entities from a sentence.
 
         Args:
@@ -105,9 +96,8 @@ class Tagger(object):
             sent = 'President Obama is speaking at the White House.'
             result = {'Person': ['Obama'], 'LOCATION': ['White House']}
         """
-        assert isinstance(sent, str)
+        assert isinstance(words, list)
 
-        words = self.tokenizer(sent)
         pred = self.predict(words)
         entities = self._get_chunks(words, pred)
 
