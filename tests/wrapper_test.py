@@ -6,6 +6,7 @@ import numpy as np
 
 import anago
 from anago.reader import load_data_and_labels, load_glove
+from anago.utils import download
 
 get_path = lambda path: os.path.join(os.path.dirname(__file__), path)
 DATA_ROOT = get_path('../data/conll2003/en/ner')
@@ -91,3 +92,17 @@ class TrainerTest(unittest.TestCase):
         model = anago.Sequence(max_epoch=15, embeddings=self.embeddings, log_dir='logs')
         model.train(self.x_train, self.y_train, self.x_test, self.y_test, vocab_init=vocab)
         model.save(dir_path=self.dir_path)
+
+    def test_train_all(self):
+        x_train = np.r_[self.x_train, self.x_valid, self.x_test]
+        y_train = np.r_[self.y_train, self.y_valid, self.y_test]
+        model = anago.Sequence(max_epoch=15, embeddings=self.embeddings, log_dir='logs')
+        model.train(x_train, y_train, self.x_test, self.y_test)
+        model.save(dir_path=self.dir_path)
+
+    def test_download(self):
+        dir_path = 'test_dir'
+        url = 'https://storage.googleapis.com/chakki/datasets/public/models.zip'
+        download(url, dir_path)
+        model = anago.Sequence.load(dir_path)
+        model.eval(self.x_test, self.y_test)

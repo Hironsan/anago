@@ -1,21 +1,22 @@
 # anaGo
-***anaGo*** is a state-of-the-art library for sequence labeling using Keras. 
+***anaGo*** is a Keras implementation of sequence labeling.
 
-anaGo can performs named-entity recognition (NER), part-of-speech tagging (POS tagging), semantic role labeling (SRL) and so on for **many languages**. 
-For example, **English Named-Entity Recognition** is shown in the following picture:
+anaGo can perform Named Entity Recognition (NER), Part-of-Speech tagging (POS tagging), semantic role labeling (SRL) and so on for **many languages**. 
+For example, the following picture shows **Named Entity Recognition in English**:
 <img src="https://github.com/Hironsan/anago/blob/docs/docs/images/example.en2.png?raw=true">
 
-**Japanese Named-Entity Recognition** is shown in the following picture:
+The following picture shows **Named Entity Recognition in Japanese**:
 <img src="https://github.com/Hironsan/anago/blob/docs/docs/images/example.ja2.png?raw=true">
 
-Similarly, **you can solve your task for your language.**
+Similarly, **you can solve your task (NER, POS,...) for your language.**
+You don't have to define features.
 You have only to prepare input and output data. :)
 
-## Feature Support
-anaGo provide following features:
-* learning your own task without any knowledge.
-* defining your own model.
-* ~~(Not yet supported)downloading learned model for many tasks. (e.g. NER, POS Tagging, etc...)~~
+## anaGo Support Features
+anaGo supports following features:
+* training the model without any features.
+* defining the custom model.
+* downloading pre-trained models.
 
 
 ## Install
@@ -34,8 +35,8 @@ $ pip install -r requirements.txt
 ```
 
 ## Data and Word Vectors
-The data must be in the following format(tsv).
-We provide an example in train.txt:
+Training data takes a tsv format.
+The following text is an example of training data:
 
 ```
 EU	B-ORG
@@ -52,7 +53,7 @@ Peter	B-PER
 Blackburn	I-PER
 ```
 
-You also need to download [GloVe vectors](https://nlp.stanford.edu/projects/glove/) and store it in *data/glove.6B* directory.
+anaGo supports pre-trained word embeddings like [GloVe vectors](https://nlp.stanford.edu/projects/glove/).
 
 ## Get Started
 ### Import
@@ -63,7 +64,7 @@ from anago.reader import load_data_and_labels
 ```
 
 ### Loading data
-After importing the modules, load training, validation and test dataset:
+After importing the modules, load [training, validation and test dataset](https://github.com/Hironsan/anago/blob/master/data/conll2003/en/ner/):
 ```python
 x_train, y_train = load_data_and_labels('train.txt')
 x_valid, y_valid = load_data_and_labels('valid.txt')
@@ -74,13 +75,13 @@ Now we are ready for training :)
 
 
 ### Training a model
-Let's train a model. For training a model, we can use train method:
+Let's train a model. To train a model, call `train` method:
 ```python
 model = anago.Sequence()
 model.train(x_train, y_train, x_valid, y_valid)
 ```
 
-If training is progressing normally, progress bar will be displayed as follows:
+If training is progressing normally, progress bar would be displayed:
 
 ```commandline
 ...
@@ -98,7 +99,7 @@ Epoch 5/15
 
 
 ### Evaluating a model
-To evaluate the trained model, we can use eval method:
+To evaluate the trained model, call `eval` method:
 
 ```python
 model.eval(x_test, y_test)
@@ -111,20 +112,21 @@ After evaluation, F1 value is output:
 
 ### Tagging a sentence
 Let's try tagging a sentence, "President Obama is speaking at the White House."
-We can do it as follows:
+To tag a sentence, call `analyze` method:
+
 ```python
 >>> words = 'President Obama is speaking at the White House.'.split()
 >>> model.analyze(words)
 {
   'words': [
-             'President',
-             'Obama',
-             'is',
-             'speaking',
-             'at',
-             'the',
-             'White',
-             'House.'
+            'President',
+            'Obama',
+            'is',
+            'speaking',
+            'at',
+            'the',
+            'White',
+            'House.'
             ],
   'entities': [
     {
@@ -145,6 +147,16 @@ We can do it as follows:
 }
 ```
 
+### Downloading pre-trained models
+To download a pre-trained model, call `download` function:
+```python
+from anago.utils import download
+
+dir_path = 'models'
+url = 'https://storage.googleapis.com/chakki/datasets/public/models.zip'
+download(url, dir_path)
+model = anago.Sequence.load(dir_path)
+```
 
 ## Reference
 This library uses bidirectional LSTM + CRF model based on
