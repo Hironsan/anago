@@ -34,8 +34,8 @@ class Sequence(object):
         self.log_dir = log_dir
         self.embeddings = embeddings
 
-    def train(self, x_train, y_train, x_valid=None, y_valid=None):
-        self.p = prepare_preprocessor(x_train, y_train)
+    def train(self, x_train, y_train, x_valid=None, y_valid=None, vocab_init=None):
+        self.p = prepare_preprocessor(x_train, y_train, vocab_init=vocab_init)
         embeddings = filter_embeddings(self.embeddings, self.p.vocab_word,
                                        self.model_config.word_embedding_size)
         self.model_config.vocab_size = len(self.p.vocab_word)

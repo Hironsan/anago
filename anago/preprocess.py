@@ -237,8 +237,8 @@ def dense_to_one_hot(labels_dense, num_classes, nlevels=1):
         raise ValueError('nlevels can take 1 or 2, not take {}.'.format(nlevels))
 
 
-def prepare_preprocessor(X, y, use_char=True):
-    p = WordPreprocessor()
+def prepare_preprocessor(X, y, use_char=True, vocab_init=None):
+    p = WordPreprocessor(vocab_init=vocab_init)
     p.fit(X, y)
 
     return p

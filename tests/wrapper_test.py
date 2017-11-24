@@ -2,6 +2,8 @@ import os
 import unittest
 from pprint import pprint
 
+import numpy as np
+
 import anago
 from anago.reader import load_data_and_labels, load_glove
 
@@ -80,3 +82,12 @@ class TrainerTest(unittest.TestCase):
 
         model = anago.Sequence.load(self.dir_path)
         model.eval(self.x_test, self.y_test)
+
+    def test_train_vocab_init(self):
+        vocab = set()
+        for words in np.r_[self.x_train, self.x_valid, self.x_test]:
+            for word in words:
+                vocab.add(word)
+        model = anago.Sequence(max_epoch=15, embeddings=self.embeddings, log_dir='logs')
+        model.train(self.x_train, self.y_train, self.x_test, self.y_test, vocab_init=vocab)
+        model.save(dir_path=self.dir_path)
