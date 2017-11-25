@@ -118,32 +118,32 @@ To tag a sentence, call `analyze` method:
 >>> words = 'President Obama is speaking at the White House.'.split()
 >>> model.analyze(words)
 {
-  'words': [
-            'President',
-            'Obama',
-            'is',
-            'speaking',
-            'at',
-            'the',
-            'White',
-            'House.'
-            ],
-  'entities': [
-    {
-      'beginOffset': 1,
-      'endOffset': 2,
-      'score': 1.0,
-      'text': 'Obama',
-      'type': 'PER'
-    },
-    {
-      'beginOffset': 6,
-      'endOffset': 8,
-      'score': 1.0,
-      'text': 'White House.',
-      'type': 'ORG'
-    }
-  ]
+    "words": [
+        "President",
+        "Obama",
+        "is",
+        "speaking",
+        "at",
+        "the",
+        "White",
+        "House."
+    ],
+    "entities": [
+        {
+            "beginOffset": 1,
+            "endOffset": 2,
+            "score": 1,
+            "text": "Obama",
+            "type": "PER"
+        },
+        {
+            "beginOffset": 6,
+            "endOffset": 8,
+            "score": 1,
+            "text": "White House.",
+            "type": "ORG"
+        }
+    ]
 }
 ```
 
