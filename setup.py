@@ -27,7 +27,7 @@ if sys.argv[-1] == 'publish':
     sys.exit()
 
 required = [
-    'Keras>=2.1.1', 'h5py>=2.7.1', 'scikit-learn>0.19.1', 'numpy>=1.13.3', 'tensorflow>=1.4.0',
+    'Keras>=2.1.1', 'h5py>=2.7.1', 'scikit-learn>=0.19.1', 'numpy>=1.13.3', 'tensorflow>=1.4.0',
 ]
 
 setup(
