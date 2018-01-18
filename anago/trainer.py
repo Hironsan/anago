@@ -22,7 +22,7 @@ class Trainer(object):
         self.tensorboard = tensorboard
         self.preprocessor = preprocessor
 
-    def train(self, x_train, y_train, x_valid=None, y_valid=None):
+    def train(self, x_train, y_train, x_valid=None, y_valid=None, verbose=1):
 
         # Prepare training and validation data(steps, generator)
         train_steps, train_batches = batch_iter(x_train,
@@ -45,7 +45,8 @@ class Trainer(object):
                                   valid=(valid_steps, valid_batches, self.preprocessor))
 
         # Train the model
-        self.model.fit_generator(generator=train_batches,
-                                 steps_per_epoch=train_steps,
-                                 epochs=self.training_config.max_epoch,
-                                 callbacks=callbacks)
+        return self.model.fit_generator(generator=train_batches,
+                                        steps_per_epoch=train_steps,
+                                        epochs=self.training_config.max_epoch,
+                                        callbacks=callbacks,
+                                        verbose=verbose)

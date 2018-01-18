@@ -18,7 +18,7 @@ class Sequence(object):
 
     def __init__(self, char_emb_size=25, word_emb_size=100, char_lstm_units=25,
                  word_lstm_units=100, dropout=0.5, char_feature=True, crf=True,
-                 batch_size=20, optimizer='adam', learning_rate=0.001, lr_decay=0.9,
+                 batch_size=1024, optimizer='adam', learning_rate=0.001, lr_decay=0.9,
                  clip_gradients=5.0, max_epoch=15, early_stopping=True, patience=3,
                  train_embeddings=True, max_checkpoints_to_keep=5, log_dir=None,
                  embeddings=()):
@@ -34,7 +34,7 @@ class Sequence(object):
         self.log_dir = log_dir
         self.embeddings = embeddings
 
-    def train(self, x_train, y_train, x_valid=None, y_valid=None, vocab_init=None):
+    def train(self, x_train, y_train, x_valid=None, y_valid=None, vocab_init=None, verbose=1):
         self.p = prepare_preprocessor(x_train, y_train, vocab_init=vocab_init)
         embeddings = filter_embeddings(self.embeddings, self.p.vocab_word,
                                        self.model_config.word_embedding_size)
@@ -47,7 +47,7 @@ class Sequence(object):
                           self.training_config,
                           checkpoint_path=self.log_dir,
                           preprocessor=self.p)
-        trainer.train(x_train, y_train, x_valid, y_valid)
+        return trainer.train(x_train, y_train, x_valid, y_valid, verbose)
 
     def eval(self, x_test, y_test):
         if self.model:
@@ -76,6 +76,7 @@ class Sequence(object):
         dummy_embeddings = np.zeros((config.vocab_size, config.word_embedding_size), dtype=np.float32)
         self.model = SeqLabeling(config, dummy_embeddings, ntags=len(self.p.vocab_tag))
         self.model.load(filepath=os.path.join(dir_path, cls.weight_file))
+        self.model._make_predict_function()
 
         return self
 
