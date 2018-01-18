@@ -22,7 +22,7 @@ def get_callbacks(log_dir=None, valid=(), tensorboard=True, eary_stopping=True):
         if not os.path.exists(log_dir):
             print('Successfully made a directory: {}'.format(log_dir))
             os.mkdir(log_dir)
-        callbacks.append(TensorBoard(log_dir))
+        callbacks.append(TensorBoard(log_dir, histogram_freq=0, write_graph=True, write_images=True))
 
     if valid:
         callbacks.append(F1score(*valid))
