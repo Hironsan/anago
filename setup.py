@@ -15,7 +15,7 @@ AUTHOR = 'Hironsan'
 LICENSE = 'MIT'
 
 here = os.path.abspath(os.path.dirname(__file__))
-with io.open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
+with io.open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = '\n' + f.read()
 
 about = {}
