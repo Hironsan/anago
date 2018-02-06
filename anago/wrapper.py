@@ -18,8 +18,8 @@ class Sequence(object):
 
     def __init__(self, char_emb_size=25, word_emb_size=100, char_lstm_units=25,
                  word_lstm_units=100, dropout=0.5, char_feature=True, crf=True,
-                 batch_size=20, optimizer='adam', learning_rate=0.001, lr_decay=0.9,
-                 clip_gradients=5.0, max_epoch=15, early_stopping=True, patience=3,
+                 batch_size=16, optimizer='adam', learning_rate=0.001, lr_decay=0.9,
+                 clip_gradients=5.0, max_epoch=30, early_stopping=True, patience=5,
                  train_embeddings=True, max_checkpoints_to_keep=5, log_dir=None,
                  embeddings=()):
 
@@ -52,7 +52,8 @@ class Sequence(object):
     def eval(self, x_test, y_test):
         if self.model:
             evaluator = Evaluator(self.model, preprocessor=self.p)
-            evaluator.eval(x_test, y_test)
+            pred, actual = evaluator.eval(x_test, y_test)
+            return pred, actual
         else:
             raise (OSError('Could not find a model. Call load(dir_path).'))
 

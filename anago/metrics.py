@@ -58,6 +58,8 @@ def get_entities(seq):
         >>> print(get_entities(seq))
         [('PER', 0, 2), ('LOC', 3, 4)]
     """
+    
+    '''
     i = 0
     chunks = []
     seq = seq + ['O']  # add sentinel
@@ -73,6 +75,8 @@ def get_entities(seq):
         else:
             i += 1
     return chunks
+    '''
+    return seq
 
 
 def f1_score(y_true, y_pred, sequence_lengths):
