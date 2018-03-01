@@ -59,7 +59,6 @@ anaGo supports pre-trained word embeddings like [GloVe vectors](https://nlp.stan
 ### Import
 First, import the necessary modules:
 ```python
-import anago
 from anago.reader import load_data_and_labels
 ```
 
@@ -77,8 +76,10 @@ Now we are ready for training :)
 ### Training a model
 Let's train a model. To train a model, call `train` method:
 ```python
-model = anago.Sequence()
-model.train(x_train, y_train, x_valid, y_valid)
+from anago.sequence import BiLSTMCRF
+
+model = BiLSTMCRF()
+model.fit(x_train, y_train)
 ```
 
 If training is progressing normally, progress bar would be displayed:
@@ -99,10 +100,10 @@ Epoch 5/15
 
 
 ### Evaluating a model
-To evaluate the trained model, call `eval` method:
+To evaluate the trained model, call `score` method:
 
 ```python
-model.eval(x_test, y_test)
+model.score(x_test, y_test)
 ```
 
 After evaluation, F1 value is output:
@@ -116,7 +117,7 @@ To tag a sentence, call `analyze` method:
 
 ```python
 >>> words = 'President Obama is speaking at the White House.'.split()
->>> model.analyze(words)
+>>> tagger.analyze(words)
 {
     "words": [
         "President",
