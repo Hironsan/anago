@@ -1,8 +1,6 @@
-from collections import defaultdict
-
 import numpy as np
 
-from anago.metrics import get_entities
+from seqeval.metrics.sequence_labeling import get_entities
 
 
 class Tagger(object):
@@ -82,44 +80,3 @@ class Tagger(object):
         pred = [t.split('-')[-1] for t in pred]  # remove prefix: e.g. B-Person -> Person
 
         return list(zip(words, pred))
-
-    def get_entities(self, words):
-        """Gets entities from a sentence.
-
-        Args:
-            sent: a sentence
-
-        Return:
-            labels_pred: dict of entities for a sentence
-
-        Example:
-            sent = 'President Obama is speaking at the White House.'
-            result = {'Person': ['Obama'], 'LOCATION': ['White House']}
-        """
-        assert isinstance(words, list)
-
-        pred = self.predict(words)
-        entities = self._get_chunks(words, pred)
-
-        return entities
-
-    def _get_chunks(self, words, tags):
-        """
-        Args:
-            words: sequence of word
-            tags: sequence of labels
-
-        Returns:
-            dict of entities for a sequence
-
-        Example:
-            words = ['President', 'Obama', 'is', 'speaking', 'at', 'the', 'White', 'House', '.']
-            tags = ['O', 'B-Person', 'O', 'O', 'O', 'O', 'B-Location', 'I-Location', 'O']
-            result = {'Person': ['Obama'], 'LOCATION': ['White House']}
-        """
-        chunks = get_entities(tags)
-        res = defaultdict(list)
-        for chunk_type, chunk_start, chunk_end in chunks:
-            res[chunk_type].append(' '.join(words[chunk_start: chunk_end]))  # todo delimiter changeable
-
-        return res
