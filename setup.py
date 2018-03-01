@@ -18,10 +18,6 @@ here = os.path.abspath(os.path.dirname(__file__))
 
 long_description = parse_from_file(os.path.join(here, 'README.md'))
 
-about = {}
-with open(os.path.join(here, NAME, '__version__.py')) as f:
-    exec(f.read(), about)
-
 if sys.argv[-1] == 'publish':
     os.system('python setup.py sdist bdist_wheel upload')
     sys.exit()
@@ -32,7 +28,7 @@ required = [
 
 setup(
     name=NAME,
-    version=about['__version__'],
+    version='1.0.0',
     description=DESCRIPTION,
     long_description=long_description,
     author=AUTHOR,
