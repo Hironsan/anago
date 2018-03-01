@@ -3,7 +3,6 @@ import os
 import numpy as np
 
 from anago.config import ModelConfig, TrainingConfig
-from anago.evaluator import Evaluator
 from anago.models import SeqLabeling
 from anago.preprocess import prepare_preprocessor, WordPreprocessor, filter_embeddings
 from anago.tagger import Tagger
@@ -48,13 +47,6 @@ class Sequence(object):
                           checkpoint_path=self.log_dir,
                           preprocessor=self.p)
         trainer.train(x_train, y_train, x_valid, y_valid)
-
-    def eval(self, x_test, y_test):
-        if self.model:
-            evaluator = Evaluator(self.model, preprocessor=self.p)
-            evaluator.eval(x_test, y_test)
-        else:
-            raise (OSError('Could not find a model. Call load(dir_path).'))
 
     def analyze(self, words):
         if self.model:
