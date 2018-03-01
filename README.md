@@ -60,14 +60,15 @@ anaGo supports pre-trained word embeddings like [GloVe vectors](https://nlp.stan
 First, import the necessary modules:
 ```python
 from anago.reader import load_data_and_labels
+from anago.preprocess import StaticPreprocessor
 ```
 
 ### Loading data
 After importing the modules, load [training, validation and test dataset](https://github.com/Hironsan/anago/blob/master/data/conll2003/en/ner/):
 ```python
-x_train, y_train = load_data_and_labels('train.txt')
-x_valid, y_valid = load_data_and_labels('valid.txt')
-x_test, y_test = load_data_and_labels('test.txt')
+X, y = load_data_and_labels('train.txt')
+p = StaticPreprocessor(X, y)
+X, y = p.fit_transform(X, y)
 ```
 
 Now we are ready for training :)
@@ -76,10 +77,10 @@ Now we are ready for training :)
 ### Training a model
 Let's train a model. To train a model, call `train` method:
 ```python
-from anago.sequence import BiLSTMCRF
+from anago.models import BiLSTMCRF
 
 model = BiLSTMCRF()
-model.fit(x_train, y_train)
+model.fit(X, y)
 ```
 
 If training is progressing normally, progress bar would be displayed:
@@ -156,7 +157,7 @@ from anago.utils import download
 dir_path = 'models'
 url = 'https://storage.googleapis.com/chakki/datasets/public/models.zip'
 download(url, dir_path)
-model = anago.Sequence.load(dir_path)
+model = anago.BiLSTMCRF.load(dir_path)
 ```
 
 ## Reference
