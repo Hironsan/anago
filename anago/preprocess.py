@@ -98,17 +98,16 @@ class DynamicPreprocessor(BaseEstimator, TransformerMixin):
         self.n_labels = n_labels
 
     def transform(self, X, y=None):
-        words, chars = X
+        words, chars = X[:, 0], X[:, 1]
         words = pad_sequences(words, padding='post')
         chars = pad_char(chars)
 
-        lengths = [len(y_) for y_ in y]
+        lengths = np.array([len(y_) for y_ in y])
         y = pad_sequences(y, padding='post')
         y = to_categorical(y, self.n_labels)
         sents = [words, chars, lengths]
 
         return sents, y
-
 
 
 class WordPreprocessor(BaseEstimator, TransformerMixin):
