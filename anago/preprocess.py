@@ -134,22 +134,3 @@ def pad_char(sequences):
     sequences = [seq + [[] for i in range(max(maxlen_seq - len(seq), 0))] for seq in sequences]
 
     return np.array([pad_sequences(seq, padding='post', maxlen=maxlen_word) for seq in sequences])
-
-
-def filter_embeddings(embeddings, vocab, dim):
-    """Loads GloVe vectors in numpy array.
-
-    Args:
-        embeddings (dict): a dictionary of numpy array.
-        vocab (dict): word_index lookup table.
-
-    Returns:
-        numpy array: an array of word embeddings.
-    """
-    _embeddings = np.zeros([len(vocab), dim])
-    for word in vocab:
-        if word in embeddings:
-            word_idx = vocab[word]
-            _embeddings[word_idx] = embeddings[word]
-
-    return _embeddings

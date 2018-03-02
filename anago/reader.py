@@ -51,66 +51,6 @@ def load_data_and_labels(filename):
     return np.asarray(sents), np.asarray(labels)
 
 
-def load_glove_vocab(filename):
-    """Loads GloVe's vocab from a file.
-
-    Args:
-        filename (str): path to the glove vectors.
-
-    Returns:
-        set: a set of all words in GloVe.
-    """
-    print('Building vocab...')
-    with open(filename) as f:
-        vocab = {line.strip().split()[0] for line in f}
-    print('- done. {} tokens'.format(len(vocab)))
-    return vocab
-
-
-def load_word_embeddings(vocab, glove_filename, dim):
-    """Loads GloVe vectors in numpy array.
-
-    Args:
-        vocab (): dictionary vocab[word] = index.
-        glove_filename (str): a path to a glove file.
-        dim (int): dimension of embeddings.
-
-    Returns:
-        numpy array: an array of word embeddings.
-    """
-    embeddings = np.zeros([len(vocab), dim])
-    with open(glove_filename) as f:
-        for line in f:
-            line = line.strip().split(' ')
-            word = line[0]
-            embedding = [float(x) for x in line[1:dim+1]]
-            if word in vocab:
-                word_idx = vocab[word]
-                embeddings[word_idx] = np.asarray(embedding)
-
-    return embeddings
-
-
-def load_glove(file):
-    """Loads GloVe vectors in numpy array.
-
-    Args:
-        file (str): a path to a glove file.
-
-    Return:
-        dict: a dict of numpy arrays.
-    """
-    model = {}
-    with open(file) as f:
-        for line in f:
-            line = line.split(' ')
-            word = line[0]
-            vector = np.array([float(val) for val in line[1:]])
-            model[word] = vector
-
-    return model
-
-
 def batch_iter(data, labels, batch_size, shuffle=True, preprocessor=None):
     num_batches_per_epoch = int((len(data) - 1) / batch_size) + 1
 
