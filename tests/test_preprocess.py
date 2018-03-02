@@ -5,7 +5,7 @@ import unittest
 import numpy as np
 
 from anago.reader import load_data_and_labels
-from anago.preprocess import WordPreprocessor, UNK, pad_word, pad_char
+from anago.preprocess import WordPreprocessor, UNK, pad_char
 from anago.preprocess import StaticPreprocessor
 
 
@@ -122,16 +122,7 @@ class WordPreprocessorTest(unittest.TestCase):
 
 class PreprocessTest(unittest.TestCase):
 
-    def test_pad_sequences(self):
-        # word level padding
-        sequences = [[1, 2],
-                     [3, 4, 5, 6]]
-        expected_seq = [[1, 2, 0, 0],
-                        [3, 4, 5, 6]]
-        padded_seq = pad_word(sequences)
-        np.testing.assert_equal(padded_seq, expected_seq)
-
-        # char level padding
+    def test_pad_char(self):
         sequences = [[[1, 2, 3, 4], [1, 2], [1], [1, 2, 3]],
                      [[1, 2, 3, 4, 5], [1, 2], [1, 2, 3, 4]]]
         expected_seq = [[[1, 2, 3, 4, 0], [1, 2, 0, 0, 0], [1, 0, 0, 0, 0], [1, 2, 3, 0, 0]],

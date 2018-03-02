@@ -203,9 +203,9 @@ class WordPreprocessor(BaseEstimator, TransformerMixin):
             y = [[self.vocab_tag[t] for t in sent] for sent in y]
 
         if self.padding:
-            words = pad_word(words)
+            words = pad_sequences(words, padding='post')
             chars = pad_char(chars)
-            y = pad_word(y)
+            y = pad_sequences(y, padding='post')
             y = to_categorical(y, len(self.vocab_tag))
             sents = [words, chars]
         else:
@@ -241,10 +241,6 @@ class WordPreprocessor(BaseEstimator, TransformerMixin):
     def load(cls, file_path):
         p = joblib.load(file_path)
         return p
-
-
-def pad_word(sequences):
-    return pad_sequences(sequences, padding='post')
 
 
 def pad_char(sequences):
