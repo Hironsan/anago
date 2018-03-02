@@ -1,9 +1,9 @@
 import os
 import unittest
 
-from anago.reader import load_data_and_labels, load_word_embeddings
+from anago.reader import load_data_and_labels
 from anago.models import BiLSTMCRF
-from anago.preprocess import WordPreprocessor, StaticPreprocessor, DynamicPreprocessor
+from anago.preprocess import StaticPreprocessor, DynamicPreprocessor
 
 get_path = lambda path: os.path.join(os.path.dirname(__file__), path)
 DATA_ROOT = get_path('../data/conll2003/en/ner')
@@ -27,17 +27,6 @@ class TrainerTest(unittest.TestCase):
         self.X, self.y = load_data_and_labels(data_path)
 
     def test_train(self):
-        p = WordPreprocessor()
-        p.fit(self.X, self.y)
-
-        model = BiLSTMCRF(char_vocab_size=len(p.vocab_char),
-                          word_vocab_size=len(p.vocab_word),
-                          ntags=len(p.vocab_tag))
-        model.preprocessor = p
-
-        model.fit(self.X, self.y)
-
-    def test_train2(self):
         p = StaticPreprocessor()
         p.fit(self.X, self.y)
         X, y = p.transform(self.X, self.y)
