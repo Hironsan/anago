@@ -5,7 +5,29 @@ import unittest
 import numpy as np
 
 from anago.reader import load_data_and_labels
-from anago.preprocess import WordPreprocessor, UNK, dense_to_one_hot, pad_sequences, _pad_sequences
+from anago.preprocess import WordPreprocessor, UNK, pad_sequences, _pad_sequences
+from anago.preprocess import StaticPreprocessor
+
+
+class TestStaticPreprocessor(unittest.TestCase):
+
+    def setUp(self):
+        self.filename = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/ner/test.txt')
+
+    def test_preprocessor(self):
+        X, y = load_data_and_labels(self.filename)
+        p = StaticPreprocessor()
+        p = p.fit(X, y)
+        X, y = p.transform(X, y)
+        words, chars = X
+        char, word = chars[0][0][0], words[0][0]
+        tag = y[0][0]
+        self.assertIsInstance(word, int)
+        self.assertIsInstance(char, int)
+        self.assertIsInstance(tag, int)
+        self.assertIsInstance(p.inverse_transform(y), list)
+        self.assertIsInstance(p.inverse_transform(y)[0], list)
+        self.assertIsInstance(p.inverse_transform(y)[0][0], str)
 
 
 class WordPreprocessorTest(unittest.TestCase):
@@ -99,25 +121,6 @@ class WordPreprocessorTest(unittest.TestCase):
 
 
 class PreprocessTest(unittest.TestCase):
-
-    def test_dense_to_onehot(self):
-        # 1d vector
-        labels = np.array([1, 2, 3])
-        labels_one_hot = dense_to_one_hot(labels, num_classes=9)
-        for labels in labels_one_hot:
-            self.assertEqual(sum(labels), 1)
-
-        # 2d matrix
-        labels = np.array([[1, 2, 3],
-                           [4, 5, 6]])
-        labels_one_hot = dense_to_one_hot(labels, num_classes=9, nlevels=2)
-        for labels in labels_one_hot:
-            for l in labels:
-                self.assertEqual(sum(l), 1)
-
-        # nlevels test
-        with self.assertRaises(ValueError):
-            labels_one_hot == dense_to_one_hot(labels, num_classes=9, nlevels=3)
 
     def test_pad_sequences(self):
         # word level padding

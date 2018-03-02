@@ -5,9 +5,100 @@ import re
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.externals import joblib
+from keras.utils.np_utils import to_categorical
+# from keras.preprocessing.sequence import pad_sequences
 
 UNK = '<UNK>'
 PAD = '<PAD>'
+
+
+def normalize_number(text):
+    return re.sub(r'[0-9０１２３４５６７８９]', r'0', text)
+
+
+class StaticPreprocessor(BaseEstimator, TransformerMixin):
+
+    def __init__(self, lowercase=True, num_norm=True,
+                 char_feature=True, vocab_init=None):
+        self._lowercase = lowercase
+        self._num_norm = num_norm
+        self._char_feature = char_feature
+        self._vocab_init = vocab_init or {}
+        self.word_dic = {PAD: 0, UNK: 1}
+        self.char_dic = {PAD: 0, UNK: 1}
+        self.label_dic = {PAD: 0}
+
+    def fit(self, X, y=None):
+
+        for w in set(itertools.chain(*X)) | set(self._vocab_init):
+
+            # create character dictionary
+            if self._char_feature:
+                for c in w:
+                    if c in self.char_dic:
+                        continue
+                    self.char_dic[c] = len(self.char_dic)
+
+            # create word dictionary
+            if self._lowercase:
+                w = w.lower()
+            if self._num_norm:
+                w = normalize_number(w)
+            self.word_dic[w] = len(self.word_dic)
+
+        # create label dictionary
+        for t in set(itertools.chain(*y)):
+            self.label_dic[t] = len(self.label_dic)
+
+        return self
+
+    def transform(self, X, y=None):
+        words = []
+        chars = []
+        for sent in X:
+            word_ids = []
+            char_ids = []
+            for w in sent:
+                if self._char_feature:
+                    char_ids.append(self._get_char_ids(w))
+
+                if self._lowercase:
+                    w = w.lower()
+                if self._num_norm:
+                    w = normalize_number(w)
+                word_id = self.word_dic.get(w, self.word_dic[UNK])
+                word_ids.append(word_id)
+
+            words.append(word_ids)
+            chars.append(char_ids)
+
+        if y is not None:
+            y = [[self.label_dic[t] for t in sent] for sent in y]
+
+        inputs = [words, chars] if self._char_feature else [words]
+
+        return (inputs, y) if y is not None else inputs
+
+    def inverse_transform(self, docs):
+        id2label = {i: t for t, i in self.label_dic.items()}
+
+        return [[id2label[t] for t in doc] for doc in docs]
+
+    def _get_char_ids(self, word):
+        return [self.char_dic.get(c, self.char_dic[UNK]) for c in word]
+
+
+class DynamicPreprocessor(BaseEstimator, TransformerMixin):
+
+    def __init__(self):
+        # padding, sequence lengths and one-hot
+        pass
+
+    def pad_word(self):
+        pass
+
+    def pad_char(self):
+        pass
 
 
 class WordPreprocessor(BaseEstimator, TransformerMixin):
@@ -143,7 +234,7 @@ class WordPreprocessor(BaseEstimator, TransformerMixin):
         if labels:
             labels, _ = pad_sequences(labels, 0)
             labels = np.asarray(labels)
-            labels = dense_to_one_hot(labels, len(self.vocab_tag), nlevels=2)
+            labels = to_categorical(labels, len(self.vocab_tag))
 
         word_ids, sequence_lengths = pad_sequences(word_ids, 0)
         word_ids = np.asarray(word_ids)
@@ -212,29 +303,6 @@ def pad_sequences(sequences, pad_tok, nlevels=1):
         raise ValueError('nlevels can take 1 or 2, not take {}.'.format(nlevels))
 
     return sequence_padded, sequence_length
-
-
-def dense_to_one_hot(labels_dense, num_classes, nlevels=1):
-    """Convert class labels from scalars to one-hot vectors."""
-    if nlevels == 1:
-        num_labels = labels_dense.shape[0]
-        index_offset = np.arange(num_labels) * num_classes
-        labels_one_hot = np.zeros((num_labels, num_classes), dtype=np.int32)
-        labels_one_hot.flat[index_offset + labels_dense.ravel()] = 1
-        return labels_one_hot
-    elif nlevels == 2:
-        # assume that labels_dense has same column length
-        num_labels = labels_dense.shape[0]
-        num_length = labels_dense.shape[1]
-        labels_one_hot = np.zeros((num_labels, num_length, num_classes), dtype=np.int32)
-        layer_idx = np.arange(num_labels).reshape(num_labels, 1)
-        # this index selects each component separately
-        component_idx = np.tile(np.arange(num_length), (num_labels, 1))
-        # then we use `a` to select indices according to category label
-        labels_one_hot[layer_idx, component_idx, labels_dense] = 1
-        return labels_one_hot
-    else:
-        raise ValueError('nlevels can take 1 or 2, not take {}.'.format(nlevels))
 
 
 def filter_embeddings(embeddings, vocab, dim):
