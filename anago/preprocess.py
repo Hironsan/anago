@@ -73,9 +73,12 @@ class StaticPreprocessor(BaseEstimator, TransformerMixin):
             chars.append(char_ids)
 
         if y is not None:
-            y = [[self.label_dic[t] for t in sent] for sent in y]
+            y = np.array([[self.label_dic[t] for t in sent] for sent in y])
 
-        inputs = [words, chars] if self._char_feature else [words]
+        if self._char_feature:
+            inputs = np.array(list(zip(words, chars)))
+        else:
+            inputs = words
 
         return (inputs, y) if y is not None else inputs
 
@@ -90,15 +93,22 @@ class StaticPreprocessor(BaseEstimator, TransformerMixin):
 
 class DynamicPreprocessor(BaseEstimator, TransformerMixin):
 
-    def __init__(self):
+    def __init__(self, n_labels):
         # padding, sequence lengths and one-hot
-        pass
+        self.n_labels = n_labels
 
-    def pad_word(self):
-        pass
+    def transform(self, X, y=None):
+        words, chars = X
+        words = pad_sequences(words, padding='post')
+        chars = pad_char(chars)
 
-    def pad_char(self):
-        pass
+        lengths = [len(y_) for y_ in y]
+        y = pad_sequences(y, padding='post')
+        y = to_categorical(y, self.n_labels)
+        sents = [words, chars, lengths]
+
+        return sents, y
+
 
 
 class WordPreprocessor(BaseEstimator, TransformerMixin):
