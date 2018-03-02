@@ -6,7 +6,7 @@ import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.externals import joblib
 from keras.utils.np_utils import to_categorical
-# from keras.preprocessing.sequence import pad_sequences
+from keras.preprocessing.sequence import pad_sequences
 
 UNK = '<UNK>'
 PAD = '<PAD>'
@@ -203,7 +203,11 @@ class WordPreprocessor(BaseEstimator, TransformerMixin):
             y = [[self.vocab_tag[t] for t in sent] for sent in y]
 
         if self.padding:
-            sents, y = self.pad_sequence(words, chars, y)
+            words = pad_word(words)
+            chars = pad_char(chars)
+            y = pad_word(y)
+            y = to_categorical(y, len(self.vocab_tag))
+            sents = [words, chars]
         else:
             sents = [words, chars]
 
@@ -230,22 +234,6 @@ class WordPreprocessor(BaseEstimator, TransformerMixin):
         else:
             return word
 
-    def pad_sequence(self, word_ids, char_ids, labels=None):
-        if labels:
-            labels, _ = pad_sequences(labels, 0)
-            labels = np.asarray(labels)
-            labels = to_categorical(labels, len(self.vocab_tag))
-
-        word_ids, sequence_lengths = pad_sequences(word_ids, 0)
-        word_ids = np.asarray(word_ids)
-
-        if self.char_feature:
-            char_ids, word_lengths = pad_sequences(char_ids, pad_tok=0, nlevels=2)
-            char_ids = np.asarray(char_ids)
-            return [word_ids, char_ids], labels
-        else:
-            return word_ids, labels
-
     def save(self, file_path):
         joblib.dump(self, file_path)
 
@@ -255,54 +243,16 @@ class WordPreprocessor(BaseEstimator, TransformerMixin):
         return p
 
 
-def _pad_sequences(sequences, pad_tok, max_length):
-    """
-    Args:
-        sequences: a generator of list or tuple.
-        pad_tok: the char to pad with.
-
-    Returns:
-        a list of list where each sublist has same length.
-    """
-    sequence_padded, sequence_length = [], []
-
-    for seq in sequences:
-        seq = list(seq)
-        seq_ = seq[:max_length] + [pad_tok] * max(max_length - len(seq), 0)
-        sequence_padded += [seq_]
-        sequence_length += [min(len(seq), max_length)]
-
-    return sequence_padded, sequence_length
+def pad_word(sequences):
+    return pad_sequences(sequences, padding='post')
 
 
-def pad_sequences(sequences, pad_tok, nlevels=1):
-    """
-    Args:
-        sequences: a generator of list or tuple.
-        pad_tok: the char to pad with.
+def pad_char(sequences):
+    maxlen_word = max(len(max(seq, key=len)) for seq in sequences)
+    maxlen_seq = len(max(sequences, key=len))
+    sequences = [seq + [[] for i in range(max(maxlen_seq - len(seq), 0))] for seq in sequences]
 
-    Returns:
-        a list of list where each sublist has same length.
-    """
-    if nlevels == 1:
-        max_length = len(max(sequences, key=len))
-        sequence_padded, sequence_length = _pad_sequences(sequences, pad_tok, max_length)
-    elif nlevels == 2:
-        max_length_word = max(len(max(seq, key=len)) for seq in sequences)
-        sequence_padded, sequence_length = [], []
-        for seq in sequences:
-            # all words are same length now
-            sp, sl = _pad_sequences(seq, pad_tok, max_length_word)
-            sequence_padded += [sp]
-            sequence_length += [sl]
-
-        max_length_sentence = max(map(lambda x: len(x), sequences))
-        sequence_padded, _ = _pad_sequences(sequence_padded, [pad_tok] * max_length_word, max_length_sentence)
-        sequence_length, _ = _pad_sequences(sequence_length, 0, max_length_sentence)
-    else:
-        raise ValueError('nlevels can take 1 or 2, not take {}.'.format(nlevels))
-
-    return sequence_padded, sequence_length
+    return np.array([pad_sequences(seq, padding='post', maxlen=maxlen_word) for seq in sequences])
 
 
 def filter_embeddings(embeddings, vocab, dim):

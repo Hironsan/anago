@@ -5,7 +5,7 @@ import unittest
 import numpy as np
 
 from anago.reader import load_data_and_labels
-from anago.preprocess import WordPreprocessor, UNK, pad_sequences, _pad_sequences
+from anago.preprocess import WordPreprocessor, UNK, pad_word, pad_char
 from anago.preprocess import StaticPreprocessor
 
 
@@ -128,29 +128,16 @@ class PreprocessTest(unittest.TestCase):
                      [3, 4, 5, 6]]
         expected_seq = [[1, 2, 0, 0],
                         [3, 4, 5, 6]]
-        padded_seq, _ = pad_sequences(sequences, pad_tok=0)
-        self.assertEqual(padded_seq, expected_seq)
+        padded_seq = pad_word(sequences)
+        np.testing.assert_equal(padded_seq, expected_seq)
 
         # char level padding
         sequences = [[[1, 2, 3, 4], [1, 2], [1], [1, 2, 3]],
                      [[1, 2, 3, 4, 5], [1, 2], [1, 2, 3, 4]]]
         expected_seq = [[[1, 2, 3, 4, 0], [1, 2, 0, 0, 0], [1, 0, 0, 0, 0], [1, 2, 3, 0, 0]],
                         [[1, 2, 3, 4, 5], [1, 2, 0, 0, 0], [1, 2, 3, 4, 0], [0, 0, 0, 0, 0]]]
-        padded_seq, _ = pad_sequences(sequences, pad_tok=0, nlevels=2)
-        self.assertEqual(padded_seq, expected_seq)
-
-        # nlevels test
-        with self.assertRaises(ValueError):
-            pad_sequences(sequences, pad_tok=0, nlevels=3)
-
-    def test__pad_sequences(self):
-        sequences = [[1, 2],
-                     [3, 4, 5, 6]]
-        expected_seq = [[1, 2, 0, 0],
-                        [3, 4, 5, 6]]
-        max_length = max(len(s) for s in sequences)
-        padded_seq, _ = _pad_sequences(sequences, pad_tok=0, max_length=max_length)
-        self.assertEqual(padded_seq, expected_seq)
+        padded_seq = pad_char(sequences)
+        np.testing.assert_equal(padded_seq, expected_seq)
 
 
 class PerformanceTest(unittest.TestCase):
