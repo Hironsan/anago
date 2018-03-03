@@ -1,3 +1,6 @@
+"""
+Model definition.
+"""
 import keras.backend as K
 from keras.layers import Dense, LSTM, Bidirectional, Embedding, Input, Dropout, Lambda, Activation
 from keras.layers.merge import Concatenate
@@ -38,6 +41,7 @@ class BiLSTMCRF(BaseModel):
     def __init__(self, char_emb_size=25, word_emb_size=100, char_lstm_units=25,
                  word_lstm_units=100, dropout=0.5, char_feature=True, use_crf=True,
                  word_vocab_size=10000, char_vocab_size=100, embeddings=None, ntags=None):
+        super(BiLSTMCRF).__init__()
         self._char_emb_size = char_emb_size
         self._word_emb_size = word_emb_size
         self._char_lstm_units = char_lstm_units

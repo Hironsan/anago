@@ -59,7 +59,7 @@ anaGo supports pre-trained word embeddings like [GloVe vectors](https://nlp.stan
 ### Import
 First, import the necessary modules:
 ```python
-from anago.reader import load_data_and_labels
+from anago.utils import load_data_and_labels
 from anago.preprocess import StaticPreprocessor
 ```
 
