@@ -1,3 +1,7 @@
+"""
+Model API.
+"""
+
 import numpy as np
 
 from seqeval.metrics.sequence_labeling import get_entities
@@ -5,16 +9,41 @@ from seqeval.metrics.sequence_labeling import get_entities
 
 class Tagger(object):
 
-    def __init__(self, model, preprocessor=None):
+    def __init__(self, model, preprocessor=None, tokenizer=str.split):
         self.model = model
         self.preprocessor = preprocessor
+        self.tokenizer = tokenizer
 
-    def predict(self, words):
-        length = np.array([len(words)])
-        X = self.preprocessor.transform([words])
-        pred = self.model.predict(X, length)
+    def predict(self, X):
+        """Predict using the model.
 
-        return pred
+        Args:
+            X : {array-like, sparse matrix}, shape (n_samples, n_features)
+           The input data.
+
+       Returns:
+           y : array-like, shape (n_samples,) or (n_samples, n_classes)
+           The predicted classes.
+       """
+        length = np.array([len(X)])
+        X = self.preprocessor.transform([X])
+        y = self.model.predict(X, length)
+
+        return y
+
+    def predict_proba(self, X):
+        """Probability estimates.
+
+        Args:
+            X : {array-like, sparse matrix}, shape (n_samples, n_features)
+            The input data.
+
+        Returns:
+            y_prob : array-like, shape (n_samples, n_classes)
+            The predicted probability of the sample for each class in the
+            model, where classes are ordered as they are in `self.classes_`.
+        """
+        pass
 
     def _get_tags(self, pred):
         pred = np.argmax(pred, -1)
@@ -57,26 +86,3 @@ class Tagger(object):
         res = self._build_response(words, tags, prob)
 
         return res
-
-    def tag(self, words):
-        """Tags a sentence named entities.
-
-        Args:
-            sent: a sentence
-
-        Return:
-            labels_pred: list of (word, tag) for a sentence
-
-        Example:
-            >>> sent = 'President Obama is speaking at the White House.'
-            >>> print(self.tag(sent))
-            [('President', 'O'), ('Obama', 'PERSON'), ('is', 'O'),
-             ('speaking', 'O'), ('at', 'O'), ('the', 'O'),
-             ('White', 'LOCATION'), ('House', 'LOCATION'), ('.', 'O')]
-        """
-        assert isinstance(words, list)
-
-        pred = self.predict(words)
-        pred = [t.split('-')[-1] for t in pred]  # remove prefix: e.g. B-Person -> Person
-
-        return list(zip(words, pred))
