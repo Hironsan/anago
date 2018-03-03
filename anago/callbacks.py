@@ -56,6 +56,8 @@ class F1score(Callback):
         self.p = preprocessor
 
     def on_epoch_end(self, epoch, logs={}):
+        label_true = []
+        label_pred = []
         for i, (data, label) in enumerate(self.valid_batches):
             if i == self.valid_steps:
                 break
@@ -66,10 +68,12 @@ class F1score(Callback):
             y_pred = self.model.predict_on_batch(data)
             y_pred = np.argmax(y_pred, -1)
 
-            y_pred = [self.p.inverse_transform(y[:l]) for y, l in zip(y_pred, sequence_lengths)]
-            y_true = [self.p.inverse_transform(y[:l]) for y, l in zip(y_true, sequence_lengths)]
+            y_true = self.p(y_true)
+            y_pred = self.p(y_pred)
 
+            label_true.extend(y_true)
+            label_pred.extend(y_pred)
 
-        score = f1_score(y_true, y_pred)
+        score = f1_score(label_true, label_pred)
         print(' - f1: {:04.2f}'.format(score * 100))
         logs['f1'] = score

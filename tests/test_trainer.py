@@ -41,7 +41,8 @@ class TrainerTest(unittest.TestCase):
         model.build_model()
         dp = DynamicPreprocessor(n_labels=len(p.label_dic))
 
-        trainer = Trainer(model, model.get_loss(), preprocessor=dp)
+        trainer = Trainer(model, model.get_loss(), preprocessor=dp,
+                          inverse_transform=p.inverse_transform)
         trainer.train(x_train, y_train, x_valid, y_valid)
 
     def test_predict(self):

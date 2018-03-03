@@ -10,7 +10,7 @@ class Trainer(object):
 
     def __init__(self, model, loss='categorical_crossentropy', optimizer='adam',
                  max_epoch=15, batch_size=32, checkpoint_path=None,
-                 log_dir=None, preprocessor=None, early_stopping=False):
+                 log_dir=None, preprocessor=None, early_stopping=False, inverse_transform=None):
         self._model = model
         self._loss = loss
         self._optimizer = optimizer
@@ -20,6 +20,7 @@ class Trainer(object):
         self._log_dir = log_dir
         self._early_stopping = early_stopping
         self._preprocessor = preprocessor
+        self._inverse_transform = inverse_transform
 
     def train(self, x_train, y_train, x_valid=None, y_valid=None):
 
@@ -37,7 +38,7 @@ class Trainer(object):
         callbacks = get_callbacks(log_dir=self._log_dir,
                                   checkpoint_dir=self._checkpoint_path,
                                   eary_stopping=self._early_stopping,
-                                  valid=(valid_steps, valid_batches, self._preprocessor))
+                                  valid=(valid_steps, valid_batches, self._inverse_transform))
 
         # Train the model
         self._model.fit_generator(generator=train_batches,
