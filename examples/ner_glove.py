@@ -2,7 +2,7 @@ import os
 
 import numpy as np
 import anago
-from anago.reader import load_data_and_labels
+from anago.utils import load_data_and_labels
 
 
 def load_glove(file):

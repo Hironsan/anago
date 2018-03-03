@@ -1,8 +1,7 @@
 import os
 
 import anago
-from anago.utils import download
-from anago.reader import load_data_and_labels
+from anago.utils import download, load_data_and_labels
 
 dir_path = 'test_dir'
 url = 'https://storage.googleapis.com/chakki/datasets/public/models.zip'
