@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+Preprocessors.
+"""
 import itertools
 import re
 

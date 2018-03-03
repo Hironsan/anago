@@ -4,7 +4,7 @@ import unittest
 
 import numpy as np
 
-from anago.reader import load_data_and_labels
+from anago.utils import load_data_and_labels
 from anago.preprocess import StaticPreprocessor, DynamicPreprocessor, UNK, pad_char
 from anago.preprocess import StaticPreprocessor
 
