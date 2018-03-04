@@ -2,7 +2,6 @@
 Model definition.
 """
 import json
-import os
 
 import keras.backend as K
 from keras.layers import Dense, LSTM, Bidirectional, Embedding, Input, Dropout, Lambda, Activation
@@ -21,6 +20,10 @@ class BaseModel(object):
         y_pred = self.model.predict(X, batch_size=1)
         return y_pred
 
+    def save(self, weights_file, params_file):
+        self.save_weights(weights_file)
+        self.save_params(params_file)
+
     def save_weights(self, file_path):
         self.model.save_weights(file_path)
 
@@ -29,8 +32,21 @@ class BaseModel(object):
             params = {name: val for name, val in vars(self).items() if name not in {'_loss', 'model'}}
             json.dump(params, f, sort_keys=True, indent=4)
 
-    def load(self, filepath):
-        self.model.load_weights(filepath=filepath)
+    @classmethod
+    def load(cls, weights_file, params_file):
+        cls.load_params(params_file)
+        cls.load_weights(weights_file)
+
+    @classmethod
+    def load_weights(cls, file_path):
+        cls.model.load_weights(filepath=file_path)
+
+    @classmethod
+    def load_params(cls, file_path):
+        with open(file_path) as f:
+            params = json.load(f)
+            self = cls(**params)
+        return self
 
     def __getattr__(self, name):
         return getattr(self.model, name)
