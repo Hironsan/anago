@@ -1,6 +1,9 @@
 """
 Model definition.
 """
+import json
+import os
+
 import keras.backend as K
 from keras.layers import Dense, LSTM, Bidirectional, Embedding, Input, Dropout, Lambda, Activation
 from keras.layers.merge import Concatenate
@@ -18,8 +21,13 @@ class BaseModel(object):
         y_pred = self.model.predict(X, batch_size=1)
         return y_pred
 
-    def save(self, filepath):
-        self.model.save_weights(filepath)
+    def save_weights(self, file_path):
+        self.model.save_weights(file_path)
+
+    def save_params(self, file_path):
+        with open(file_path, 'w') as f:
+            params = {name: val for name, val in vars(self).items() if name not in {'_loss', 'model'}}
+            json.dump(params, f, sort_keys=True, indent=4)
 
     def load(self, filepath):
         self.model.load_weights(filepath=filepath)

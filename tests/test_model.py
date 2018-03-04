@@ -30,7 +30,24 @@ class TrainerTest(unittest.TestCase):
         pass
 
     def test_save(self):
-        pass
+        weight_file = os.path.join(SAVE_ROOT, 'weights.h5')
+        param_file = os.path.join(SAVE_ROOT, 'hyperparameters.h5')
+        model = BiLSTMCRF(char_vocab_size=100,
+                          word_vocab_size=10000,
+                          ntags=10)
+        model.build_model()
+
+        self.assertFalse(os.path.exists(weight_file))
+        self.assertFalse(os.path.exists(param_file))
+
+        model.save_weights(weight_file)
+        model.save_params(param_file)
+
+        self.assertTrue(os.path.exists(weight_file))
+        self.assertTrue(os.path.exists(param_file))
+
+        os.remove(weight_file)
+        os.remove(param_file)
 
     def test_load(self):
         pass
