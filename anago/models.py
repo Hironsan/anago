@@ -29,23 +29,24 @@ class BaseModel(object):
 
     def save_params(self, file_path):
         with open(file_path, 'w') as f:
-            params = {name: val for name, val in vars(self).items() if name not in {'_loss', 'model'}}
+            params = {name.lstrip('_'): val for name, val in vars(self).items()
+                      if name not in {'_loss', 'model'}}
             json.dump(params, f, sort_keys=True, indent=4)
 
     @classmethod
     def load(cls, weights_file, params_file):
-        cls.load_params(params_file)
-        cls.load_weights(weights_file)
+        model = cls.load_params(params_file)
+        model.build_model()
+        model.load_weights(weights_file)
 
-    @classmethod
-    def load_weights(cls, file_path):
-        cls.model.load_weights(filepath=file_path)
+        return model
 
     @classmethod
     def load_params(cls, file_path):
         with open(file_path) as f:
             params = json.load(f)
             self = cls(**params)
+
         return self
 
     def __getattr__(self, name):

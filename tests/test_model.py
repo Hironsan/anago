@@ -15,6 +15,8 @@ class TrainerTest(unittest.TestCase):
     def setUpClass(cls):
         if not os.path.exists(SAVE_ROOT):
             os.mkdir(SAVE_ROOT)
+        cls.weights_file = os.path.join(SAVE_ROOT, 'weights.h5')
+        cls.params_file = os.path.join(SAVE_ROOT, 'params.json')
 
     def setUp(self):
         data_path = os.path.join(DATA_ROOT, 'train.txt')
@@ -30,23 +32,37 @@ class TrainerTest(unittest.TestCase):
         pass
 
     def test_save(self):
-        weights_file = os.path.join(SAVE_ROOT, 'weights.h5')
-        params_file = os.path.join(SAVE_ROOT, 'params.json')
         model = BiLSTMCRF(char_vocab_size=100,
                           word_vocab_size=10000,
                           ntags=10)
         model.build_model()
 
-        self.assertFalse(os.path.exists(weights_file))
-        self.assertFalse(os.path.exists(params_file))
+        self.assertFalse(os.path.exists(self.weights_file))
+        self.assertFalse(os.path.exists(self.params_file))
 
-        model.save(weights_file, params_file)
+        model.save(self.weights_file, self.params_file)
 
-        self.assertTrue(os.path.exists(weights_file))
-        self.assertTrue(os.path.exists(params_file))
+        self.assertTrue(os.path.exists(self.weights_file))
+        self.assertTrue(os.path.exists(self.params_file))
 
-        os.remove(weights_file)
-        os.remove(params_file)
+        os.remove(self.weights_file)
+        os.remove(self.params_file)
 
     def test_load(self):
-        pass
+        model = BiLSTMCRF(char_vocab_size=100,
+                          word_vocab_size=10000,
+                          ntags=10)
+        model.build_model()
+
+        self.assertFalse(os.path.exists(self.weights_file))
+        self.assertFalse(os.path.exists(self.params_file))
+
+        model.save(self.weights_file, self.params_file)
+
+        self.assertTrue(os.path.exists(self.weights_file))
+        self.assertTrue(os.path.exists(self.params_file))
+
+        model = BiLSTMCRF.load(self.weights_file, self.params_file)
+
+        os.remove(self.weights_file)
+        os.remove(self.params_file)
