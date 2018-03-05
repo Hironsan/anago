@@ -4,20 +4,39 @@ from pprint import pprint
 
 import anago
 from anago.models import BiLSTMCRF
-from anago.preprocess import StaticPreprocessor
+from anago.preprocess import StaticPreprocessor, DynamicPreprocessor
+
+DATA_ROOT = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/ner')
+SAVE_ROOT = os.path.join(os.path.dirname(__file__), 'models')
 
 
 class TaggerTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        params = {}
-        save_root = os.path.join(os.path.dirname(__file__), 'models')
+        weights_file = os.path.join(SAVE_ROOT, 'weights.h5')
+        params_file = os.path.join(SAVE_ROOT, 'params.json')
+        preprocessor_file = os.path.join(SAVE_ROOT, 'preprocessor.pickle')
 
-        p = StaticPreprocessor.load(os.path.join(save_root, 'preprocessor.pkl'))
-        model = BiLSTMCRF.load(os.path.join(save_root, 'model_weights.h5'), params)
-        cls.tagger = anago.Tagger(model, preprocessor=p)
+        # Load preprocessor
+        p = StaticPreprocessor.load(preprocessor_file)
+        dp = DynamicPreprocessor(len(p.label_dic))
+
+        # Load the model.
+        model = BiLSTMCRF.load(weights_file, params_file)
+
+        # Build a tagger
+        cls.tagger = anago.Tagger(model, preprocessor=p, dynamic_preprocessor=dp)
+
         cls.sent = 'President Obama is speaking at the White House.'
+
+    def test_predict(self):
+        res = self.tagger.predict(self.sent)
+        pprint(res)
+
+    def test_predict_proba(self):
+        res = self.tagger.predict_proba(self.sent)
+        pprint(res)
 
     def test_analyze(self):
         res = self.tagger.analyze(self.sent)

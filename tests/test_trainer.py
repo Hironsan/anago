@@ -23,33 +23,42 @@ class TrainerTest(unittest.TestCase):
         if not os.path.exists(SAVE_ROOT):
             os.mkdir(SAVE_ROOT)
 
+        cls.weights_file = os.path.join(SAVE_ROOT, 'weights.h5')
+        cls.params_file = os.path.join(SAVE_ROOT, 'params.json')
+        cls.preprocessor_file = os.path.join(SAVE_ROOT, 'preprocessor.pickle')
+
     def setUp(self):
+        # Load datasets.
         train_path = os.path.join(DATA_ROOT, 'train.txt')
         valid_path = os.path.join(DATA_ROOT, 'valid.txt')
-        self.x_train, self.y_train = load_data_and_labels(train_path)
-        self.x_valid, self.y_valid = load_data_and_labels(valid_path)
+        x_train, y_train = load_data_and_labels(train_path)
+        x_valid, y_valid = load_data_and_labels(valid_path)
+
+        # Transform datasets.
+        self.p = StaticPreprocessor()
+        self.p.fit(x_train, y_train)
+        self.x_train, self.y_train = self.p.transform(x_train, y_train)
+        self.x_valid, self.y_valid = self.p.transform(x_valid, y_valid)
+        self.dp = DynamicPreprocessor(n_labels=len(self.p.label_dic))
+
+        # Build a model.
+        self.model = BiLSTMCRF(char_vocab_size=len(self.p.char_dic),
+                               word_vocab_size=len(self.p.word_dic),
+                               ntags=len(self.p.label_dic))
+        self.model.build_model()
 
     def test_train(self):
-        p = StaticPreprocessor()
-        p.fit(self.x_train, self.y_train)
-        x_train, y_train = p.transform(self.x_train, self.y_train)
-        x_valid, y_valid = p.transform(self.x_valid, self.y_valid)
-
-        model = BiLSTMCRF(char_vocab_size=len(p.char_dic),
-                          word_vocab_size=len(p.word_dic),
-                          ntags=len(p.label_dic))
-        model.build_model()
-        dp = DynamicPreprocessor(n_labels=len(p.label_dic))
-
-        trainer = Trainer(model, model.get_loss(), preprocessor=dp,
-                          inverse_transform=p.inverse_transform)
-        trainer.train(x_train, y_train, x_valid, y_valid)
-
-    def test_predict(self):
-        pass
+        # Train the model.
+        trainer = Trainer(self.model, self.model.get_loss(), preprocessor=self.dp,
+                          inverse_transform=self.p.inverse_transform)
+        trainer.train(self.x_train, self.y_train, self.x_valid, self.y_valid)
 
     def test_save(self):
-        pass
+        # Train the model.
+        trainer = Trainer(self.model, self.model.get_loss(), preprocessor=self.dp,
+                          inverse_transform=self.p.inverse_transform, max_epoch=1)
+        trainer.train(self.x_train, self.y_train, self.x_valid, self.y_valid)
 
-    def test_load(self):
-        pass
+        # Save the model.
+        self.model.save(self.weights_file, self.params_file)
+        self.p.save(self.preprocessor_file)

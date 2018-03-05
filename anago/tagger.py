@@ -9,34 +9,35 @@ from seqeval.metrics.sequence_labeling import get_entities
 
 class Tagger(object):
 
-    def __init__(self, model, preprocessor=None, tokenizer=str.split):
+    def __init__(self, model, preprocessor=None,
+                 dynamic_preprocessor=None, tokenizer=str.split):
         self.model = model
         self.preprocessor = preprocessor
+        self.dynamic_preprocessor = dynamic_preprocessor
         self.tokenizer = tokenizer
 
-    def predict(self, X):
+    def predict(self, sent):
         """Predict using the model.
 
         Args:
-            X : {array-like, sparse matrix}, shape (n_samples, n_features)
-           The input data.
+            sent : string, the input data.
 
        Returns:
            y : array-like, shape (n_samples,) or (n_samples, n_classes)
            The predicted classes.
        """
-        length = np.array([len(X)])
-        X = self.preprocessor.transform([X])
-        y = self.model.predict(X, length)
+        words = self.tokenizer(sent)
+        X = self.preprocessor.transform([words])
+        X = self.dynamic_preprocessor.transform(X)
+        y = self.model.predict(X)
 
         return y
 
-    def predict_proba(self, X):
+    def predict_proba(self, sent):
         """Probability estimates.
 
         Args:
-            X : {array-like, sparse matrix}, shape (n_samples, n_features)
-            The input data.
+            sent : string, the input data.
 
         Returns:
             y_prob : array-like, shape (n_samples, n_classes)
@@ -56,7 +57,8 @@ class Tagger(object):
 
         return prob
 
-    def _build_response(self, words, tags, prob):
+    def _build_response(self, sent, tags, prob):
+        words = self.tokenizer(sent)
         res = {
             'words': words,
             'entities': [
@@ -77,12 +79,12 @@ class Tagger(object):
 
         return res
 
-    def analyze(self, words):
-        assert isinstance(words, list)
+    def analyze(self, sent):
+        assert isinstance(sent, str)
 
-        pred = self.predict(words)
+        pred = self.predict(sent)
         tags = self._get_tags(pred)
         prob = self._get_prob(pred)
-        res = self._build_response(words, tags, prob)
+        res = self._build_response(sent, tags, prob)
 
         return res
