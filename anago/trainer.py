@@ -42,6 +42,7 @@ class Trainer(object):
         callbacks = get_callbacks(log_dir=self.checkpoint_path,
                                   tensorboard=self.tensorboard,
                                   eary_stopping=self.training_config.early_stopping,
+                                  patience=self.training_config.patience,
                                   valid=(valid_steps, valid_batches, self.preprocessor))
 
         # Train the model

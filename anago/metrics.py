@@ -4,7 +4,7 @@ import numpy as np
 from keras.callbacks import Callback, TensorBoard, EarlyStopping, ModelCheckpoint
 
 
-def get_callbacks(log_dir=None, valid=(), tensorboard=True, eary_stopping=True):
+def get_callbacks(log_dir=None, valid=(), tensorboard=True, eary_stopping=True, patience=3):
     """Get callbacks.
 
     Args:
@@ -39,7 +39,7 @@ def get_callbacks(log_dir=None, valid=(), tensorboard=True, eary_stopping=True):
         callbacks.append(save_callback)
 
     if eary_stopping:
-        callbacks.append(EarlyStopping(monitor='f1', patience=3, mode='max'))
+        callbacks.append(EarlyStopping(monitor='f1', patience=patience, mode='max'))
 
     return callbacks
 
