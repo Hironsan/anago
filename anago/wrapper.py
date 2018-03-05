@@ -43,6 +43,13 @@ class Sequence(object):
 
         self.model = SeqLabeling(self.model_config, embeddings, len(self.p.vocab_tag))
 
+        if not os.path.exists(self.log_dir):
+            print('Successfully made a directory: {}'.format(self.log_dir))
+            os.mkdir(self.log_dir)
+        self.p.save(os.path.join(self.log_dir, self.preprocessor_file))
+        self.model_config.save(os.path.join(self.log_dir, self.config_file))
+        print('Successfully save config and preprocess files')
+
         trainer = Trainer(self.model,
                           self.training_config,
                           checkpoint_path=self.log_dir,
