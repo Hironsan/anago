@@ -8,14 +8,14 @@ from keras.callbacks import Callback, TensorBoard, EarlyStopping, ModelCheckpoin
 from seqeval.metrics import f1_score
 
 
-def get_callbacks(log_dir=None, valid=(), checkpoint_dir=None, eary_stopping=True):
+def get_callbacks(log_dir=None, valid=(), checkpoint_dir=None, early_stopping=True):
     """Get callbacks.
 
     Args:
         log_dir (str): the destination to save logs(for TensorBoard).
         valid (tuple): data for validation.
         checkpoint_dir (bool): Whether to use checkpoint.
-        eary_stopping (bool): whether to use early stopping.
+        early_stopping (bool): whether to use early stopping.
 
     Returns:
         list: list of callbacks
@@ -41,7 +41,7 @@ def get_callbacks(log_dir=None, valid=(), checkpoint_dir=None, eary_stopping=Tru
                                         monitor='f1', save_weights_only=True)
         callbacks.append(save_callback)
 
-    if eary_stopping:
+    if early_stopping:
         callbacks.append(EarlyStopping(monitor='f1', patience=3, mode='max'))
 
     return callbacks

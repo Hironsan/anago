@@ -1,7 +1,6 @@
 """
 Model Trainer.
 """
-
 from anago.utils import batch_iter
 from anago.callbacks import get_callbacks
 
@@ -37,7 +36,7 @@ class Trainer(object):
         # Prepare callbacks
         callbacks = get_callbacks(log_dir=self._log_dir,
                                   checkpoint_dir=self._checkpoint_path,
-                                  eary_stopping=self._early_stopping,
+                                  early_stopping=self._early_stopping,
                                   valid=(valid_steps, valid_batches, self._inverse_transform))
 
         # Train the model
