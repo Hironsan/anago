@@ -34,10 +34,6 @@ class TaggerTest(unittest.TestCase):
         res = self.tagger.predict(self.sent)
         pprint(res)
 
-    def test_predict_proba(self):
-        res = self.tagger.predict_proba(self.sent)
-        pprint(res)
-
     def test_analyze(self):
         res = self.tagger.analyze(self.sent)
         pprint(res)

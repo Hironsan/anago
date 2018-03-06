@@ -1,9 +1,7 @@
 """
 Model API.
 """
-
 import numpy as np
-
 from seqeval.metrics.sequence_labeling import get_entities
 
 
