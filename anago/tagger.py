@@ -33,22 +33,9 @@ class Tagger(object):
 
         return y
 
-    def predict_proba(self, sent):
-        """Probability estimates.
-
-        Args:
-            sent : string, the input data.
-
-        Returns:
-            y_prob : array-like, shape (n_samples, n_classes)
-            The predicted probability of the sample for each class in the
-            model, where classes are ordered as they are in `self.classes_`.
-        """
-        pass
-
     def _get_tags(self, pred):
         pred = np.argmax(pred, -1)
-        tags = self.preprocessor.inverse_transform(pred[0])
+        tags = self.preprocessor.inverse_transform(pred)
 
         return tags
 
@@ -68,6 +55,7 @@ class Tagger(object):
         chunks = get_entities(tags)
 
         for chunk_type, chunk_start, chunk_end in chunks:
+            chunk_end += 1
             entity = {
                 'text': ' '.join(words[chunk_start: chunk_end]),
                 'type': chunk_type,

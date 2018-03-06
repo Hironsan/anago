@@ -135,6 +135,6 @@ class DynamicPreprocessor(BaseEstimator, TransformerMixin):
 def pad_char(sequences):
     maxlen_word = max(len(max(seq, key=len)) for seq in sequences)
     maxlen_seq = len(max(sequences, key=len))
-    sequences = [seq + [[] for i in range(max(maxlen_seq - len(seq), 0))] for seq in sequences]
+    sequences = [list(seq) + [[] for i in range(max(maxlen_seq - len(seq), 0))] for seq in sequences]
 
     return np.array([pad_sequences(seq, padding='post', maxlen=maxlen_word) for seq in sequences])

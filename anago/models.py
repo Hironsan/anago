@@ -16,10 +16,6 @@ class BaseModel(object):
     def __init__(self):
         self.model = None
 
-    def predict(self, X, *args, **kwargs):
-        y_pred = self.model.predict(X, batch_size=1)
-        return y_pred
-
     def save(self, weights_file, params_file):
         self.save_weights(weights_file)
         self.save_params(params_file)
