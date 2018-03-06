@@ -79,9 +79,10 @@ class StaticPreprocessor(BaseEstimator, TransformerMixin):
             y = np.array([[self.label_dic[t] for t in sent] for sent in y])
 
         if self._char_feature:
-            inputs = list(zip(words, chars))
+            inputs = [words, chars]
         else:
-            inputs = words
+            inputs = [words]
+        inputs = [np.array(inp) for inp in inputs]
 
         return (inputs, y) if y is not None else inputs
 
@@ -109,7 +110,7 @@ class DynamicPreprocessor(BaseEstimator, TransformerMixin):
         self.n_labels = n_labels
 
     def transform(self, X, y=None):
-        words, chars = X[:, 0], X[:, 1]
+        words, chars = X
         lengths = np.array([len(sent) for sent in words])
         words = pad_sequences(words, padding='post')
         chars = pad_char(chars)

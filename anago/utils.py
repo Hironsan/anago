@@ -76,13 +76,13 @@ def load_data_and_labels(filename):
 
 
 def batch_iter(data, labels, batch_size=1, shuffle=True, preprocessor=None):
-    num_batches_per_epoch = int((len(data) - 1) / batch_size) + 1
+    num_batches_per_epoch = int((len(data[0]) - 1) / batch_size) + 1
 
     def data_generator():
         """
         Generates a batch iterator for a dataset.
         """
-        data_size = len(data)
+        data_size = len(data[0])
         while True:
             indices = np.arange(data_size)
             # Shuffle the data at each epoch
@@ -92,8 +92,8 @@ def batch_iter(data, labels, batch_size=1, shuffle=True, preprocessor=None):
             for batch_num in range(num_batches_per_epoch):
                 start_index = batch_num * batch_size
                 end_index = min((batch_num + 1) * batch_size, data_size)
-                X = np.array([data[i] for i in indices[start_index: end_index]])
-                y = np.array([labels[i] for i in indices[start_index: end_index]])
+                X = [d[indices[start_index: end_index]] for d in data]
+                y = labels[indices[start_index: end_index]]
                 yield preprocessor.transform(X, y)
 
     return num_batches_per_epoch, data_generator()

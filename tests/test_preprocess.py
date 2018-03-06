@@ -46,7 +46,7 @@ class WordPreprocessorTest(unittest.TestCase):
         self.assertIsInstance(word, int)
         self.assertIsInstance(char, int)
         self.assertIsInstance(tag, int)
-        self.assertIsInstance(p.inverse_transform(y[0])[0], str)
+        self.assertIsInstance(p.inverse_transform(y), list)
 
     def test_transform_only_words(self):
         X, y = load_data_and_labels(self.filename)
@@ -65,6 +65,7 @@ class WordPreprocessorTest(unittest.TestCase):
         X = [['$unknownword$', 'あ']]
         y = [['O', 'O']]
         X, y = p.transform(X, y)
+        print(X)
 
     def test_vocab_init(self):
         X, y = load_data_and_labels(self.filename)
@@ -74,15 +75,15 @@ class WordPreprocessorTest(unittest.TestCase):
         preprocessor = StaticPreprocessor()
         p = preprocessor.fit(X, y)
         X_pred, _ = p.transform(X_test, y_test)
-        words = X_pred[0][1]
-        self.assertEqual(words, [p.vocab_word[UNK]])
+        words = X_pred[0]
+        self.assertEqual(words, [p.word_dic[UNK]])
 
         vocab_init = {unknown_word}
         preprocessor = StaticPreprocessor(vocab_init=vocab_init)
         p = preprocessor.fit(X, y)
         X_pred, _ = p.transform(X_test, y_test)
-        words = X_pred[0][1]
-        self.assertNotEqual(words, [p.vocab_word[UNK]])
+        words = X_pred[0]
+        self.assertNotEqual(words, [p.word_dic[UNK]])
 
     def test_save(self):
         preprocessor = StaticPreprocessor()
