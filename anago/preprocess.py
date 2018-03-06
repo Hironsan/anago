@@ -86,6 +86,9 @@ class StaticPreprocessor(BaseEstimator, TransformerMixin):
 
         return (inputs, y) if y is not None else inputs
 
+    def fit_transform(self, X, y=None, **fit_params):
+        return self.fit(X, y).transform(X, y)
+
     def inverse_transform(self, docs):
         id2label = {i: t for t, i in self.label_dic.items()}
 
