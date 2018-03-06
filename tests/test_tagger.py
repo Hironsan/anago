@@ -41,3 +41,7 @@ class TaggerTest(unittest.TestCase):
     def test_analyze(self):
         res = self.tagger.analyze(self.sent)
         pprint(res)
+
+    def test_label(self):
+        res = self.tagger.label(self.sent)
+        pprint(res)

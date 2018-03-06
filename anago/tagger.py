@@ -74,3 +74,9 @@ class Tagger(object):
         res = self._build_response(sent, tags, prob)
 
         return res
+
+    def label(self, sent):
+        pred = self.predict(sent)
+        tags = self._get_tags(pred)
+
+        return tags[0]
