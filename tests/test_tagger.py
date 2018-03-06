@@ -33,6 +33,10 @@ class TaggerTest(unittest.TestCase):
     def test_predict(self):
         res = self.tagger.predict(self.sent)
         pprint(res)
+        res = self.tagger.predict('Obama')
+        pprint(res)
+        res = self.tagger.predict('')
+        pprint(res)
 
     def test_analyze(self):
         res = self.tagger.analyze(self.sent)
