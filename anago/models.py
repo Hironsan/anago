@@ -77,8 +77,11 @@ class BiLSTMCRF(BaseModel):
         self._loss = None
 
     def build_model(self):
+        inputs = []
+
         # build word embedding
         word_ids = Input(batch_shape=(None, None), dtype='int32')
+        inputs.append(word_ids)
         if self._embeddings is None:
             word_embeddings = Embedding(input_dim=self._word_vocab_size,
                                         output_dim=self._word_emb_size,
@@ -92,6 +95,7 @@ class BiLSTMCRF(BaseModel):
         # build character based word embedding
         if self._char_feature:
             char_ids = Input(batch_shape=(None, None, None), dtype='int32')
+            inputs.append(char_ids)
             char_embeddings = Embedding(input_dim=self._char_vocab_size,
                                         output_dim=self._char_emb_size,
                                         mask_zero=True
@@ -121,13 +125,13 @@ class BiLSTMCRF(BaseModel):
             self._loss = crf.loss
             pred = crf(x)
         else:
+            self._loss = 'categorical_crossentropy'
             pred = Activation('softmax')(x)
 
         sequence_lengths = Input(batch_shape=(None, 1), dtype='int32')
-        if self._char_feature:
-            self.model = Model(inputs=[word_ids, char_ids, sequence_lengths], outputs=[pred])
-        else:
-            self.model = Model(inputs=[word_ids, sequence_lengths], outputs=[pred])
+        inputs.append(sequence_lengths)
+
+        self.model = Model(inputs=inputs, outputs=[pred])
 
     def get_loss(self):
         return self._loss
