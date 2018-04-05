@@ -43,6 +43,7 @@ class Trainer(object):
                                   tensorboard=self.tensorboard,
                                   eary_stopping=self.training_config.early_stopping,
                                   patience=self.training_config.patience,
+                                  train=(train_steps, train_batches, self.preprocessor),
                                   valid=(valid_steps, valid_batches, self.preprocessor))
 
         # Train the model

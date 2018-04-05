@@ -4,7 +4,7 @@ import numpy as np
 from keras.callbacks import Callback, TensorBoard, EarlyStopping, ModelCheckpoint
 
 
-def get_callbacks(log_dir=None, valid=(), tensorboard=True, eary_stopping=True, patience=3):
+def get_callbacks(log_dir=None, train=(), valid=(), tensorboard=True, eary_stopping=True, patience=3):
     """Get callbacks.
 
     Args:
@@ -23,6 +23,9 @@ def get_callbacks(log_dir=None, valid=(), tensorboard=True, eary_stopping=True, 
             print('Successfully made a directory: {}'.format(log_dir))
             os.mkdir(log_dir)
         callbacks.append(TensorBoard(log_dir, histogram_freq=0, write_graph=True, write_images=True))
+
+    if train:
+        callbacks.append(F1score(*train, is_train=True))
 
     if valid:
         callbacks.append(F1score(*valid))
@@ -113,16 +116,16 @@ def f1_score(y_true, y_pred, sequence_lengths):
 
 class F1score(Callback):
 
-    def __init__(self, valid_steps, valid_batches, preprocessor=None):
+    def __init__(self, steps, batches, preprocessor=None, is_train=False):
         super(F1score, self).__init__()
-        self.valid_steps = valid_steps
-        self.valid_batches = valid_batches
+        self.steps = steps
+        self.batches = batches
         self.p = preprocessor
 
     def on_epoch_end(self, epoch, logs={}):
         correct_preds, total_correct, total_preds = 0., 0., 0.
-        for i, (data, label) in enumerate(self.valid_batches):
-            if i == self.valid_steps:
+        for i, (data, label) in enumerate(self.batches):
+            if i == self.steps:
                 break
             y_true = label
             y_true = np.argmax(y_true, -1)
@@ -141,7 +144,7 @@ class F1score(Callback):
             total_correct += c
 
         f1 = self._calc_f1(correct_preds, total_correct, total_preds)
-        print(' - f1: {:04.2f}'.format(f1 * 100))
+        print(' - {} f1: {:04.2f}'.format('train' if self.is_train else 'valid', f1 * 100))
         logs['f1'] = f1
 
     def _calc_f1(self, correct_preds, total_correct, total_preds):
