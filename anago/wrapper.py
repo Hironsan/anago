@@ -18,15 +18,13 @@ class Sequence(object):
 
     def __init__(self, char_emb_size=25, word_emb_size=100, char_lstm_units=25,
                  word_lstm_units=100, dropout=0.5, char_feature=True, crf=True,
-                 batch_size=20, optimizer='adam', learning_rate=0.001, lr_decay=0.9,
-                 clip_gradients=5.0, max_epoch=15, early_stopping=True, patience=3,
+                 batch_size=20, optimizer='adam', max_epoch=15, early_stopping=True, patience=3,
                  train_embeddings=True, max_checkpoints_to_keep=5, log_dir=None,
                  embeddings=()):
 
         self.model_config = ModelConfig(char_emb_size, word_emb_size, char_lstm_units,
                                         word_lstm_units, dropout, char_feature, crf)
-        self.training_config = TrainingConfig(batch_size, optimizer, learning_rate,
-                                              lr_decay, clip_gradients, max_epoch,
+        self.training_config = TrainingConfig(batch_size, optimizer,max_epoch,
                                               early_stopping, patience, train_embeddings,
                                               max_checkpoints_to_keep)
         self.model = None
