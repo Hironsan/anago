@@ -22,10 +22,11 @@ class Sequence(object):
                  train_embeddings=True, max_checkpoints_to_keep=5, log_dir=None,
                  embeddings=()):
 
-        self.model_config = ModelConfig(char_emb_size, word_emb_size, char_lstm_units,
-                                        word_lstm_units, dropout, char_feature, crf)
-        self.training_config = TrainingConfig(batch_size, optimizer,max_epoch,
-                                              early_stopping, patience, train_embeddings,
+        self.model_config = ModelConfig(
+            char_emb_size, word_emb_size, char_lstm_units, word_lstm_units,
+            dropout, char_feature, crf, train_embeddings)
+        self.training_config = TrainingConfig(batch_size, optimizer, max_epoch,
+                                              early_stopping, patience,
                                               max_checkpoints_to_keep)
         self.model = None
         self.p = None
