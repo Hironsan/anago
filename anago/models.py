@@ -50,10 +50,13 @@ class SeqLabeling(BaseModel):
                                         output_dim=config.word_embedding_size,
                                         mask_zero=True)(word_ids)
         else:
-            word_embeddings = Embedding(input_dim=embeddings.shape[0],
-                                        output_dim=embeddings.shape[1],
-                                        mask_zero=True,
-                                        weights=[embeddings])(word_ids)
+            word_embeddings = Embedding(
+                input_dim=embeddings.shape[0],
+                output_dim=embeddings.shape[1],
+                mask_zero=True,
+                weights=[embeddings])(word_ids)
+            if not config.train_embeddings:
+                word_embeddings.trainable = False
 
         # build character based word embedding
         char_ids = Input(batch_shape=(None, None, None), dtype='int32')
