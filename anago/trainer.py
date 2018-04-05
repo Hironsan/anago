@@ -34,9 +34,10 @@ class Trainer(object):
                                                 self.training_config.batch_size,
                                                 preprocessor=self.preprocessor)
 
-        self.model.compile(loss=self.model.crf.loss,
-                           optimizer=Adam(lr=self.training_config.learning_rate),
-                           )
+        self.model.compile(
+            loss=self.model.crf.loss,
+            optimizer=self.training_config.optimizer,
+        )
 
         # Prepare callbacks
         callbacks = get_callbacks(log_dir=self.checkpoint_path,
