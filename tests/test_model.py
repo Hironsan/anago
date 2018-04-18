@@ -26,7 +26,7 @@ class TrainerTest(unittest.TestCase):
         model = BiLSTMCRF(char_vocab_size=100,
                           word_vocab_size=10000,
                           ntags=10)
-        model.build_model()
+        model.build()
 
     def test_predict(self):
         pass
@@ -35,7 +35,7 @@ class TrainerTest(unittest.TestCase):
         model = BiLSTMCRF(char_vocab_size=100,
                           word_vocab_size=10000,
                           ntags=10)
-        model.build_model()
+        model.build()
 
         self.assertFalse(os.path.exists(self.weights_file))
         self.assertFalse(os.path.exists(self.params_file))
@@ -52,7 +52,7 @@ class TrainerTest(unittest.TestCase):
         model = BiLSTMCRF(char_vocab_size=100,
                           word_vocab_size=10000,
                           ntags=10)
-        model.build_model()
+        model.build()
 
         self.assertFalse(os.path.exists(self.weights_file))
         self.assertFalse(os.path.exists(self.params_file))

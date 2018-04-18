@@ -45,7 +45,7 @@ class TrainerTest(unittest.TestCase):
         self.model = BiLSTMCRF(char_vocab_size=len(self.p.char_dic),
                                word_vocab_size=len(self.p.word_dic),
                                ntags=len(self.p.label_dic))
-        self.model.build_model()
+        self.model.build()
 
     def test_train(self):
         # Train the model.
