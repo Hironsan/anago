@@ -11,7 +11,6 @@ PAD = '<PAD>'
 
 
 class WordPreprocessor(BaseEstimator, TransformerMixin):
-
     def __init__(self,
                  lowercase=True,
                  num_norm=True,
@@ -27,13 +26,13 @@ class WordPreprocessor(BaseEstimator, TransformerMixin):
         self.return_lengths = return_lengths
         self.vocab_word = None
         self.vocab_char = None
-        self.vocab_tag  = None
+        self.vocab_tag = None
         self.vocab_init = vocab_init or {}
 
     def fit(self, X, y):
         words = {PAD: 0, UNK: 1}
         chars = {PAD: 0, UNK: 1}
-        tags  = {PAD: 0}
+        tags = {PAD: 0}
 
         for w in set(itertools.chain(*X)) | set(self.vocab_init):
             if not self.char_feature:
@@ -53,7 +52,7 @@ class WordPreprocessor(BaseEstimator, TransformerMixin):
 
         self.vocab_word = words
         self.vocab_char = chars
-        self.vocab_tag  = tags
+        self.vocab_tag = tags
 
         return self
 
@@ -149,7 +148,8 @@ class WordPreprocessor(BaseEstimator, TransformerMixin):
         word_ids = np.asarray(word_ids)
 
         if self.char_feature:
-            char_ids, word_lengths = pad_sequences(char_ids, pad_tok=0, nlevels=2)
+            char_ids, word_lengths = pad_sequences(
+                char_ids, pad_tok=0, nlevels=2)
             char_ids = np.asarray(char_ids)
             return [word_ids, char_ids], labels
         else:
@@ -195,7 +195,8 @@ def pad_sequences(sequences, pad_tok, nlevels=1):
     """
     if nlevels == 1:
         max_length = len(max(sequences, key=len))
-        sequence_padded, sequence_length = _pad_sequences(sequences, pad_tok, max_length)
+        sequence_padded, sequence_length = _pad_sequences(
+            sequences, pad_tok, max_length)
     elif nlevels == 2:
         max_length_word = max(len(max(seq, key=len)) for seq in sequences)
         sequence_padded, sequence_length = [], []
@@ -206,10 +207,13 @@ def pad_sequences(sequences, pad_tok, nlevels=1):
             sequence_length += [sl]
 
         max_length_sentence = max(map(lambda x: len(x), sequences))
-        sequence_padded, _ = _pad_sequences(sequence_padded, [pad_tok] * max_length_word, max_length_sentence)
-        sequence_length, _ = _pad_sequences(sequence_length, 0, max_length_sentence)
+        sequence_padded, _ = _pad_sequences(
+            sequence_padded, [pad_tok] * max_length_word, max_length_sentence)
+        sequence_length, _ = _pad_sequences(sequence_length, 0,
+                                            max_length_sentence)
     else:
-        raise ValueError('nlevels can take 1 or 2, not take {}.'.format(nlevels))
+        raise ValueError(
+            'nlevels can take 1 or 2, not take {}.'.format(nlevels))
 
     return sequence_padded, sequence_length
 
@@ -226,7 +230,8 @@ def dense_to_one_hot(labels_dense, num_classes, nlevels=1):
         # assume that labels_dense has same column length
         num_labels = labels_dense.shape[0]
         num_length = labels_dense.shape[1]
-        labels_one_hot = np.zeros((num_labels, num_length, num_classes), dtype=np.int32)
+        labels_one_hot = np.zeros(
+            (num_labels, num_length, num_classes), dtype=np.int32)
         layer_idx = np.arange(num_labels).reshape(num_labels, 1)
         # this index selects each component separately
         component_idx = np.tile(np.arange(num_length), (num_labels, 1))
@@ -234,7 +239,8 @@ def dense_to_one_hot(labels_dense, num_classes, nlevels=1):
         labels_one_hot[layer_idx, component_idx, labels_dense] = 1
         return labels_one_hot
     else:
-        raise ValueError('nlevels can take 1 or 2, not take {}.'.format(nlevels))
+        raise ValueError(
+            'nlevels can take 1 or 2, not take {}.'.format(nlevels))
 
 
 def prepare_preprocessor(X, y, use_char=True, vocab_init=None):
@@ -244,7 +250,7 @@ def prepare_preprocessor(X, y, use_char=True, vocab_init=None):
     return p
 
 
-def filter_embeddings(embeddings, vocab, dim):
+def filter_embeddings(embeddings, vocab, dim, known_embeddings=True):
     """Loads GloVe vectors in numpy array.
 
     Args:
@@ -254,10 +260,15 @@ def filter_embeddings(embeddings, vocab, dim):
     Returns:
         numpy array: an array of word embeddings.
     """
-    _embeddings = np.zeros([len(vocab), dim])
-    for word in vocab:
-        if word in embeddings:
-            word_idx = vocab[word]
-            _embeddings[word_idx] = embeddings[word]
+    if known_embeddings:
+        _embeddings = np.zeros([len(vocab), dim])
+        for word in vocab:
+            if word in embeddings:
+                word_idx = vocab[word]
+                _embeddings[word_idx] = embeddings[word]
+    else:
+        _embeddings = np.zeros([len(embeddings.index2word), dim])
+        for word_idx, word in enumerate(embeddings.index2word):
+            _embeddings[word_idx + 1] = embeddings[word]
 
     return _embeddings

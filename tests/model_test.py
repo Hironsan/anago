@@ -26,9 +26,8 @@ class ModelTest(unittest.TestCase):
 
     def test_compile(self):
         model = SeqLabeling(self.model_config, self.embeddings, ntags=10)
-        model.compile(loss=model.crf.loss,
-                      optimizer=Adam(lr=self.training_config.learning_rate)
-                      )
+        model.compile(
+            loss=model.crf.loss, optimizer=self.training_config.optimizer)
 
     def test_predict(self):
         X, y = load_data_and_labels(self.filename)
