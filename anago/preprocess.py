@@ -267,8 +267,8 @@ def filter_embeddings(embeddings, vocab, dim, known_embeddings=True):
                 word_idx = vocab[word]
                 _embeddings[word_idx] = embeddings[word]
     else:
-        _embeddings = np.zeros([len(embeddings), dim])
-        for word_idx, word in enumerate(embeddings):
+        _embeddings = np.zeros([len(embeddings.index2word), dim])
+        for word_idx, word in enumerate(embeddings.index2word):
             _embeddings[word_idx] = embeddings[word]
 
     return _embeddings
