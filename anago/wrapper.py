@@ -24,10 +24,11 @@ class Sequence(object):
                  embeddings=()):
 
         self.model_config = ModelConfig(char_emb_size, word_emb_size, char_lstm_units,
-                                        word_lstm_units, dropout, char_feature, crf)
+                                        word_lstm_units, dropout, char_feature, crf,
+                                        train_embeddings)
         self.training_config = TrainingConfig(batch_size, optimizer, learning_rate,
                                               lr_decay, clip_gradients, max_epoch,
-                                              early_stopping, patience, train_embeddings,
+                                              early_stopping, patience,
                                               max_checkpoints_to_keep)
         self.model = None
         self.p = None
@@ -78,4 +79,3 @@ class Sequence(object):
         self.model.load(filepath=os.path.join(dir_path, cls.weight_file))
 
         return self
-

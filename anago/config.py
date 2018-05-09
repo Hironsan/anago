@@ -5,7 +5,8 @@ class ModelConfig(object):
     """Wrapper class for model hyperparameters."""
 
     def __init__(self, char_emb_size=25, word_emb_size=100, char_lstm_units=25,
-                 word_lstm_units=100, dropout=0.5, char_feature=True, crf=True):
+                 word_lstm_units=100, dropout=0.5, char_feature=True, crf=True,
+                 train_embeddings=True):
 
         # Number of unique words in the vocab (plus 2, for <UNK>, <PAD>).
         self.vocab_size = None
@@ -26,6 +27,9 @@ class ModelConfig(object):
         # If True, use crf.
         self.crf = crf
 
+        # Fine-tune word embeddings
+        self.train_embeddings = train_embeddings
+
     def save(self, file):
         with open(file, 'w') as f:
             json.dump(vars(self), f, sort_keys=True, indent=4)
@@ -45,7 +49,7 @@ class TrainingConfig(object):
 
     def __init__(self, batch_size=20, optimizer='adam', learning_rate=0.001, lr_decay=0.9,
                  clip_gradients=5.0, max_epoch=15, early_stopping=True, patience=3,
-                 train_embeddings=True, max_checkpoints_to_keep=5):
+                 max_checkpoints_to_keep=5):
 
         # Batch size
         self.batch_size = batch_size
@@ -66,9 +70,6 @@ class TrainingConfig(object):
         # Parameters for early stopping
         self.early_stopping = early_stopping
         self.patience = patience
-
-        # Fine-tune word embeddings
-        self.train_embeddings = train_embeddings
 
         # How many model checkpoints to keep.
         self.max_checkpoints_to_keep = max_checkpoints_to_keep
