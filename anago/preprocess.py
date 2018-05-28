@@ -116,7 +116,7 @@ class DynamicPreprocessor(BaseEstimator, TransformerMixin):
         words, chars = X
         lengths = np.array([len(sent) for sent in words])
         words = pad_sequences(words, padding='post')
-        chars = pad_char(chars)
+        chars = pad_nested_sequences(chars)
 
         if y is not None:
             y = pad_sequences(y, padding='post')
@@ -135,9 +135,29 @@ class DynamicPreprocessor(BaseEstimator, TransformerMixin):
         return p
 
 
-def pad_char(sequences):
-    maxlen_word = max(len(max(seq, key=len)) for seq in sequences)
-    maxlen_seq = len(max(sequences, key=len))
-    sequences = [list(seq) + [[] for i in range(max(maxlen_seq - len(seq), 0))] for seq in sequences]
+def pad_nested_sequences(sequences, dtype='int32'):
+    """Pads nested sequences to the same length.
 
-    return np.array([pad_sequences(seq, padding='post', maxlen=maxlen_word) for seq in sequences])
+    This function transforms a list of list sequences
+    into a 3D Numpy array of shape `(num_samples, max_sent_len, max_word_len)`.
+
+    Args:
+        sequences: List of lists of lists.
+        dtype: Type of the output sequences.
+
+    # Returns
+        x: Numpy array.
+    """
+    maxlen_sent = 0
+    maxlen_word = 0
+    for sent in sequences:
+        maxlen_sent = max(len(sent), maxlen_sent)
+        for word in sent:
+            maxlen_word = max(len(word), maxlen_word)
+
+    x = np.zeros((len(sequences), maxlen_sent, maxlen_word)).astype(dtype)
+    for i, sent in enumerate(sequences):
+        for j, word in enumerate(sent):
+            x[i, j, :len(word)] = word
+
+    return x
