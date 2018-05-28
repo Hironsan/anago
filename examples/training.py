@@ -22,15 +22,15 @@ def main(args):
     dp = DynamicPreprocessor(n_labels=len(p.label_dic))
 
     print('Building a model.')
-    model = BiLSTMCRF(char_emb_size=args.char_emb_size,
-                      word_emb_size=args.word_emb_size,
-                      char_lstm_units=args.char_lstm_units,
-                      word_lstm_units=args.word_lstm_units,
+    model = BiLSTMCRF(char_embedding_dim=args.char_emb_size,
+                      word_embedding_dim=args.word_emb_size,
+                      char_lstm_size=args.char_lstm_units,
+                      word_lstm_size=args.word_lstm_units,
                       char_vocab_size=len(p.char_dic),
                       word_vocab_size=len(p.word_dic),
-                      ntags=len(p.label_dic),
+                      num_labels=len(p.label_dic),
                       dropout=args.dropout,
-                      char_feature=args.no_char_feature,
+                      use_char=args.no_char_feature,
                       use_crf=args.no_use_crf)
     model.build_model()
 

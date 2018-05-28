@@ -53,6 +53,16 @@ class TrainerTest(unittest.TestCase):
                           inverse_transform=self.p.inverse_transform)
         trainer.train(self.x_train, self.y_train, self.x_valid, self.y_valid)
 
+    def test_train_without_crf(self):
+        model = BiLSTMCRF(char_vocab_size=len(self.p.char_dic),
+                          word_vocab_size=len(self.p.word_dic),
+                          num_labels=len(self.p.label_dic),
+                          use_crf=False)
+        model.build()
+        trainer = Trainer(self.model, self.model.get_loss(), preprocessor=self.dp,
+                          inverse_transform=self.p.inverse_transform)
+        trainer.train(self.x_train, self.y_train, self.x_valid, self.y_valid)
+
     def test_save(self):
         # Train the model.
         trainer = Trainer(self.model, self.model.get_loss(), preprocessor=self.dp,

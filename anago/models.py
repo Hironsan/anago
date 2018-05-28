@@ -8,7 +8,7 @@ from keras.layers import Dense, LSTM, Bidirectional, Embedding, Input, Dropout, 
 from keras.layers.merge import Concatenate
 from keras.models import Model
 
-from anago.layers import ChainCRF
+from anago.layers import CRF
 
 
 class BaseModel(object):
@@ -63,48 +63,53 @@ class BiLSTMCRF(BaseModel):
                  word_vocab_size,
                  char_vocab_size,
                  num_labels,
-                 word_emb_size=100,
-                 char_emb_size=25,
-                 word_lstm_units=100,
-                 char_lstm_units=25,
+                 word_embedding_dim=100,
+                 char_embedding_dim=25,
+                 word_lstm_size=100,
+                 char_lstm_size=25,
+                 fc_dim=100,
                  dropout=0.5,
-                 char_feature=True,
-                 use_crf=True,
-                 embeddings=None):
-        """Build a Bi-LSTM CRF model
+                 embeddings=None,
+                 use_char=True,
+                 use_crf=True):
+        """Build a Bi-LSTM CRF model.
 
         Args:
-            word_vocab_size (int): word vocabulary size
-            char_vocab_size (int): character vocabulary size
-            num_labels (int): number of entity labels (for classification)
-            word_emb_size (int): word embedding dimensions
-            char_emb_size (int): character embedding dimensions
-            word_lstm_dims (int): character LSTM feature extractor output dimensions
-            char_lstm_dims (int): word tagger LSTM output dimensions
-            fc_dims (int): output fully-connected layer size
-            dropout (float): dropout rate
-            embeddings (numpy array): word embedding matrix
+            word_vocab_size (int): word vocabulary size.
+            char_vocab_size (int): character vocabulary size.
+            num_labels (int): number of entity labels.
+            word_embedding_dim (int): word embedding dimensions.
+            char_embedding_dim (int): character embedding dimensions.
+            word_lstm_size (int): character LSTM feature extractor output dimensions.
+            char_lstm_size (int): word tagger LSTM output dimensions.
+            fc_dim (int): output fully-connected layer size.
+            dropout (float): dropout rate.
+            embeddings (numpy array): word embedding matrix.
+            use_char (boolean): add char feature.
+            use_crf (boolean): use crf as last layer.
         """
         super(BiLSTMCRF).__init__()
-        self._char_emb_size = char_emb_size
-        self._word_emb_size = word_emb_size
-        self._char_lstm_units = char_lstm_units
-        self._word_lstm_units = word_lstm_units
+        self._char_embedding_dim = char_embedding_dim
+        self._word_embedding_dim = word_embedding_dim
+        self._char_lstm_size = char_lstm_size
+        self._word_lstm_size = word_lstm_size
         self._char_vocab_size = char_vocab_size
         self._word_vocab_size = word_vocab_size
+        self._fc_dim = fc_dim
         self._dropout = dropout
-        self._char_feature = char_feature
+        self._use_char = use_char
         self._use_crf = use_crf
         self._embeddings = embeddings
-        self._ntags = num_labels
+        self._num_labels = num_labels
         self._loss = None
 
     def build(self):
         # build word embedding
         word_ids = Input(batch_shape=(None, None), dtype='int32')
+        inputs = [word_ids]
         if self._embeddings is None:
-            word_embeddings = Embedding(input_dim=self._word_vocab_size,
-                                        output_dim=self._word_emb_size,
+            word_embeddings = Embedding(input_dim=self._word_vocab_size + 1,
+                                        output_dim=self._word_embedding_dim,
                                         mask_zero=True)(word_ids)
         else:
             word_embeddings = Embedding(input_dim=self._embeddings.shape[0],
@@ -113,44 +118,40 @@ class BiLSTMCRF(BaseModel):
                                         weights=[self._embeddings])(word_ids)
 
         # build character based word embedding
-        if self._char_feature:
+        if self._use_char:
             char_ids = Input(batch_shape=(None, None, None), dtype='int32')
+            inputs.append(char_ids)
             char_embeddings = Embedding(input_dim=self._char_vocab_size,
-                                        output_dim=self._char_emb_size,
+                                        output_dim=self._char_embedding_dim,
                                         mask_zero=True
                                         )(char_ids)
             s = K.shape(char_embeddings)
-            char_embeddings = Lambda(lambda x: K.reshape(x, shape=(-1, s[-2], self._char_emb_size)))(char_embeddings)
+            char_embeddings = Lambda(lambda x: K.reshape(x, shape=(-1, s[-2], self._char_embedding_dim)))(char_embeddings)
 
-            fwd_state = LSTM(self._char_lstm_units, return_state=True)(char_embeddings)[-2]
-            bwd_state = LSTM(self._char_lstm_units, return_state=True, go_backwards=True)(char_embeddings)[-2]
+            fwd_state = LSTM(self._char_lstm_size, return_state=True)(char_embeddings)[-2]
+            bwd_state = LSTM(self._char_lstm_size, return_state=True, go_backwards=True)(char_embeddings)[-2]
             char_embeddings = Concatenate(axis=-1)([fwd_state, bwd_state])
             # shape = (batch size, max sentence length, char hidden size)
-            char_embeddings = Lambda(lambda x: K.reshape(x, shape=[-1, s[1], 2 * self._char_lstm_units]))(char_embeddings)
+            char_embeddings = Lambda(lambda x: K.reshape(x, shape=[-1, s[1], 2 * self._char_lstm_size]))(char_embeddings)
 
             # combine characters and word
-            x = Concatenate(axis=-1)([word_embeddings, char_embeddings])
-        else:
-            x = word_embeddings
+            word_embeddings = Concatenate(axis=-1)([word_embeddings, char_embeddings])
 
-        x = Dropout(self._dropout)(x)
-        x = Bidirectional(LSTM(units=self._word_lstm_units, return_sequences=True))(x)
-        x = Dropout(self._dropout)(x)
-        x = Dense(self._word_lstm_units, activation='tanh')(x)
-        x = Dense(self._ntags)(x)
+        word_embeddings = Dropout(self._dropout)(word_embeddings)
+        z = Bidirectional(LSTM(units=self._word_lstm_size, return_sequences=True))(word_embeddings)
+        z = Dropout(self._dropout)(z)
+        z = Dense(self._fc_dim, activation='tanh')(z)
+        z = Dense(self._num_labels)(z)
 
         if self._use_crf:
-            crf = ChainCRF()
-            self._loss = crf.loss
-            pred = crf(x)
+            crf = CRF(self._num_labels, sparse_target=False)
+            self._loss = crf.loss_function
+            pred = crf(z)
         else:
             self._loss = 'categorical_crossentropy'
-            pred = Activation('softmax')(x)
+            pred = Activation('softmax')(z)
 
-        if self._char_feature:
-            self.model = Model(inputs=[word_ids, char_ids], outputs=[pred])
-        else:
-            self.model = Model(inputs=[word_ids], outputs=[pred])
+        self.model = Model(inputs=inputs, outputs=pred)
 
     def get_loss(self):
         return self._loss

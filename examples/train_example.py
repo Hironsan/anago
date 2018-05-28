@@ -49,7 +49,7 @@ def main(args):
                       word_vocab_size=len(p.word_dic),
                       num_labels=len(p.label_dic),
                       embeddings=embeddings,
-                      char_emb_size=50)
+                      char_embedding_dim=50)
     model.build()
 
     print('Training the model...')
