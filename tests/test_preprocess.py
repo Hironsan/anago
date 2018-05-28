@@ -4,7 +4,7 @@ import unittest
 import numpy as np
 
 from anago.utils import load_data_and_labels
-from anago.preprocess import StaticPreprocessor, DynamicPreprocessor, UNK, pad_char
+from anago.preprocess import StaticPreprocessor, DynamicPreprocessor, UNK, pad_nested_sequences
 
 
 class TestStaticPreprocessor(unittest.TestCase):
@@ -86,10 +86,30 @@ class TestStaticPreprocessor(unittest.TestCase):
 
 class TestPreprocess(unittest.TestCase):
 
-    def test_pad_char(self):
+    def test_pad_nested_sequences(self):
         sequences = [[[1, 2, 3, 4], [1, 2], [1], [1, 2, 3]],
                      [[1, 2, 3, 4, 5], [1, 2], [1, 2, 3, 4]]]
         expected_seq = [[[1, 2, 3, 4, 0], [1, 2, 0, 0, 0], [1, 0, 0, 0, 0], [1, 2, 3, 0, 0]],
                         [[1, 2, 3, 4, 5], [1, 2, 0, 0, 0], [1, 2, 3, 4, 0], [0, 0, 0, 0, 0]]]
-        padded_seq = pad_char(sequences)
+        padded_seq = pad_nested_sequences(sequences)
+        np.testing.assert_equal(padded_seq, expected_seq)
+
+        sequences = [[[1, 2], [1]]]
+        expected_seq = [[[1, 2], [1, 0]]]
+        padded_seq = pad_nested_sequences(sequences)
+        np.testing.assert_equal(padded_seq, expected_seq)
+
+        sequences = [[[1], []]]
+        expected_seq = [[[1], [0]]]
+        padded_seq = pad_nested_sequences(sequences)
+        np.testing.assert_equal(padded_seq, expected_seq)
+
+        sequences = [[[1]]]
+        expected_seq = [[[1]]]
+        padded_seq = pad_nested_sequences(sequences)
+        np.testing.assert_equal(padded_seq, expected_seq)
+
+        sequences = [[[]]]
+        expected_seq = [[[]]]
+        padded_seq = pad_nested_sequences(sequences)
         np.testing.assert_equal(padded_seq, expected_seq)

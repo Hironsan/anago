@@ -26,24 +26,24 @@ class BaseModel(object):
     def save_params(self, file_path):
         with open(file_path, 'w') as f:
             params = {name.lstrip('_'): val for name, val in vars(self).items()
-                      if name not in {'_loss', 'model'}}
+                      if name not in {'_loss', 'model', '_embeddings'}}
             json.dump(params, f, sort_keys=True, indent=4)
 
     @classmethod
     def load(cls, weights_file, params_file):
-        model = cls.load_params(params_file)
-        model.build_model()
-        model.load_weights(weights_file)
+        params = cls.load_params(params_file)
+        self = cls(**params)
+        self.build()
+        self.load_weights(weights_file)
 
-        return model
+        return self
 
     @classmethod
     def load_params(cls, file_path):
         with open(file_path) as f:
             params = json.load(f)
-            self = cls(**params)
 
-        return self
+        return params
 
     def __getattr__(self, name):
         return getattr(self.model, name)
@@ -59,9 +59,32 @@ class BiLSTMCRF(BaseModel):
     https://arxiv.org/abs/1603.01360
     """
 
-    def __init__(self, char_emb_size=25, word_emb_size=100, char_lstm_units=25,
-                 word_lstm_units=100, dropout=0.5, char_feature=True, use_crf=True,
-                 word_vocab_size=10000, char_vocab_size=100, embeddings=None, ntags=None):
+    def __init__(self,
+                 word_vocab_size,
+                 char_vocab_size,
+                 num_labels,
+                 word_emb_size=100,
+                 char_emb_size=25,
+                 word_lstm_units=100,
+                 char_lstm_units=25,
+                 dropout=0.5,
+                 char_feature=True,
+                 use_crf=True,
+                 embeddings=None):
+        """Build a Bi-LSTM CRF model
+
+        Args:
+            word_vocab_size (int): word vocabulary size
+            char_vocab_size (int): character vocabulary size
+            num_labels (int): number of entity labels (for classification)
+            word_emb_size (int): word embedding dimensions
+            char_emb_size (int): character embedding dimensions
+            word_lstm_dims (int): character LSTM feature extractor output dimensions
+            char_lstm_dims (int): word tagger LSTM output dimensions
+            fc_dims (int): output fully-connected layer size
+            dropout (float): dropout rate
+            embeddings (numpy array): word embedding matrix
+        """
         super(BiLSTMCRF).__init__()
         self._char_emb_size = char_emb_size
         self._word_emb_size = word_emb_size
@@ -73,15 +96,12 @@ class BiLSTMCRF(BaseModel):
         self._char_feature = char_feature
         self._use_crf = use_crf
         self._embeddings = embeddings
-        self._ntags = ntags
+        self._ntags = num_labels
         self._loss = None
 
-    def build_model(self):
-        inputs = []
-
+    def build(self):
         # build word embedding
         word_ids = Input(batch_shape=(None, None), dtype='int32')
-        inputs.append(word_ids)
         if self._embeddings is None:
             word_embeddings = Embedding(input_dim=self._word_vocab_size,
                                         output_dim=self._word_emb_size,
@@ -95,7 +115,6 @@ class BiLSTMCRF(BaseModel):
         # build character based word embedding
         if self._char_feature:
             char_ids = Input(batch_shape=(None, None, None), dtype='int32')
-            inputs.append(char_ids)
             char_embeddings = Embedding(input_dim=self._char_vocab_size,
                                         output_dim=self._char_emb_size,
                                         mask_zero=True
@@ -128,10 +147,10 @@ class BiLSTMCRF(BaseModel):
             self._loss = 'categorical_crossentropy'
             pred = Activation('softmax')(x)
 
-        sequence_lengths = Input(batch_shape=(None, 1), dtype='int32')
-        inputs.append(sequence_lengths)
-
-        self.model = Model(inputs=inputs, outputs=[pred])
+        if self._char_feature:
+            self.model = Model(inputs=[word_ids, char_ids], outputs=[pred])
+        else:
+            self.model = Model(inputs=[word_ids], outputs=[pred])
 
     def get_loss(self):
         return self._loss
