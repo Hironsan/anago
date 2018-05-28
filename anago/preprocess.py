@@ -114,14 +114,13 @@ class DynamicPreprocessor(BaseEstimator, TransformerMixin):
 
     def transform(self, X, y=None):
         words, chars = X
-        lengths = np.array([len(sent) for sent in words])
         words = pad_sequences(words, padding='post')
         chars = pad_nested_sequences(chars)
 
         if y is not None:
             y = pad_sequences(y, padding='post')
             y = to_categorical(y, self.n_labels)
-        sents = [words, chars, lengths]
+        sents = [words, chars]
 
         return (sents, y) if y is not None else sents
 

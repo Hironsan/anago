@@ -123,11 +123,10 @@ class BiLSTMCRF(BaseModel):
         else:
             pred = Activation('softmax')(x)
 
-        sequence_lengths = Input(batch_shape=(None, 1), dtype='int32')
         if self._char_feature:
-            self.model = Model(inputs=[word_ids, char_ids, sequence_lengths], outputs=[pred])
+            self.model = Model(inputs=[word_ids, char_ids], outputs=[pred])
         else:
-            self.model = Model(inputs=[word_ids, sequence_lengths], outputs=[pred])
+            self.model = Model(inputs=[word_ids], outputs=[pred])
 
     def get_loss(self):
         return self._loss
