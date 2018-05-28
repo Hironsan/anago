@@ -41,13 +41,13 @@ def main(args):
     p.fit(X, y)
     x_train, y_train = p.transform(x_train, y_train)
     x_valid, y_valid = p.transform(x_valid, y_valid)
-    dp = DynamicPreprocessor(n_labels=len(p.label_dic))
-    embeddings = filter_embeddings(embeddings, p.word_dic, embeddings.vector_size)
+    dp = DynamicPreprocessor(num_labels=len(p._label_vocab))
+    embeddings = filter_embeddings(embeddings, p._word_vocab, embeddings.vector_size)
 
     print('Building a model...')
-    model = BiLSTMCRF(char_vocab_size=len(p.char_dic),
-                      word_vocab_size=len(p.word_dic),
-                      num_labels=len(p.label_dic),
+    model = BiLSTMCRF(char_vocab_size=len(p._char_vocab),
+                      word_vocab_size=len(p._word_vocab),
+                      num_labels=len(p._label_vocab),
                       embeddings=embeddings,
                       char_embedding_dim=50)
     model.build()

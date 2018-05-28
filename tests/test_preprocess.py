@@ -52,14 +52,14 @@ class TestStaticPreprocessor(unittest.TestCase):
         self.p.fit(self.X, self.y)
         x_pred = self.p.transform(X_test)
         words = x_pred[0]
-        self.assertEqual(words, [self.p.word_dic[UNK]])
+        self.assertEqual(words, [self.p._word_vocab[UNK]])
 
         vocab_init = {unknown_word}
         p = StaticPreprocessor(vocab_init=vocab_init)
         p.fit(self.X, self.y)
         X_pred = p.transform(X_test)
         words = X_pred[0]
-        self.assertNotEqual(words, [p.word_dic[UNK]])
+        self.assertNotEqual(words, [p._word_vocab[UNK]])
 
     def test_save(self):
         filepath = os.path.join(os.path.dirname(__file__), 'data/preprocessor.pkl')

@@ -39,12 +39,12 @@ class TrainerTest(unittest.TestCase):
         self.p.fit(x_train, y_train)
         self.x_train, self.y_train = self.p.transform(x_train, y_train)
         self.x_valid, self.y_valid = self.p.transform(x_valid, y_valid)
-        self.dp = DynamicPreprocessor(n_labels=len(self.p.label_dic))
+        self.dp = DynamicPreprocessor(num_labels=self.p.label_size)
 
         # Build a model.
-        self.model = BiLSTMCRF(char_vocab_size=len(self.p.char_dic),
-                               word_vocab_size=len(self.p.word_dic),
-                               num_labels=len(self.p.label_dic))
+        self.model = BiLSTMCRF(char_vocab_size=self.p.char_vocab_size,
+                               word_vocab_size=self.p.word_vocab_size,
+                               num_labels=self.p.label_size)
         self.model.build()
 
     def test_train(self):
@@ -54,9 +54,9 @@ class TrainerTest(unittest.TestCase):
         trainer.train(self.x_train, self.y_train, self.x_valid, self.y_valid)
 
     def test_train_without_crf(self):
-        model = BiLSTMCRF(char_vocab_size=len(self.p.char_dic),
-                          word_vocab_size=len(self.p.word_dic),
-                          num_labels=len(self.p.label_dic),
+        model = BiLSTMCRF(char_vocab_size=self.p.char_vocab_size,
+                          word_vocab_size=self.p.word_vocab_size,
+                          num_labels=self.p.label_size,
                           use_crf=False)
         model.build()
         trainer = Trainer(self.model, self.model.get_loss(), preprocessor=self.dp,

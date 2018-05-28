@@ -16,19 +16,19 @@ def main(args):
     x_valid, y_valid = load_data_and_labels(args.valid_data)
 
     print('Transforming datasets...')
-    p = StaticPreprocessor(char_feature=args.no_char_feature)
+    p = StaticPreprocessor(use_char=args.no_char_feature)
     x_train, y_train = p.fit_transform(x_train, y_train)
     x_valid, y_valid = p.transform(x_valid, y_valid)
-    dp = DynamicPreprocessor(n_labels=len(p.label_dic))
+    dp = DynamicPreprocessor(num_labels=len(p._label_vocab))
 
     print('Building a model.')
     model = BiLSTMCRF(char_embedding_dim=args.char_emb_size,
                       word_embedding_dim=args.word_emb_size,
                       char_lstm_size=args.char_lstm_units,
                       word_lstm_size=args.word_lstm_units,
-                      char_vocab_size=len(p.char_dic),
-                      word_vocab_size=len(p.word_dic),
-                      num_labels=len(p.label_dic),
+                      char_vocab_size=len(p._char_vocab),
+                      word_vocab_size=len(p._word_vocab),
+                      num_labels=len(p._label_vocab),
                       dropout=args.dropout,
                       use_char=args.no_char_feature,
                       use_crf=args.no_use_crf)

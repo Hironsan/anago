@@ -59,20 +59,20 @@ def load_data_and_labels(filename):
         >>> data, labels = load_data_and_labels(filename)
     """
     sents, labels = [], []
+    words, tags = [], []
     with open(filename) as f:
-        words, tags = [], []
         for line in f:
             line = line.rstrip()
-            if len(line) == 0 or line.startswith('-DOCSTART-'):
-                if len(words) != 0:
-                    sents.append(words)
-                    labels.append(tags)
-                    words, tags = [], []
-            else:
+            if line:
                 word, tag = line.split('\t')
                 words.append(word)
                 tags.append(tag)
-    return np.asarray(sents), np.asarray(labels)
+            else:
+                sents.append(words)
+                labels.append(tags)
+                words, tags = [], []
+
+    return sents, labels
 
 
 def batch_iter(data, labels, batch_size=1, shuffle=True, preprocessor=None):
@@ -92,8 +92,8 @@ def batch_iter(data, labels, batch_size=1, shuffle=True, preprocessor=None):
             for batch_num in range(num_batches_per_epoch):
                 start_index = batch_num * batch_size
                 end_index = min((batch_num + 1) * batch_size, data_size)
-                X = [d[indices[start_index: end_index]] for d in data]
-                y = labels[indices[start_index: end_index]]
+                X = [[d[i] for i in indices[start_index: end_index]] for d in data]
+                y = [labels[i] for i in indices[start_index: end_index]]
                 yield preprocessor.transform(X, y)
 
     return num_batches_per_epoch, data_generator()

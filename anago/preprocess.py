@@ -22,36 +22,36 @@ def normalize_number(text):
 class StaticPreprocessor(BaseEstimator, TransformerMixin):
 
     def __init__(self, lowercase=True, num_norm=True,
-                 char_feature=True, vocab_init=None):
+                 use_char=True, vocab_init=None):
         self._lowercase = lowercase
         self._num_norm = num_norm
-        self._char_feature = char_feature
+        self._use_char = use_char
         self._vocab_init = vocab_init or {}
-        self.word_dic = {PAD: 0, UNK: 1}
-        self.char_dic = {PAD: 0, UNK: 1}
-        self.label_dic = {PAD: 0}
+        self._word_vocab = {PAD: 0, UNK: 1}
+        self._char_vocab = {PAD: 0, UNK: 1}
+        self._label_vocab = {PAD: 0}
 
     def fit(self, X, y=None):
 
         for w in set(itertools.chain(*X)) | set(self._vocab_init):
 
             # create character dictionary
-            if self._char_feature:
+            if self._use_char:
                 for c in w:
-                    if c in self.char_dic:
+                    if c in self._char_vocab:
                         continue
-                    self.char_dic[c] = len(self.char_dic)
+                    self._char_vocab[c] = len(self._char_vocab)
 
             # create word dictionary
             if self._lowercase:
                 w = w.lower()
             if self._num_norm:
                 w = normalize_number(w)
-            self.word_dic[w] = len(self.word_dic)
+            self._word_vocab[w] = len(self._word_vocab)
 
         # create label dictionary
         for t in set(itertools.chain(*y)):
-            self.label_dic[t] = len(self.label_dic)
+            self._label_vocab[t] = len(self._label_vocab)
 
         return self
 
@@ -62,27 +62,26 @@ class StaticPreprocessor(BaseEstimator, TransformerMixin):
             word_ids = []
             char_ids = []
             for w in sent:
-                if self._char_feature:
+                if self._use_char:
                     char_ids.append(self._get_char_ids(w))
 
                 if self._lowercase:
                     w = w.lower()
                 if self._num_norm:
                     w = normalize_number(w)
-                word_id = self.word_dic.get(w, self.word_dic[UNK])
+                word_id = self._word_vocab.get(w, self._word_vocab[UNK])
                 word_ids.append(word_id)
 
             words.append(word_ids)
             chars.append(char_ids)
 
         if y is not None:
-            y = np.array([[self.label_dic[t] for t in sent] for sent in y])
+            y = [[self._label_vocab[t] for t in sent] for sent in y]
 
-        if self._char_feature:
+        if self._use_char:
             inputs = [words, chars]
         else:
             inputs = [words]
-        inputs = [np.array(inp) for inp in inputs]
 
         return (inputs, y) if y is not None else inputs
 
@@ -90,12 +89,24 @@ class StaticPreprocessor(BaseEstimator, TransformerMixin):
         return self.fit(X, y).transform(X, y)
 
     def inverse_transform(self, docs):
-        id2label = {i: t for t, i in self.label_dic.items()}
+        id2label = {i: t for t, i in self._label_vocab.items()}
 
         return [[id2label[t] for t in doc] for doc in docs]
 
+    @property
+    def word_vocab_size(self):
+        return len(self._word_vocab)
+
+    @property
+    def char_vocab_size(self):
+        return len(self._char_vocab)
+
+    @property
+    def label_size(self):
+        return len(self._label_vocab)
+
     def _get_char_ids(self, word):
-        return [self.char_dic.get(c, self.char_dic[UNK]) for c in word]
+        return [self._char_vocab.get(c, self._char_vocab[UNK]) for c in word]
 
     def save(self, file_path):
         joblib.dump(self, file_path)
@@ -109,8 +120,8 @@ class StaticPreprocessor(BaseEstimator, TransformerMixin):
 
 class DynamicPreprocessor(BaseEstimator, TransformerMixin):
 
-    def __init__(self, n_labels):
-        self.n_labels = n_labels
+    def __init__(self, num_labels):
+        self.num_labels = num_labels
 
     def transform(self, X, y=None):
         words, chars = X
@@ -119,7 +130,7 @@ class DynamicPreprocessor(BaseEstimator, TransformerMixin):
 
         if y is not None:
             y = pad_sequences(y, padding='post')
-            y = to_categorical(y, self.n_labels)
+            y = to_categorical(y, self.num_labels)
         sents = [words, chars]
 
         return (sents, y) if y is not None else sents
@@ -147,14 +158,14 @@ def pad_nested_sequences(sequences, dtype='int32'):
     # Returns
         x: Numpy array.
     """
-    maxlen_sent = 0
-    maxlen_word = 0
+    max_sent_len = 0
+    max_word_len = 0
     for sent in sequences:
-        maxlen_sent = max(len(sent), maxlen_sent)
+        max_sent_len = max(len(sent), max_sent_len)
         for word in sent:
-            maxlen_word = max(len(word), maxlen_word)
+            max_word_len = max(len(word), max_word_len)
 
-    x = np.zeros((len(sequences), maxlen_sent, maxlen_word)).astype(dtype)
+    x = np.zeros((len(sequences), max_sent_len, max_word_len)).astype(dtype)
     for i, sent in enumerate(sequences):
         for j, word in enumerate(sent):
             x[i, j, :len(word)] = word
