@@ -47,7 +47,7 @@ def main(args):
     print('Building a model...')
     model = BiLSTMCRF(char_vocab_size=len(p.char_dic),
                       word_vocab_size=len(p.word_dic),
-                      ntags=len(p.label_dic),
+                      num_labels=len(p.label_dic),
                       embeddings=embeddings,
                       char_emb_size=50)
     model.build()

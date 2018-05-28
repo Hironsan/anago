@@ -59,9 +59,32 @@ class BiLSTMCRF(BaseModel):
     https://arxiv.org/abs/1603.01360
     """
 
-    def __init__(self, char_emb_size=25, word_emb_size=100, char_lstm_units=25,
-                 word_lstm_units=100, dropout=0.5, char_feature=True, use_crf=True,
-                 word_vocab_size=10000, char_vocab_size=100, embeddings=None, ntags=None):
+    def __init__(self,
+                 word_vocab_size,
+                 char_vocab_size,
+                 num_labels,
+                 word_emb_size=100,
+                 char_emb_size=25,
+                 word_lstm_units=100,
+                 char_lstm_units=25,
+                 dropout=0.5,
+                 char_feature=True,
+                 use_crf=True,
+                 embeddings=None):
+        """Build a Bi-LSTM CRF model
+
+        Args:
+            word_vocab_size (int): word vocabulary size
+            char_vocab_size (int): character vocabulary size
+            num_labels (int): number of entity labels (for classification)
+            word_emb_size (int): word embedding dimensions
+            char_emb_size (int): character embedding dimensions
+            word_lstm_dims (int): character LSTM feature extractor output dimensions
+            char_lstm_dims (int): word tagger LSTM output dimensions
+            fc_dims (int): output fully-connected layer size
+            dropout (float): dropout rate
+            embeddings (numpy array): word embedding matrix
+        """
         super(BiLSTMCRF).__init__()
         self._char_emb_size = char_emb_size
         self._word_emb_size = word_emb_size
@@ -73,7 +96,7 @@ class BiLSTMCRF(BaseModel):
         self._char_feature = char_feature
         self._use_crf = use_crf
         self._embeddings = embeddings
-        self._ntags = ntags
+        self._ntags = num_labels
         self._loss = None
 
     def build(self):
