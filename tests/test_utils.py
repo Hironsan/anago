@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from anago.utils import load_data_and_labels, batch_iter
+from anago.utils import load_data_and_labels, batch_iter, Vocabulary
 
 from anago.preprocess import DynamicPreprocessor, StaticPreprocessor
 
@@ -21,3 +21,18 @@ class TestUtils(unittest.TestCase):
         p = DynamicPreprocessor()
         steps, batches = batch_iter(list(zip(sents, labels)), batch_size, preprocessor=p)
         self.assertEqual(len([_ for _ in batches]), steps)  # Todo: infinite loop
+
+    def test_vocabulary(self):
+        docs = [['a'], ['a', 'b'], ['a', 'b', 'c']]
+        token2id = {'a': 1, 'b': 2, 'c': 3}
+        vocab = Vocabulary()
+        vocab.add_documents(docs)
+        vocab.build()
+        print(vocab._token2id)
+        self.assertEqual(vocab._token2id, token2id)
+
+        docs = ['hoge', 'fuga', 'bar']
+        vocab = Vocabulary()
+        vocab.add_documents(docs)
+        vocab.build()
+        print(vocab._token2id)
