@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split
 from anago.utils import load_data_and_labels
 from anago.trainer import Trainer
 from anago.models import BiLSTMCRF
-from anago.preprocess import IndexTransformer, DynamicPreprocessor
+from anago.preprocessing import IndexTransformer, DynamicPreprocessor
 
 
 def filter_embeddings(embeddings, vocab, dim):

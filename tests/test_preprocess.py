@@ -4,7 +4,7 @@ import unittest
 import numpy as np
 
 from anago.utils import load_data_and_labels
-from anago.preprocess import IndexTransformer, DynamicPreprocessor, pad_nested_sequences
+from anago.preprocessing import IndexTransformer, DynamicPreprocessor, pad_nested_sequences
 
 
 class TestStaticPreprocessor(unittest.TestCase):

@@ -9,7 +9,7 @@ import MeCab
 
 from anago.tagger import Tagger
 from anago.models import BiLSTMCRF
-from anago.preprocess import IndexTransformer, DynamicPreprocessor
+from anago.preprocessing import IndexTransformer, DynamicPreprocessor
 
 tokenizer = MeCab.Tagger('-Owakati')
 

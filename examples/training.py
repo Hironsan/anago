@@ -6,7 +6,7 @@ import os
 
 from anago.utils import load_data_and_labels
 from anago.models import BiLSTMCRF
-from anago.preprocess import IndexTransformer, DynamicPreprocessor
+from anago.preprocessing import IndexTransformer, DynamicPreprocessor
 from anago.trainer import Trainer
 
 

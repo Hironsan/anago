@@ -4,7 +4,7 @@ from pprint import pprint
 
 import anago
 from anago.models import BiLSTMCRF
-from anago.preprocess import IndexTransformer, DynamicPreprocessor
+from anago.preprocessing import IndexTransformer, DynamicPreprocessor
 
 DATA_ROOT = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/ner')
 SAVE_ROOT = os.path.join(os.path.dirname(__file__), 'models')

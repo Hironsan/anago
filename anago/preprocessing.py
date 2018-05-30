@@ -40,7 +40,7 @@ class IndexTransformer(BaseEstimator, TransformerMixin):
         """
         self._num_norm = num_norm
         self._use_char = use_char
-        self._word_vocab = Vocabulary()
+        self._word_vocab = Vocabulary(lower=lower)
         self._char_vocab = Vocabulary(lower=False)
         self._label_vocab = Vocabulary(lower=False, unk_token=False)
 
