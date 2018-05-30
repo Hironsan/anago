@@ -35,19 +35,19 @@ class TestVocabulary(unittest.TestCase):
         self.assertEqual(vocab._token2id, token2id)
 
         token2id = {'<pad>': 0, 'a': 1, 'b': 2, 'c': 3}
-        vocab = Vocabulary(unk=False)
+        vocab = Vocabulary(unk_token=False)
         vocab.add_documents(docs)
         vocab.build()
         self.assertEqual(vocab._token2id, token2id)
 
         token2id = {'<pad>': 0, '<s>': 1, 'a': 2, 'b': 3, 'c': 4}
-        vocab = Vocabulary(unk=False, specials=('<pad>', '<s>'))
+        vocab = Vocabulary(unk_token=False, specials=('<pad>', '<s>'))
         vocab.add_documents(docs)
         vocab.build()
         self.assertEqual(vocab._token2id, token2id)
 
         token2id = {'a': 0, 'b': 1, 'c': 2}
-        vocab = Vocabulary(unk=False, specials=())
+        vocab = Vocabulary(unk_token=False, specials=())
         vocab.add_documents(docs)
         vocab.build()
         self.assertEqual(vocab._token2id, token2id)
@@ -80,4 +80,12 @@ class TestVocabulary(unittest.TestCase):
         self.assertEqual(doc_ids, correct)
 
     def test_id2doc(self):
-        pass
+        # word ids.
+        docs = [['B-PSN'], ['B-ORG', 'I-ORG'], ['B-LOC', 'I-LOC', 'O']]
+        vocab = Vocabulary(unk_token=False, lower=False)
+        vocab.add_documents(docs)
+        vocab.build()
+        true_doc = ['O', 'B-LOC', 'O', 'O']
+        doc_ids = vocab.doc2id(true_doc)
+        pred_doc = vocab.id2doc(doc_ids)
+        self.assertEqual(pred_doc, true_doc)

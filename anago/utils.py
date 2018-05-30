@@ -101,33 +101,33 @@ def batch_iter(data, labels, batch_size=1, shuffle=True, preprocessor=None):
 
 
 class Vocabulary(object):
-    """
-    A vocabulary that maps tokens to ints (storing a vocabulary)
+    """A vocabulary that maps tokens to ints (storing a vocabulary).
 
     Attributes:
         _token_count: A collections.Counter object holding the frequencies of tokens
-            in the data used to build the Vocab.
+            in the data used to build the Vocabulary.
         _token2id: A collections.defaultdict instance mapping token strings to
             numerical identifiers.
         _id2token: A list of token strings indexed by their numerical identifiers.
     """
 
-    def __init__(self, max_size=None, lower=True, unk=True, specials=('<pad>',)):
-        """Create a Vocab object from a collections.Counter.
+    def __init__(self, max_size=None, lower=True, unk_token=True, specials=('<pad>',)):
+        """Create a Vocabulary object.
 
         Args:
             max_size: The maximum size of the vocabulary, or None for no
                 maximum. Default: None.
+            lower: boolean. Whether to convert the texts to lowercase.
+            unk_token: boolean. Whether to add unknown token.
             specials: The list of special tokens (e.g., padding or eos) that
-                will be prepended to the vocabulary in addition to an <unk>
-                token. Default: ['<pad>']
+                will be prepended to the vocabulary. Default: ('<pad>',)
         """
+        self._max_size = max_size
+        self._lower = lower
+        self._unk = unk_token
         self._token2id = {token: i for i, token in enumerate(specials)}
         self._id2token = list(specials)
-        self._lower = lower
-        self._max_size = max_size
         self._token_count = Counter()
-        self._unk = unk
 
     def __len__(self):
         return len(self._token2id)
@@ -138,6 +138,7 @@ class Vocabulary(object):
         Args:
             token (str): token to add.
         """
+        token = self.process_token(token)
         self._token_count.update([token])
 
     def add_documents(self, docs):
@@ -148,6 +149,7 @@ class Vocabulary(object):
             docs (list): documents to add.
         """
         for sent in docs:
+            sent = map(self.process_token, sent)
             self._token_count.update(sent)
 
     def doc2id(self, doc):
@@ -159,6 +161,7 @@ class Vocabulary(object):
         Returns:
             list: int id of doc.
         """
+        doc = map(self.process_token, doc)
         return [self.token_to_id(token) for token in doc]
 
     def id2doc(self, ids):
@@ -188,6 +191,18 @@ class Vocabulary(object):
             self._id2token.append(unk)
 
     def process_token(self, token):
+        """Process token before following methods:
+        * add_token
+        * add_documents
+        * doc2id
+        * token_to_id
+
+        Args:
+            token (str): token to process.
+
+        Returns:
+            str: processed token string.
+        """
         if self._lower:
             token = token.lower()
 
@@ -202,6 +217,7 @@ class Vocabulary(object):
         Returns:
             int: int id of token.
         """
+        token = self.process_token(token)
         return self._token2id.get(token, len(self._token2id) - 1)
 
     def id_to_token(self, idx):
@@ -220,7 +236,7 @@ class Vocabulary(object):
         """Return the vocabulary.
 
         Returns:
-            dict: get the dict object of the vocabulary
+            dict: get the dict object of the vocabulary.
         """
         return self._token2id
 
@@ -229,6 +245,6 @@ class Vocabulary(object):
         """Return the vocabulary as a reversed dict object.
 
         Returns:
-            dict: reversed vocabulary object
+            dict: reversed vocabulary object.
         """
         return self._id2token
