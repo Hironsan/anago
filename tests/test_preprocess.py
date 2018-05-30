@@ -4,13 +4,13 @@ import unittest
 import numpy as np
 
 from anago.utils import load_data_and_labels
-from anago.preprocess import StaticPreprocessor, DynamicPreprocessor, UNK, pad_nested_sequences
+from anago.preprocess import IndexTransformer, DynamicPreprocessor, pad_nested_sequences
 
 
 class TestStaticPreprocessor(unittest.TestCase):
 
     def setUp(self):
-        self.p = StaticPreprocessor()
+        self.p = IndexTransformer()
 
     @classmethod
     def setUpClass(cls):
@@ -38,7 +38,7 @@ class TestStaticPreprocessor(unittest.TestCase):
         self.assertIsInstance(char, int)
 
     def test_unknown_word(self):
-        self.p = StaticPreprocessor()
+        self.p = IndexTransformer()
         self.p.fit(self.X, self.y)
         X = [['$unknownword$', 'あ']]
         y = [['O', 'O']]
@@ -51,15 +51,15 @@ class TestStaticPreprocessor(unittest.TestCase):
 
         self.p.fit(self.X, self.y)
         x_pred = self.p.transform(X_test)
-        words = x_pred[0]
-        self.assertEqual(words, [self.p._word_vocab[UNK]])
+        word_id = x_pred[0][0][0]
+        self.assertEqual(word_id, self.p.word_vocab_size - 1)
 
         vocab_init = {unknown_word}
-        p = StaticPreprocessor(vocab_init=vocab_init)
+        p = IndexTransformer(initial_vocab=vocab_init)
         p.fit(self.X, self.y)
         X_pred = p.transform(X_test)
-        words = X_pred[0]
-        self.assertNotEqual(words, [p._word_vocab[UNK]])
+        word_id = X_pred[0][0][0]
+        self.assertNotEqual(word_id, self.p.word_vocab_size - 1)
 
     def test_save(self):
         filepath = os.path.join(os.path.dirname(__file__), 'data/preprocessor.pkl')
@@ -74,7 +74,7 @@ class TestStaticPreprocessor(unittest.TestCase):
         self.p.save(filepath)
         self.assertTrue(os.path.exists(filepath))
 
-        loaded_p = StaticPreprocessor.load(filepath)
+        loaded_p = IndexTransformer.load(filepath)
         x_test1, y_test1 = self.p.transform(self.X, self.y)
         x_test2, y_test2 = loaded_p.transform(self.X, self.y)
         np.testing.assert_array_equal(x_test1[0], x_test2[0])  # word

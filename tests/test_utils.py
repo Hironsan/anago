@@ -3,7 +3,7 @@ import unittest
 
 from anago.utils import load_data_and_labels, batch_iter, Vocabulary
 
-from anago.preprocess import DynamicPreprocessor, StaticPreprocessor
+from anago.preprocess import DynamicPreprocessor
 
 
 class TestUtils(unittest.TestCase):

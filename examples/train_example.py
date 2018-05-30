@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split
 from anago.utils import load_data_and_labels
 from anago.trainer import Trainer
 from anago.models import BiLSTMCRF
-from anago.preprocess import StaticPreprocessor, DynamicPreprocessor
+from anago.preprocess import IndexTransformer, DynamicPreprocessor
 
 
 def filter_embeddings(embeddings, vocab, dim):
@@ -37,7 +37,7 @@ def main(args):
     embeddings = KeyedVectors.load(args.embedding_path).wv
 
     print('Transforming datasets...')
-    p = StaticPreprocessor()
+    p = IndexTransformer()
     p.fit(X, y)
     x_train, y_train = p.transform(x_train, y_train)
     x_valid, y_valid = p.transform(x_valid, y_valid)

@@ -6,7 +6,7 @@ import os
 
 from anago.utils import load_data_and_labels
 from anago.models import BiLSTMCRF
-from anago.preprocess import StaticPreprocessor, DynamicPreprocessor
+from anago.preprocess import IndexTransformer, DynamicPreprocessor
 from anago.trainer import Trainer
 
 
@@ -16,7 +16,7 @@ def main(args):
     x_valid, y_valid = load_data_and_labels(args.valid_data)
 
     print('Transforming datasets...')
-    p = StaticPreprocessor(use_char=args.no_char_feature)
+    p = IndexTransformer(use_char=args.no_char_feature)
     x_train, y_train = p.fit_transform(x_train, y_train)
     x_valid, y_valid = p.transform(x_valid, y_valid)
     dp = DynamicPreprocessor(num_labels=len(p._label_vocab))

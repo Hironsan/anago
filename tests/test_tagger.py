@@ -4,7 +4,7 @@ from pprint import pprint
 
 import anago
 from anago.models import BiLSTMCRF
-from anago.preprocess import StaticPreprocessor, DynamicPreprocessor
+from anago.preprocess import IndexTransformer, DynamicPreprocessor
 
 DATA_ROOT = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/ner')
 SAVE_ROOT = os.path.join(os.path.dirname(__file__), 'models')
@@ -19,7 +19,7 @@ class TaggerTest(unittest.TestCase):
         preprocessor_file = os.path.join(SAVE_ROOT, 'preprocessor.pickle')
 
         # Load preprocessor
-        p = StaticPreprocessor.load(preprocessor_file)
+        p = IndexTransformer.load(preprocessor_file)
         dp = DynamicPreprocessor(len(p.label_dic))
 
         # Load the model.

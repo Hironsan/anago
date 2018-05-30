@@ -3,7 +3,7 @@ import unittest
 
 from anago.utils import load_data_and_labels
 from anago.models import BiLSTMCRF
-from anago.preprocess import StaticPreprocessor, DynamicPreprocessor
+from anago.preprocess import IndexTransformer, DynamicPreprocessor
 from anago.trainer import Trainer
 
 get_path = lambda path: os.path.join(os.path.dirname(__file__), path)
@@ -35,7 +35,7 @@ class TrainerTest(unittest.TestCase):
         x_valid, y_valid = load_data_and_labels(valid_path)
 
         # Transform datasets.
-        self.p = StaticPreprocessor()
+        self.p = IndexTransformer()
         self.p.fit(x_train, y_train)
         self.x_train, self.y_train = self.p.transform(x_train, y_train)
         self.x_valid, self.y_valid = self.p.transform(x_valid, y_valid)

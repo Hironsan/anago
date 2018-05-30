@@ -9,7 +9,7 @@ import MeCab
 
 from anago.tagger import Tagger
 from anago.models import BiLSTMCRF
-from anago.preprocess import StaticPreprocessor, DynamicPreprocessor
+from anago.preprocess import IndexTransformer, DynamicPreprocessor
 
 tokenizer = MeCab.Tagger('-Owakati')
 
@@ -22,7 +22,7 @@ def tokenize(text):
 def main(args):
     print('Loading objects...')
     model = BiLSTMCRF.load(args.weights_file, args.params_file)
-    sp = StaticPreprocessor.load(args.preprocessor_file)
+    sp = IndexTransformer.load(args.preprocessor_file)
     dp = DynamicPreprocessor(num_labels=len(sp.label_dic))
     tagger = Tagger(model, preprocessor=sp, dynamic_preprocessor=dp, tokenizer=tokenize)
 
