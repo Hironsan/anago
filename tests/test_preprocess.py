@@ -12,9 +12,6 @@ class TestIndexTransformer(unittest.TestCase):
     def setUp(self):
         self.x = [['a'], ['aa', 'ab'], ['AA', 'ab', 'ac']]
         self.y = [['O'], ['B-A', 'I-A'], ['O', 'O', 'B-A']]
-        self.word_vocab_size = 6
-        self.char_vocab_size = 3
-        self.label_size = 3
 
     @classmethod
     def setUpClass(cls):
@@ -116,14 +113,22 @@ class TestIndexTransformer(unittest.TestCase):
     def test_inverse_transform(self):
         it = IndexTransformer()
         _, y = it.fit_transform(self.x, self.y)
-        y = np.argmax(y, -1)
         inv_y = it.inverse_transform(y)
         self.assertEqual(inv_y, self.y)
 
-        x_train, y_train = [['aaa']], [['X']]
+    def test_inverse_transform_unknown_token(self):
+        x_train, y_train = [['a', 'b']], [['X', 'O']]
         it = IndexTransformer()
+        it.fit(self.x, self.y)
         _, y = it.transform(x_train, y_train)
-        y = np.argmax(y, -1)
+        inv_y = it.inverse_transform(y)
+        self.assertNotEqual(inv_y, self.y)
+
+    def test_inverse_transform_one_cat(self):
+        x_train, y_train = [['a']], [['O']]
+        it = IndexTransformer()
+        it.fit(self.x, self.y)
+        _, y = it.transform(x_train, y_train)
         inv_y = it.inverse_transform(y)
         self.assertNotEqual(inv_y, self.y)
 

@@ -1,7 +1,6 @@
 """
 Custom callbacks.
 """
-import numpy as np
 from keras.callbacks import Callback
 from seqeval.metrics import f1_score
 
@@ -19,11 +18,7 @@ class F1score(Callback):
         label_pred = []
         for i in range(self.valid_steps):
             x_true, y_true = next(self.valid_batches)
-            y_true = np.argmax(y_true, -1)
-            sequence_lengths = x_true[-1]  # shape of (batch_size, 1)
-            sequence_lengths = np.reshape(sequence_lengths, (-1,))
             y_pred = self.model.predict_on_batch(x_true)
-            y_pred = np.argmax(y_pred, -1)
 
             y_true = self.p.inverse_transform(y_true)
             y_pred = self.p.inverse_transform(y_pred)
