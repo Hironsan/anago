@@ -46,12 +46,18 @@ class TrainerTest(unittest.TestCase):
                                word_vocab_size=self.p.word_vocab_size,
                                num_labels=self.p.label_size)
         self.model.build()
+        self.model.compile(loss=self.model.get_loss(), optimizer='adam')
 
     def test_train(self):
-        # Train the model.
-        trainer = Trainer(self.model, self.model.get_loss(), preprocessor=self.dp,
+        trainer = Trainer(self.model, preprocessor=self.dp,
                           inverse_transform=self.p.inverse_transform)
-        trainer.train(self.x_train, self.y_train, self.x_valid, self.y_valid)
+        trainer.train(self.x_train, self.y_train,
+                      x_valid=self.x_valid, y_valid=self.y_valid)
+
+    def test_train_no_valid(self):
+        trainer = Trainer(self.model, preprocessor=self.dp,
+                          inverse_transform=self.p.inverse_transform)
+        trainer.train(self.x_train, self.y_train)
 
     def test_train_without_crf(self):
         model = BiLSTMCRF(char_vocab_size=self.p.char_vocab_size,
@@ -59,15 +65,18 @@ class TrainerTest(unittest.TestCase):
                           num_labels=self.p.label_size,
                           use_crf=False)
         model.build()
-        trainer = Trainer(self.model, self.model.get_loss(), preprocessor=self.dp,
+        self.model.compile(loss=self.model.get_loss(), optimizer='adam')
+        trainer = Trainer(self.model, preprocessor=self.dp,
                           inverse_transform=self.p.inverse_transform)
-        trainer.train(self.x_train, self.y_train, self.x_valid, self.y_valid)
+        trainer.train(self.x_train, self.y_train,
+                      x_valid=self.x_valid, y_valid=self.y_valid)
 
     def test_save(self):
         # Train the model.
-        trainer = Trainer(self.model, self.model.get_loss(), preprocessor=self.dp,
-                          inverse_transform=self.p.inverse_transform, max_epoch=1)
-        trainer.train(self.x_train, self.y_train, self.x_valid, self.y_valid)
+        trainer = Trainer(self.model, preprocessor=self.dp,
+                          inverse_transform=self.p.inverse_transform)
+        trainer.train(self.x_train, self.y_train,
+                      x_valid=self.x_valid, y_valid=self.y_valid)
 
         # Save the model.
         self.model.save(self.weights_file, self.params_file)

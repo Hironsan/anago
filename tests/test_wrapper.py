@@ -5,7 +5,27 @@ from pprint import pprint
 import numpy as np
 
 import anago
-from anago.utils import load_data_and_labels, load_glove, download
+from anago.utils import load_data_and_labels
+
+
+def load_glove(file):
+    """Loads GloVe vectors in numpy array.
+
+    Args:
+        file (str): a path to a glove file.
+
+    Return:
+        dict: a dict of numpy arrays.
+    """
+    model = {}
+    with open(file) as f:
+        for line in f:
+            line = line.split(' ')
+            word = line[0]
+            vector = np.array([float(val) for val in line[1:]])
+            model[word] = vector
+
+    return model
 
 get_path = lambda path: os.path.join(os.path.dirname(__file__), path)
 DATA_ROOT = get_path('../data/conll2003/en/ner')
@@ -14,7 +34,7 @@ LOG_ROOT = get_path('logs')     # checkpoint, tensorboard
 EMBEDDING_PATH = get_path('../data/glove.6B/glove.6B.100d.txt')
 
 
-class TrainerTest(unittest.TestCase):
+class TestWrapper(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -33,75 +53,54 @@ class TrainerTest(unittest.TestCase):
         cls.x_test, cls.y_test = load_data_and_labels(test_path)
 
         cls.embeddings = load_glove(EMBEDDING_PATH)
-
         cls.words = 'President Obama is speaking at the White House.'.split()
-
         cls.dir_path = 'models'
 
-    def test_train(self):
-        # Not use pre-trained word embeddings
-        model = anago.Sequence(max_epoch=1)
-        model.train(self.x_train, self.y_train, self.x_valid, self.y_valid)
+    def test_train_without_pretrained_embedding(self):
+        model = anago.Sequence()
+        model.fit(self.x_train, self.y_train, self.x_valid, self.y_valid)
 
-        # Use pre-trained word embeddings
-        model = anago.Sequence(max_epoch=1, embeddings=self.embeddings)
-        model.train(self.x_train, self.y_train, self.x_valid, self.y_valid)
+    def test_train_with_pretrained_embedding(self):
+        model = anago.Sequence(embeddings=self.embeddings)
+        model.fit(self.x_train, self.y_train, self.x_valid, self.y_valid)
 
     def test_eval(self):
-        model = anago.Sequence(max_epoch=1, embeddings=self.embeddings)
-        model.train(self.x_train, self.y_train, self.x_valid, self.y_valid)
-        model.eval(self.x_test, self.y_test)
+        model = anago.Sequence()
+        model.fit(self.x_train, self.y_train, self.x_valid, self.y_valid)
+        model.score(self.x_test, self.y_test)
 
     def test_analyze(self):
-        model = anago.Sequence(max_epoch=1, embeddings=self.embeddings)
-        model.train(self.x_train, self.y_train, self.x_valid, self.y_valid)
+        model = anago.Sequence()
+        model.fit(self.x_train, self.y_train, self.x_valid, self.y_valid)
         res = model.analyze(self.words)
         pprint(res)
 
         self.assertIn('words', res)
         self.assertIn('entities', res)
 
-    def test_save(self):
-        model = anago.Sequence(max_epoch=1, embeddings=self.embeddings)
-        model.train(self.x_train, self.y_train, self.x_valid, self.y_valid)
-        model.save(dir_path=self.dir_path)
+    def test_save_and_load(self):
+        weights_file = ''
+        params_file = ''
+        preprocessor_file = ''
 
-        config_file = os.path.join(self.dir_path, model.config_file)
-        weight_file = os.path.join(self.dir_path, model.weight_file)
-        preprocessor_file = os.path.join(self.dir_path, model.preprocessor_file)
+        model = anago.Sequence()
+        model.fit(self.x_train, self.y_train, self.x_valid, self.y_valid)
+        model.save(weights_file, params_file, preprocessor_file)
+        score1 = model.score(self.x_test, self.y_test)
 
-        self.assertTrue(os.path.exists(config_file))
-        self.assertTrue(os.path.exists(weight_file))
-        self.assertTrue(os.path.exists(preprocessor_file))
+        self.assertTrue(weights_file)
+        self.assertTrue(params_file)
+        self.assertTrue(preprocessor_file)
 
-    def test_load(self):
-        model = anago.Sequence(max_epoch=1, embeddings=self.embeddings)
-        model.train(self.x_train, self.y_train, self.x_valid, self.y_valid)
-        model.eval(self.x_test, self.y_test)
-        model.save(dir_path=self.dir_path)
+        model = anago.Sequence.load(weights_file, params_file, preprocessor_file)
+        score2 = model.score(self.x_test, self.y_test)
 
-        model = anago.Sequence.load(self.dir_path)
-        model.eval(self.x_test, self.y_test)
+        self.assertEqual(score1, score2)
 
     def test_train_vocab_init(self):
         vocab = set()
         for words in np.r_[self.x_train, self.x_valid, self.x_test]:
             for word in words:
                 vocab.add(word)
-        model = anago.Sequence(max_epoch=15, embeddings=self.embeddings, log_dir='logs')
-        model.train(self.x_train, self.y_train, self.x_test, self.y_test, vocab_init=vocab)
-        model.save(dir_path=self.dir_path)
-
-    def test_train_all(self):
-        x_train = np.r_[self.x_train, self.x_valid, self.x_test]
-        y_train = np.r_[self.y_train, self.y_valid, self.y_test]
-        model = anago.Sequence(max_epoch=15, embeddings=self.embeddings, log_dir='logs')
-        model.train(x_train, y_train, self.x_test, self.y_test)
-        model.save(dir_path=self.dir_path)
-
-    def test_download(self):
-        dir_path = 'test_dir'
-        url = 'https://storage.googleapis.com/chakki/datasets/public/models.zip'
-        download(url, dir_path)
-        model = anago.Sequence.load(dir_path)
-        model.eval(self.x_test, self.y_test)
+        model = anago.Sequence(initial_vocab=vocab)
+        model.fit(self.x_train, self.y_train, self.x_test, self.y_test)
