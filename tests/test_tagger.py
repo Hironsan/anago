@@ -4,7 +4,7 @@ from pprint import pprint
 
 import anago
 from anago.models import BiLSTMCRF
-from anago.preprocessing import IndexTransformer, DynamicPreprocessor
+from anago.preprocessing import IndexTransformer
 
 DATA_ROOT = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/ner')
 SAVE_ROOT = os.path.join(os.path.dirname(__file__), 'models')
@@ -20,13 +20,12 @@ class TaggerTest(unittest.TestCase):
 
         # Load preprocessor
         p = IndexTransformer.load(preprocessor_file)
-        dp = DynamicPreprocessor(len(p.label_dic))
 
         # Load the model.
         model = BiLSTMCRF.load(weights_file, params_file)
 
         # Build a tagger
-        cls.tagger = anago.Tagger(model, preprocessor=p, dynamic_preprocessor=dp)
+        cls.tagger = anago.Tagger(model, preprocessor=p)
 
         cls.sent = 'President Obama is speaking at the White House.'
 

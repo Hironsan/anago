@@ -7,11 +7,9 @@ from seqeval.metrics.sequence_labeling import get_entities
 
 class Tagger(object):
 
-    def __init__(self, model, preprocessor=None,
-                 dynamic_preprocessor=None, tokenizer=str.split):
+    def __init__(self, model, preprocessor, tokenizer=str.split):
         self.model = model
         self.preprocessor = preprocessor
-        self.dynamic_preprocessor = dynamic_preprocessor
         self.tokenizer = tokenizer
 
     def predict(self, sent):
@@ -26,7 +24,6 @@ class Tagger(object):
        """
         words = self.tokenizer(sent)
         X = self.preprocessor.transform([words])
-        X = self.dynamic_preprocessor.transform(X)
         y = self.model.predict(X)
 
         return y

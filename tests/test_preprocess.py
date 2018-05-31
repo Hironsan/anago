@@ -4,7 +4,7 @@ import unittest
 
 import numpy as np
 
-from anago.preprocessing import IndexTransformer, DynamicPreprocessor, pad_nested_sequences
+from anago.preprocessing import IndexTransformer, pad_nested_sequences
 
 
 class TestIndexTransformer(unittest.TestCase):
@@ -71,13 +71,13 @@ class TestIndexTransformer(unittest.TestCase):
         it = IndexTransformer(use_char=False)
         x, y = it.fit_transform(self.x, self.y)
 
+        # Check sequence length.
         self.assertEqual(len(x), len(self.x))
         self.assertEqual(len(y), len(self.y))
 
-        for doc, labels in zip(x, y):
-            for w, l in zip(doc, labels):
-                self.assertIsInstance(w, int)
-                self.assertIsInstance(l, int)
+        # Check sequence type.
+        self.assertIsInstance(x, np.ndarray)
+        self.assertIsInstance(y, np.ndarray)
 
     def test_transform_with_character(self):
         # With character feature.
@@ -85,16 +85,15 @@ class TestIndexTransformer(unittest.TestCase):
         X, y = it.fit_transform(self.x, self.y)
         words, chars = X
 
+        # Check sequence length.
         self.assertEqual(len(words), len(self.x))
         self.assertEqual(len(chars), len(self.x))
         self.assertEqual(len(y), len(self.y))
 
-        for doc_w, doc_c, labels in zip(words, chars, y):
-            for w, cl, l in zip(doc_w, doc_c, labels):
-                self.assertIsInstance(w, int)
-                self.assertIsInstance(l, int)
-                for c in cl:
-                    self.assertIsInstance(c, int)
+        # Check sequence type.
+        self.assertIsInstance(words, np.ndarray)
+        self.assertIsInstance(chars, np.ndarray)
+        self.assertIsInstance(y, np.ndarray)
 
     def test_transform_unknown_token(self):
         it = IndexTransformer()
@@ -104,32 +103,34 @@ class TestIndexTransformer(unittest.TestCase):
         X, y = it.transform(x_train, y_train)
         words, chars = X
 
+        # Check sequence length.
         self.assertEqual(len(words), len(x_train))
         self.assertEqual(len(chars), len(x_train))
         self.assertEqual(len(y), len(y_train))
 
-        for doc_w, doc_c, labels in zip(words, chars, y):
-            for w, cl, l in zip(doc_w, doc_c, labels):
-                self.assertIsInstance(w, int)
-                self.assertIsInstance(l, int)
-                for c in cl:
-                    self.assertIsInstance(c, int)
+        # Check sequence type.
+        self.assertIsInstance(words, np.ndarray)
+        self.assertIsInstance(chars, np.ndarray)
+        self.assertIsInstance(y, np.ndarray)
 
     def test_inverse_transform(self):
         it = IndexTransformer()
         _, y = it.fit_transform(self.x, self.y)
+        y = np.argmax(y, -1)
         inv_y = it.inverse_transform(y)
         self.assertEqual(inv_y, self.y)
 
         x_train, y_train = [['aaa']], [['X']]
         it = IndexTransformer()
         _, y = it.transform(x_train, y_train)
+        y = np.argmax(y, -1)
         inv_y = it.inverse_transform(y)
         self.assertNotEqual(inv_y, self.y)
 
     def test_save_and_load(self):
         it = IndexTransformer(lower=False)
         x1, y1 = it.fit_transform(self.x, self.y)
+        x1_word, x1_char = x1
 
         self.assertFalse(os.path.exists(self.preprocessor_file))
         it.save(self.preprocessor_file)
@@ -137,7 +138,10 @@ class TestIndexTransformer(unittest.TestCase):
 
         it = IndexTransformer.load(self.preprocessor_file)
         x2, y2 = it.transform(self.x, self.y)
-        np.testing.assert_array_equal(x1, x2)
+        x2_word, x2_char = x1
+
+        np.testing.assert_array_equal(x1_word, x2_word)
+        np.testing.assert_array_equal(x1_char, x2_char)
         np.testing.assert_array_equal(y1, y2)
 
 

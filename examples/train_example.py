@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split
 from anago.utils import load_data_and_labels
 from anago.trainer import Trainer
 from anago.models import BiLSTMCRF
-from anago.preprocessing import IndexTransformer, DynamicPreprocessor
+from anago.preprocessing import IndexTransformer
 
 
 def filter_embeddings(embeddings, vocab, dim):
@@ -39,24 +39,18 @@ def main(args):
     print('Transforming datasets...')
     p = IndexTransformer()
     p.fit(X, y)
-    x_train, y_train = p.transform(x_train, y_train)
-    x_valid, y_valid = p.transform(x_valid, y_valid)
-    dp = DynamicPreprocessor(num_labels=len(p._label_vocab))
     embeddings = filter_embeddings(embeddings, p._word_vocab, embeddings.vector_size)
 
     print('Building a model...')
-    model = BiLSTMCRF(char_vocab_size=len(p._char_vocab),
-                      word_vocab_size=len(p._word_vocab),
-                      num_labels=len(p._label_vocab),
+    model = BiLSTMCRF(char_vocab_size=p.char_vocab_size,
+                      word_vocab_size=p.word_vocab_size,
+                      num_labels=p.label_size,
                       embeddings=embeddings,
                       char_embedding_dim=50)
     model.build()
 
     print('Training the model...')
-    trainer = Trainer(model, preprocessor=dp, loss=model.get_loss(),
-                      inverse_transform=p.inverse_transform,
-                      log_dir=args.log_dir, checkpoint_path=args.save_dir,
-                      max_epoch=1)
+    trainer = Trainer(model, preprocessor=p)
     trainer.train(x_train, y_train, x_valid, y_valid)
 
     print('Saving the model...')

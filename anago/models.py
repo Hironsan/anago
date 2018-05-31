@@ -60,9 +60,9 @@ class BiLSTMCRF(BaseModel):
     """
 
     def __init__(self,
-                 word_vocab_size,
-                 char_vocab_size,
                  num_labels,
+                 word_vocab_size,
+                 char_vocab_size=None,
                  word_embedding_dim=100,
                  char_embedding_dim=25,
                  word_lstm_size=100,

@@ -2,7 +2,7 @@
 Wrapper class.
 """
 from anago.models import BiLSTMCRF
-from anago.preprocessing import IndexTransformer, DynamicPreprocessor
+from anago.preprocessing import IndexTransformer
 from anago.tagger import Tagger
 from anago.trainer import Trainer
 
@@ -26,7 +26,6 @@ class Sequence(object):
 
         self.model = None
         self.p = None
-        self.dp = None
 
         self.word_embedding_dim = word_embedding_dim
         self.char_embedding_dim = char_embedding_dim
@@ -58,9 +57,6 @@ class Sequence(object):
         # Build preprocessors.
         p = IndexTransformer(initial_vocab=self.initial_vocab, use_char=self.use_char)
         p.fit(x_train, y_train)
-        x_train, y_train = p.transform(x_train, y_train)
-        x_valid, y_valid = p.transform(x_valid, y_valid)
-        dp = DynamicPreprocessor(num_labels=p.label_size)
 
         # Build a model.
         model = BiLSTMCRF(char_vocab_size=p.char_vocab_size,
@@ -79,14 +75,12 @@ class Sequence(object):
         model.compile(loss=model.get_loss(), optimizer=self.optimizer)
 
         # Train the model.
-        trainer = Trainer(model, preprocessor=dp,
-                          inverse_transform=p.inverse_transform)
+        trainer = Trainer(model, preprocessor=p)
         trainer.train(x_train, y_train, x_valid, y_valid,
                       epochs=epochs, batch_size=batch_size,
                       verbose=verbose, callbacks=callbacks)
 
         self.p = p
-        self.dp = dp
         self.model = model
 
         return self
@@ -111,7 +105,6 @@ class Sequence(object):
         """
         if self.model:
             x_test = self.p.transform(x_test)
-            x_test = self.dp.transform(x_test)
             y_pred = self.model.predict(x_test)
             score = f1_score(y_test, y_pred)
             return score
@@ -135,7 +128,6 @@ class Sequence(object):
 
         # Load preprocessor
         self.p = IndexTransformer.load(preprocessor_file)
-        self.dp = DynamicPreprocessor(self.p.label_size)
 
         # Load the model.
         self.model = BiLSTMCRF.load(weights_file, params_file)

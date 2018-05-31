@@ -6,7 +6,7 @@ import os
 
 from anago.utils import load_data_and_labels
 from anago.models import BiLSTMCRF
-from anago.preprocessing import IndexTransformer, DynamicPreprocessor
+from anago.preprocessing import IndexTransformer
 from anago.trainer import Trainer
 
 
@@ -17,30 +17,23 @@ def main(args):
 
     print('Transforming datasets...')
     p = IndexTransformer(use_char=args.no_char_feature)
-    x_train, y_train = p.fit_transform(x_train, y_train)
-    x_valid, y_valid = p.transform(x_valid, y_valid)
-    dp = DynamicPreprocessor(num_labels=len(p._label_vocab))
+    p.fit(x_train, y_train)
 
     print('Building a model.')
     model = BiLSTMCRF(char_embedding_dim=args.char_emb_size,
                       word_embedding_dim=args.word_emb_size,
                       char_lstm_size=args.char_lstm_units,
                       word_lstm_size=args.word_lstm_units,
-                      char_vocab_size=len(p._char_vocab),
-                      word_vocab_size=len(p._word_vocab),
-                      num_labels=len(p._label_vocab),
+                      char_vocab_size=p.char_vocab_size,
+                      word_vocab_size=p.word_vocab_size,
+                      num_labels=p.label_size,
                       dropout=args.dropout,
                       use_char=args.no_char_feature,
                       use_crf=args.no_use_crf)
     model.build_model()
 
     print('Training the model...')
-    trainer = Trainer(model, model.get_loss(), preprocessor=dp,
-                      inverse_transform=p.inverse_transform,
-                      optimizer=args.optimizer, max_epoch=args.max_epoch,
-                      batch_size=args.batch_size, log_dir=args.log_dir,
-                      checkpoint_path=args.checkpoint_path,
-                      early_stopping=args.early_stopping)
+    trainer = Trainer(model, preprocessor=p)
     trainer.train(x_train, y_train, x_valid, y_valid)
 
     print('Saving the model...')

@@ -84,15 +84,19 @@ class IndexTransformer(BaseEstimator, TransformerMixin):
             y: label id matrix.
         """
         word_ids = [self._word_vocab.doc2id(doc) for doc in X]
+        word_ids = pad_sequences(word_ids, padding='post')
 
         if self._use_char:
             char_ids = [[self._char_vocab.doc2id(w) for w in doc] for doc in X]
+            char_ids = pad_nested_sequences(char_ids)
             features = [word_ids, char_ids]
         else:
             features = word_ids
 
         if y is not None:
             y = [self._label_vocab.doc2id(doc) for doc in y]
+            y = pad_sequences(y, padding='post')
+            y = to_categorical(y, self.label_size)
             return features, y
         else:
             return features

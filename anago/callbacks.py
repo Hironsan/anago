@@ -25,8 +25,8 @@ class F1score(Callback):
             y_pred = self.model.predict_on_batch(x_true)
             y_pred = np.argmax(y_pred, -1)
 
-            y_true = self.p(y_true)
-            y_pred = self.p(y_pred)
+            y_true = self.p.inverse_transform(y_true)
+            y_pred = self.p.inverse_transform(y_pred)
 
             label_true.extend(y_true)
             label_pred.extend(y_pred)

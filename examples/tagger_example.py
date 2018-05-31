@@ -23,8 +23,7 @@ def main(args):
     print('Loading objects...')
     model = BiLSTMCRF.load(args.weights_file, args.params_file)
     sp = IndexTransformer.load(args.preprocessor_file)
-    dp = DynamicPreprocessor(num_labels=len(sp.label_dic))
-    tagger = Tagger(model, preprocessor=sp, dynamic_preprocessor=dp, tokenizer=tokenize)
+    tagger = Tagger(model, preprocessor=sp, tokenizer=tokenize)
 
     print('Tagging a sentence...')
     res = tagger.analyze(args.sent)
