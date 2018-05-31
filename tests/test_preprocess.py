@@ -1,90 +1,147 @@
 import os
+import shutil
 import unittest
 
 import numpy as np
 
-from anago.utils import load_data_and_labels
 from anago.preprocessing import IndexTransformer, DynamicPreprocessor, pad_nested_sequences
 
 
-class TestStaticPreprocessor(unittest.TestCase):
+class TestIndexTransformer(unittest.TestCase):
 
     def setUp(self):
-        self.p = IndexTransformer()
+        self.x = [['a'], ['aa', 'ab'], ['AA', 'ab', 'ac']]
+        self.y = [['O'], ['B-A', 'I-A'], ['O', 'O', 'B-A']]
+        self.word_vocab_size = 6
+        self.char_vocab_size = 3
+        self.label_size = 3
 
     @classmethod
     def setUpClass(cls):
-        filename = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/ner/test.txt')
-        cls.X, cls.y = load_data_and_labels(filename)
+        cls.save_root = os.path.join(os.path.dirname(__file__), 'data')
+        cls.preprocessor_file = os.path.join(cls.save_root, 'preprocessor.pkl')
+        if not os.path.exists(cls.save_root):
+            os.mkdir(cls.save_root)
+        if os.path.exists(cls.preprocessor_file):
+            os.remove(cls.preprocessor_file)
 
-    def test_preprocessor(self):
-        X, y = self.p.fit_transform(self.X, self.y)
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls.save_root)
+
+    def test_vocab_size_lower_on(self):
+        word_vocab_size = 4
+        char_vocab_size = 4
+        label_size = 3
+
+        # lower is effective.
+        it = IndexTransformer(lower=True)
+        it.fit(self.x, self.y)
+        self.assertEqual(it.word_vocab_size, word_vocab_size + 2)  # pad, unk
+        self.assertEqual(it.char_vocab_size, char_vocab_size + 2)  # pad, unk
+        self.assertEqual(it.label_size, label_size + 1)            # pad
+
+    def test_vocab_size_lower_off(self):
+        word_vocab_size = 5
+        char_vocab_size = 4
+        label_size = 3
+
+        # lower is not effective.
+        it = IndexTransformer(lower=False)
+        it.fit(self.x, self.y)
+        self.assertEqual(it.word_vocab_size, word_vocab_size + 2)  # pad, unk
+        self.assertEqual(it.char_vocab_size, char_vocab_size + 2)  # pad, unk
+        self.assertEqual(it.label_size, label_size + 1)            # pad
+
+    def test_vocab_size_with_initial_vocab(self):
+        vocab = {'aaa', 'aab', 'aac'}
+        word_vocab_size = 4 + len(vocab)
+        char_vocab_size = 4
+        label_size = 3
+
+        # Add initial vocab.
+        it = IndexTransformer(lower=True, initial_vocab=vocab)
+        it.fit(self.x, self.y)
+        self.assertEqual(it.word_vocab_size, word_vocab_size + 2)  # pad, unk
+        self.assertEqual(it.char_vocab_size, char_vocab_size + 2)  # pad, unk
+        self.assertEqual(it.label_size, label_size + 1)            # pad
+
+    def test_transform_without_character(self):
+        # No character feature.
+        it = IndexTransformer(use_char=False)
+        x, y = it.fit_transform(self.x, self.y)
+
+        self.assertEqual(len(x), len(self.x))
+        self.assertEqual(len(y), len(self.y))
+
+        for doc, labels in zip(x, y):
+            for w, l in zip(doc, labels):
+                self.assertIsInstance(w, int)
+                self.assertIsInstance(l, int)
+
+    def test_transform_with_character(self):
+        # With character feature.
+        it = IndexTransformer(use_char=True)
+        X, y = it.fit_transform(self.x, self.y)
         words, chars = X
-        char, word = chars[0][0][0], words[0][0]
-        tag = y[0][0]
-        self.assertIsInstance(word, int)
-        self.assertIsInstance(char, int)
-        self.assertIsInstance(tag, int)
-        self.assertIsInstance(self.p.inverse_transform(y), list)
-        self.assertIsInstance(self.p.inverse_transform(y)[0], list)
-        self.assertIsInstance(self.p.inverse_transform(y)[0][0], str)
 
-    def test_transform_only_words(self):
-        self.p.fit(self.X, self.y)
-        X = self.p.transform(self.X)
+        self.assertEqual(len(words), len(self.x))
+        self.assertEqual(len(chars), len(self.x))
+        self.assertEqual(len(y), len(self.y))
+
+        for doc_w, doc_c, labels in zip(words, chars, y):
+            for w, cl, l in zip(doc_w, doc_c, labels):
+                self.assertIsInstance(w, int)
+                self.assertIsInstance(l, int)
+                for c in cl:
+                    self.assertIsInstance(c, int)
+
+    def test_transform_unknown_token(self):
+        it = IndexTransformer()
+        it.fit(self.x, self.y)
+
+        x_train, y_train = [['aaa']], [['X']]
+        X, y = it.transform(x_train, y_train)
         words, chars = X
-        char, word = chars[0][0][0], words[0][0]
-        self.assertIsInstance(word, int)
-        self.assertIsInstance(char, int)
 
-    def test_unknown_word(self):
-        self.p = IndexTransformer()
-        self.p.fit(self.X, self.y)
-        X = [['$unknownword$', 'あ']]
-        y = [['O', 'O']]
-        X, y = self.p.transform(X, y)
-        print(X)
+        self.assertEqual(len(words), len(x_train))
+        self.assertEqual(len(chars), len(x_train))
+        self.assertEqual(len(y), len(y_train))
 
-    def test_vocab_init(self):
-        unknown_word = 'unknownword'
-        X_test, y_test = [[unknown_word]], [['O']]
+        for doc_w, doc_c, labels in zip(words, chars, y):
+            for w, cl, l in zip(doc_w, doc_c, labels):
+                self.assertIsInstance(w, int)
+                self.assertIsInstance(l, int)
+                for c in cl:
+                    self.assertIsInstance(c, int)
 
-        self.p.fit(self.X, self.y)
-        x_pred = self.p.transform(X_test)
-        word_id = x_pred[0][0][0]
-        self.assertEqual(word_id, self.p.word_vocab_size - 1)
+    def test_inverse_transform(self):
+        it = IndexTransformer()
+        _, y = it.fit_transform(self.x, self.y)
+        inv_y = it.inverse_transform(y)
+        self.assertEqual(inv_y, self.y)
 
-        vocab_init = {unknown_word}
-        p = IndexTransformer(initial_vocab=vocab_init)
-        p.fit(self.X, self.y)
-        X_pred = p.transform(X_test)
-        word_id = X_pred[0][0][0]
-        self.assertNotEqual(word_id, self.p.word_vocab_size - 1)
+        x_train, y_train = [['aaa']], [['X']]
+        it = IndexTransformer()
+        _, y = it.transform(x_train, y_train)
+        inv_y = it.inverse_transform(y)
+        self.assertNotEqual(inv_y, self.y)
 
-    def test_save(self):
-        filepath = os.path.join(os.path.dirname(__file__), 'data/preprocessor.pkl')
-        self.p.save(filepath)
-        self.assertTrue(os.path.exists(filepath))
-        if os.path.exists(filepath):
-            os.remove(filepath)
+    def test_save_and_load(self):
+        it = IndexTransformer(lower=False)
+        x1, y1 = it.fit_transform(self.x, self.y)
 
-    def test_load(self):
-        self.p.fit(self.X, self.y)
-        filepath = os.path.join(os.path.dirname(__file__), 'data/preprocessor.pkl')
-        self.p.save(filepath)
-        self.assertTrue(os.path.exists(filepath))
+        self.assertFalse(os.path.exists(self.preprocessor_file))
+        it.save(self.preprocessor_file)
+        self.assertTrue(os.path.exists(self.preprocessor_file))
 
-        loaded_p = IndexTransformer.load(filepath)
-        x_test1, y_test1 = self.p.transform(self.X, self.y)
-        x_test2, y_test2 = loaded_p.transform(self.X, self.y)
-        np.testing.assert_array_equal(x_test1[0], x_test2[0])  # word
-        np.testing.assert_array_equal(x_test1[1], x_test2[1])  # char
-        np.testing.assert_array_equal(y_test1, y_test2)
-        if os.path.exists(filepath):
-            os.remove(filepath)
+        it = IndexTransformer.load(self.preprocessor_file)
+        x2, y2 = it.transform(self.x, self.y)
+        np.testing.assert_array_equal(x1, x2)
+        np.testing.assert_array_equal(y1, y2)
 
 
-class TestPreprocess(unittest.TestCase):
+class TestPadding(unittest.TestCase):
 
     def test_pad_nested_sequences(self):
         sequences = [[[1, 2, 3, 4], [1, 2], [1], [1, 2, 3]],

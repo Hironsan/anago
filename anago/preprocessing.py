@@ -83,14 +83,13 @@ class IndexTransformer(BaseEstimator, TransformerMixin):
             features: document id matrix.
             y: label id matrix.
         """
-        features = []
-
         word_ids = [self._word_vocab.doc2id(doc) for doc in X]
-        features.append(word_ids)
 
         if self._use_char:
             char_ids = [[self._char_vocab.doc2id(w) for w in doc] for doc in X]
-            features.append(char_ids)
+            features = [word_ids, char_ids]
+        else:
+            features = word_ids
 
         if y is not None:
             y = [self._label_vocab.doc2id(doc) for doc in y]
