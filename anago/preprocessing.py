@@ -132,8 +132,14 @@ class IndexTransformer(BaseEstimator, TransformerMixin):
         Returns:
             list: list of list of strings.
         """
+        def get_length(ary):
+            ls = ary.tolist()
+            try:
+                return ls.index(0)
+            except:
+                return len(ls)
         y = np.argmax(y, -1)
-        lengths = np.argmax(y, -1) + 1  # For removing pad. This assumes <pad> is smallest.
+        lengths = [get_length(ary) for ary in y]  # For removing pad. This assumes <pad> index is 0.
         inverse_y = [self._label_vocab.id2doc(ids) for ids in y]
         inverse_y = [iy[:l] for iy, l in zip(inverse_y, lengths)]
 
@@ -150,33 +156,6 @@ class IndexTransformer(BaseEstimator, TransformerMixin):
     @property
     def label_size(self):
         return len(self._label_vocab)
-
-    def save(self, file_path):
-        joblib.dump(self, file_path)
-
-    @classmethod
-    def load(cls, file_path):
-        p = joblib.load(file_path)
-
-        return p
-
-
-class DynamicPreprocessor(BaseEstimator, TransformerMixin):
-
-    def __init__(self, num_labels):
-        self.num_labels = num_labels
-
-    def transform(self, X, y=None):
-        words, chars = X
-        words = pad_sequences(words, padding='post')
-        chars = pad_nested_sequences(chars)
-
-        if y is not None:
-            y = pad_sequences(y, padding='post')
-            y = to_categorical(y, self.num_labels)
-        sents = [words, chars]
-
-        return (sents, y) if y is not None else sents
 
     def save(self, file_path):
         joblib.dump(self, file_path)

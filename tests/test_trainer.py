@@ -75,7 +75,8 @@ class TrainerTest(unittest.TestCase):
         model.build()
         model.compile(loss=model.get_loss(), optimizer='adam')
         trainer = Trainer(model, preprocessor=p)
-        trainer.train(self.x_train, self.y_train)
+        trainer.train(self.x_train, self.y_train,
+                      x_valid=self.x_valid, y_valid=self.y_valid)
 
     def test_save(self):
         # Train the model.

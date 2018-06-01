@@ -19,8 +19,13 @@ class TestUtils(unittest.TestCase):
         batch_size = 32
         p = IndexTransformer()
         p.fit(X, y)
-        steps, batches = batch_iter(X, y, batch_size, preprocessor=p)
-        self.assertEqual(len([_ for _ in batches]), steps)  # Todo: infinite loop
+        steps, generator = batch_iter(X, y, batch_size, shuffle=False, preprocessor=p)
+
+        y_gen = []
+        for _ in range(steps):
+            x1, y1 = next(generator)
+            y_gen.extend(y1)
+        self.assertEqual(len(y_gen), len(y))
 
 
 class TestVocabulary(unittest.TestCase):
