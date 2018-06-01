@@ -1,12 +1,13 @@
 """
 Wrapper class.
 """
+from seqeval.metrics import f1_score
+
 from anago.models import BiLSTMCRF
 from anago.preprocessing import IndexTransformer
 from anago.tagger import Tagger
 from anago.trainer import Trainer
-
-from seqeval.metrics import f1_score
+from anago.utils import filter_embeddings
 
 
 class Sequence(object):
@@ -54,11 +55,10 @@ class Sequence(object):
         Returns:
             self : object.
         """
-        # Build preprocessors.
         p = IndexTransformer(initial_vocab=self.initial_vocab, use_char=self.use_char)
         p.fit(x_train, y_train)
+        embeddings = filter_embeddings(self.embeddings, p._word_vocab.vocab, self.word_embedding_dim)
 
-        # Build a model.
         model = BiLSTMCRF(char_vocab_size=p.char_vocab_size,
                           word_vocab_size=p.word_vocab_size,
                           num_labels=p.label_size,
@@ -68,13 +68,12 @@ class Sequence(object):
                           char_lstm_size=self.char_lstm_size,
                           fc_dim=self.fc_dim,
                           dropout=self.dropout,
-                          embeddings=self.embeddings,
+                          embeddings=embeddings,
                           use_char=self.use_char,
                           use_crf=self.use_crf)
         model.build()
         model.compile(loss=model.get_loss(), optimizer=self.optimizer)
 
-        # Train the model.
         trainer = Trainer(model, preprocessor=p)
         trainer.train(x_train, y_train, x_valid, y_valid,
                       epochs=epochs, batch_size=batch_size,
@@ -109,7 +108,7 @@ class Sequence(object):
             score = f1_score(y_test, y_pred)
             return score
         else:
-            raise (OSError('Could not find a model. Call load(dir_path).'))
+            raise OSError('Could not find a model. Call load(dir_path).')
 
     def analyze(self, words):
         if self.model:
@@ -125,11 +124,7 @@ class Sequence(object):
     @classmethod
     def load(cls, weights_file, params_file, preprocessor_file):
         self = cls()
-
-        # Load preprocessor
         self.p = IndexTransformer.load(preprocessor_file)
-
-        # Load the model.
         self.model = BiLSTMCRF.load(weights_file, params_file)
 
         return self

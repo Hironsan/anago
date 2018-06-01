@@ -5,27 +5,7 @@ from pprint import pprint
 import numpy as np
 
 import anago
-from anago.utils import load_data_and_labels
-
-
-def load_glove(file):
-    """Loads GloVe vectors in numpy array.
-
-    Args:
-        file (str): a path to a glove file.
-
-    Return:
-        dict: a dict of numpy arrays.
-    """
-    model = {}
-    with open(file) as f:
-        for line in f:
-            line = line.split(' ')
-            word = line[0]
-            vector = np.array([float(val) for val in line[1:]])
-            model[word] = vector
-
-    return model
+from anago.utils import load_data_and_labels, load_glove
 
 get_path = lambda path: os.path.join(os.path.dirname(__file__), path)
 DATA_ROOT = get_path('../data/conll2003/en/ner')
@@ -48,9 +28,11 @@ class TestWrapper(unittest.TestCase):
         valid_path = os.path.join(DATA_ROOT, 'valid.txt')
         test_path = os.path.join(DATA_ROOT, 'test.txt')
 
-        cls.x_train, cls.y_train = load_data_and_labels(train_path)
-        cls.x_valid, cls.y_valid = load_data_and_labels(valid_path)
+        x_train, y_train = load_data_and_labels(train_path)
+        x_valid, y_valid = load_data_and_labels(valid_path)
         cls.x_test, cls.y_test = load_data_and_labels(test_path)
+        cls.x_train = np.r_[x_train, x_valid]
+        cls.y_train = np.r_[y_train, y_valid]
 
         cls.embeddings = load_glove(EMBEDDING_PATH)
         cls.words = 'President Obama is speaking at the White House.'.split()
@@ -58,20 +40,20 @@ class TestWrapper(unittest.TestCase):
 
     def test_train_without_pretrained_embedding(self):
         model = anago.Sequence()
-        model.fit(self.x_train, self.y_train, self.x_valid, self.y_valid)
+        model.fit(self.x_train, self.y_train, self.x_test, self.y_test, epochs=15)
 
     def test_train_with_pretrained_embedding(self):
         model = anago.Sequence(embeddings=self.embeddings)
-        model.fit(self.x_train, self.y_train, self.x_valid, self.y_valid)
+        model.fit(self.x_train, self.y_train, self.x_test, self.y_test)
 
     def test_eval(self):
         model = anago.Sequence()
-        model.fit(self.x_train, self.y_train, self.x_valid, self.y_valid)
+        model.fit(self.x_train, self.y_train, self.x_test, self.y_test)
         model.score(self.x_test, self.y_test)
 
     def test_analyze(self):
         model = anago.Sequence()
-        model.fit(self.x_train, self.y_train, self.x_valid, self.y_valid)
+        model.fit(self.x_train, self.y_train, self.x_test, self.y_test)
         res = model.analyze(self.words)
         pprint(res)
 
@@ -84,7 +66,7 @@ class TestWrapper(unittest.TestCase):
         preprocessor_file = ''
 
         model = anago.Sequence()
-        model.fit(self.x_train, self.y_train, self.x_valid, self.y_valid)
+        model.fit(self.x_train, self.y_train, self.x_test, self.y_test)
         model.save(weights_file, params_file, preprocessor_file)
         score1 = model.score(self.x_test, self.y_test)
 
@@ -99,8 +81,8 @@ class TestWrapper(unittest.TestCase):
 
     def test_train_vocab_init(self):
         vocab = set()
-        for words in np.r_[self.x_train, self.x_valid, self.x_test]:
+        for words in np.r_[self.x_train, self.x_test, self.x_test]:
             for word in words:
                 vocab.add(word)
-        model = anago.Sequence(initial_vocab=vocab)
-        model.fit(self.x_train, self.y_train, self.x_test, self.y_test)
+        model = anago.Sequence(initial_vocab=vocab, embeddings=self.embeddings)
+        model.fit(self.x_train, self.y_train, self.x_test, self.y_test, epochs=15)

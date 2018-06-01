@@ -2,7 +2,7 @@
 Custom callbacks.
 """
 from keras.callbacks import Callback
-from seqeval.metrics import f1_score
+from seqeval.metrics import f1_score, classification_report
 
 
 class F1score(Callback):
@@ -18,17 +18,16 @@ class F1score(Callback):
         label_pred = []
         for i in range(self.steps):
             x_true, y_true = next(self.generator)
+            lengths = x_true[-1]
             y_pred = self.model.predict_on_batch(x_true)
 
-            y_true = self.p.inverse_transform(y_true)
-            y_pred = self.p.inverse_transform(y_pred)
-            y_pred = [y_p[:len(y_t)] for y_t, y_p in zip(y_true, y_pred)]
-            for y_t, y_p in zip(y_true, y_pred):
-                assert len(y_t) == len(y_p)
+            y_true = self.p.inverse_transform(y_true, lengths)
+            y_pred = self.p.inverse_transform(y_pred, lengths)
 
             label_true.extend(y_true)
             label_pred.extend(y_pred)
 
         score = f1_score(label_true, label_pred)
         print(' - f1: {:04.2f}'.format(score * 100))
+        print(classification_report(label_true, label_pred))
         logs['f1'] = score

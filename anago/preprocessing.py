@@ -84,14 +84,15 @@ class IndexTransformer(BaseEstimator, TransformerMixin):
             y: label id matrix.
         """
         word_ids = [self._word_vocab.doc2id(doc) for doc in X]
+        lengths = np.array([len(doc) for doc in X], dtype='int32')
         word_ids = pad_sequences(word_ids, padding='post')
 
         if self._use_char:
             char_ids = [[self._char_vocab.doc2id(w) for w in doc] for doc in X]
             char_ids = pad_nested_sequences(char_ids)
-            features = [word_ids, char_ids]
+            features = [word_ids, char_ids, lengths]
         else:
-            features = word_ids
+            features = [word_ids, lengths]
 
         if y is not None:
             y = [self._label_vocab.doc2id(doc) for doc in y]
@@ -123,23 +124,17 @@ class IndexTransformer(BaseEstimator, TransformerMixin):
         """
         return self.fit(X, y).transform(X, y)
 
-    def inverse_transform(self, y):
+    def inverse_transform(self, y, lengths):
         """Return label strings.
 
         Args:
             y: label id matrix.
+            lengths: sentences length.
 
         Returns:
             list: list of list of strings.
         """
-        def get_length(ary):
-            ls = ary.tolist()
-            try:
-                return ls.index(0)
-            except:
-                return len(ls)
         y = np.argmax(y, -1)
-        lengths = [get_length(ary) for ary in y]  # For removing pad. This assumes <pad> index is 0.
         inverse_y = [self._label_vocab.id2doc(ids) for ids in y]
         inverse_y = [iy[:l] for iy, l in zip(inverse_y, lengths)]
 

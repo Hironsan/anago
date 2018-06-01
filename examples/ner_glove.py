@@ -1,28 +1,7 @@
 import os
 
-import numpy as np
 import anago
-from anago.utils import load_data_and_labels
-
-
-def load_glove(file):
-    """Loads GloVe vectors in numpy array.
-
-    Args:
-        file (str): a path to a glove file.
-
-    Return:
-        dict: a dict of numpy arrays.
-    """
-    model = {}
-    with open(file) as f:
-        for line in f:
-            line = line.split(' ')
-            word = line[0]
-            vector = np.array([float(val) for val in line[1:]])
-            model[word] = vector
-
-    return model
+from anago.utils import load_data_and_labels, load_glove
 
 
 if __name__ == '__main__':

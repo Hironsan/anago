@@ -5,29 +5,10 @@ import numpy as np
 from gensim.models.keyedvectors import KeyedVectors
 from sklearn.model_selection import train_test_split
 
-from anago.utils import load_data_and_labels
+from anago.utils import load_data_and_labels, filter_embeddings
 from anago.trainer import Trainer
 from anago.models import BiLSTMCRF
 from anago.preprocessing import IndexTransformer
-
-
-def filter_embeddings(embeddings, vocab, dim):
-    """Loads word vectors in numpy array.
-
-    Args:
-        embeddings (dict): a dictionary of numpy array.
-        vocab (dict): word_index lookup table.
-
-    Returns:
-        numpy array: an array of word embeddings.
-    """
-    _embeddings = np.zeros([len(vocab), dim])
-    for word in vocab:
-        if word in embeddings:
-            word_idx = vocab[word]
-            _embeddings[word_idx] = embeddings[word]
-
-    return _embeddings
 
 
 def main(args):

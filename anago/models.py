@@ -4,7 +4,7 @@ Model definition.
 import json
 
 import keras.backend as K
-from keras.layers import Dense, LSTM, Bidirectional, Embedding, Input, Dropout, Lambda, Activation
+from keras.layers import Dense, LSTM, Bidirectional, Embedding, Input, Dropout, Lambda, Activation, Reshape
 from keras.layers.merge import Concatenate
 from keras.models import Model
 
@@ -106,6 +106,7 @@ class BiLSTMCRF(BaseModel):
     def build(self):
         # build word embedding
         word_ids = Input(batch_shape=(None, None), dtype='int32')
+        lengths = Input(batch_shape=(None, None), dtype='int32')
         inputs = [word_ids]
         if self._embeddings is None:
             word_embeddings = Embedding(input_dim=self._word_vocab_size + 1,
@@ -136,12 +137,14 @@ class BiLSTMCRF(BaseModel):
 
             # combine characters and word
             word_embeddings = Concatenate(axis=-1)([word_embeddings, char_embeddings])
+        inputs.append(lengths)
 
         word_embeddings = Dropout(self._dropout)(word_embeddings)
         z = Bidirectional(LSTM(units=self._word_lstm_size, return_sequences=True))(word_embeddings)
         z = Dropout(self._dropout)(z)
         z = Dense(self._fc_dim, activation='tanh')(z)
-        z = Dense(self._num_labels)(z)
+        z = Dense(self._fc_dim, activation='tanh')(z)
+        # z = Dense(self._num_labels)(z)
 
         if self._use_crf:
             crf = CRF(self._num_labels, sparse_target=False)

@@ -5,25 +5,16 @@ import argparse
 import os
 from pprint import pprint
 
-import MeCab
-
 from anago.tagger import Tagger
 from anago.models import BiLSTMCRF
-from anago.preprocessing import IndexTransformer, DynamicPreprocessor
-
-tokenizer = MeCab.Tagger('-Owakati')
-
-
-def tokenize(text):
-    words = tokenizer.parse(text).rstrip().split()
-    return words
+from anago.preprocessing import IndexTransformer
 
 
 def main(args):
     print('Loading objects...')
     model = BiLSTMCRF.load(args.weights_file, args.params_file)
-    sp = IndexTransformer.load(args.preprocessor_file)
-    tagger = Tagger(model, preprocessor=sp, tokenizer=tokenize)
+    it = IndexTransformer.load(args.preprocessor_file)
+    tagger = Tagger(model, preprocessor=it)
 
     print('Tagging a sentence...')
     res = tagger.analyze(args.sent)
