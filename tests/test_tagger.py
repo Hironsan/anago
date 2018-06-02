@@ -1,6 +1,8 @@
 import os
 import unittest
-from pprint import pprint
+
+import numpy as np
+import tensorflow as tf
 
 import anago
 from anago.models import BiLSTMCRF
@@ -10,7 +12,7 @@ DATA_ROOT = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/ner')
 SAVE_ROOT = os.path.join(os.path.dirname(__file__), 'models')
 
 
-class TaggerTest(unittest.TestCase):
+class TestTagger(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -29,18 +31,38 @@ class TaggerTest(unittest.TestCase):
 
         cls.sent = 'President Obama is speaking at the White House.'
 
-    def test_predict(self):
-        res = self.tagger.predict(self.sent)
-        pprint(res)
-        res = self.tagger.predict('Obama')
-        pprint(res)
-        res = self.tagger.predict('')
-        pprint(res)
+    def test_predict_proba(self):
+        res = self.tagger.predict_proba(self.sent)
+        self.assertIsInstance(res, np.ndarray)
+        self.assertEqual(len(res), len(self.sent.split()))
+
+        res = self.tagger.predict_proba('Obama')
+        self.assertIsInstance(res, np.ndarray)
+        self.assertEqual(len(res), len('Obama'.split()))
+
+        with self.assertRaises(tf.errors.InvalidArgumentError):
+            res = self.tagger.predict_proba('')
 
     def test_analyze(self):
         res = self.tagger.analyze(self.sent)
-        pprint(res)
+        self.assertIsInstance(res, dict)
+        self.assertIn('words', res)
+        self.assertIn('entities', res)
+        self.assertIsInstance(res['words'], list)
+        self.assertIsInstance(res['entities'], list)
+        for w in res['words']:
+            self.assertIsInstance(w, str)
+        for e in res['entities']:
+            self.assertIsInstance(e, dict)
+            self.assertIn('beginOffset', e)
+            self.assertIn('endOffset', e)
+            self.assertIn('score', e)
+            self.assertIn('text', e)
+            self.assertIn('type', e)
 
-    def test_label(self):
-        res = self.tagger.label(self.sent)
-        pprint(res)
+    def test_predict_labels(self):
+        res = self.tagger.predict(self.sent)
+        self.assertEqual(len(res), len(self.sent.split()))
+        self.assertIsInstance(res, list)
+        for tag in res:
+            self.assertIsInstance(tag, str)

@@ -124,7 +124,7 @@ class IndexTransformer(BaseEstimator, TransformerMixin):
         """
         return self.fit(X, y).transform(X, y)
 
-    def inverse_transform(self, y, lengths):
+    def inverse_transform(self, y, lengths=None):
         """Return label strings.
 
         Args:
@@ -136,7 +136,8 @@ class IndexTransformer(BaseEstimator, TransformerMixin):
         """
         y = np.argmax(y, -1)
         inverse_y = [self._label_vocab.id2doc(ids) for ids in y]
-        inverse_y = [iy[:l] for iy, l in zip(inverse_y, lengths)]
+        if lengths is not None:
+            inverse_y = [iy[:l] for iy, l in zip(inverse_y, lengths)]
 
         return inverse_y
 
