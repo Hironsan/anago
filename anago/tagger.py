@@ -124,7 +124,7 @@ class Tagger(object):
         return res
 
     def predict(self, text):
-        """Predict using the linear model.
+        """Predict using the model.
 
         Args:
             text: string, the input text.
