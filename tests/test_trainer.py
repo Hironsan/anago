@@ -34,7 +34,7 @@ class TrainerTest(unittest.TestCase):
         self.x_train, self.y_train = load_data_and_labels(train_path)
         self.x_valid, self.y_valid = load_data_and_labels(valid_path)
 
-        # Transform datasets.
+        # Fit transformer.
         self.p = IndexTransformer()
         self.p.fit(self.x_train, self.y_train)
 
