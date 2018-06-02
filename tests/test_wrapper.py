@@ -35,38 +35,39 @@ class TestWrapper(unittest.TestCase):
         cls.y_train = np.r_[y_train, y_valid]
 
         cls.embeddings = load_glove(EMBEDDING_PATH)
-        cls.words = 'President Obama is speaking at the White House.'.split()
+        cls.text = 'President Obama is speaking at the White House.'
         cls.dir_path = 'models'
 
     def test_train_without_pretrained_embedding(self):
         model = anago.Sequence()
-        model.fit(self.x_train, self.y_train, self.x_test, self.y_test, epochs=15)
+        model.fit(self.x_train, self.y_train, self.x_test, self.y_test)
 
     def test_train_with_pretrained_embedding(self):
         model = anago.Sequence(embeddings=self.embeddings)
         model.fit(self.x_train, self.y_train, self.x_test, self.y_test)
 
-    def test_eval(self):
+    def test_score(self):
         model = anago.Sequence()
-        model.fit(self.x_train, self.y_train, self.x_test, self.y_test)
-        model.score(self.x_test, self.y_test)
+        model.fit(self.x_train, self.y_train)
+        score = model.score(self.x_test, self.y_test)
+        self.assertIsInstance(score, float)
 
     def test_analyze(self):
         model = anago.Sequence()
-        model.fit(self.x_train, self.y_train, self.x_test, self.y_test)
-        res = model.analyze(self.words)
+        model.fit(self.x_train, self.y_train)
+        res = model.analyze(self.text)
         pprint(res)
 
         self.assertIn('words', res)
         self.assertIn('entities', res)
 
     def test_save_and_load(self):
-        weights_file = ''
-        params_file = ''
-        preprocessor_file = ''
+        weights_file = os.path.join(SAVE_ROOT, 'weights.h5')
+        params_file = os.path.join(SAVE_ROOT, 'params.json')
+        preprocessor_file = os.path.join(SAVE_ROOT, 'preprocessor.pickle')
 
         model = anago.Sequence()
-        model.fit(self.x_train, self.y_train, self.x_test, self.y_test)
+        model.fit(self.x_train, self.y_train)
         model.save(weights_file, params_file, preprocessor_file)
         score1 = model.score(self.x_test, self.y_test)
 
@@ -85,4 +86,4 @@ class TestWrapper(unittest.TestCase):
             for word in words:
                 vocab.add(word)
         model = anago.Sequence(initial_vocab=vocab, embeddings=self.embeddings)
-        model.fit(self.x_train, self.y_train, self.x_test, self.y_test, epochs=15)
+        model.fit(self.x_train, self.y_train, self.x_test, self.y_test)

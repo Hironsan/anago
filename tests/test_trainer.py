@@ -13,7 +13,7 @@ LOG_ROOT = get_path('logs')     # checkpoint, tensorboard
 EMBEDDING_PATH = get_path('../data/glove.6B/glove.6B.100d.txt')
 
 
-class TrainerTest(unittest.TestCase):
+class TestTrainer(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):

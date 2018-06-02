@@ -85,8 +85,8 @@ class Tagger(object):
             res: dict.
 
         Examples:
-            >>> words = 'President Obama is speaking at the White House.'.split()
-            >>> model.analyze(words)
+            >>> text = 'President Obama is speaking at the White House.'
+            >>> model.analyze(text)
             {
                 "words": [
                     "President",

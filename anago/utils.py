@@ -260,6 +260,8 @@ def filter_embeddings(embeddings, vocab, dim):
     Returns:
         numpy array: an array of word embeddings.
     """
+    if not isinstance(embeddings, dict):
+        return
     _embeddings = np.zeros([len(vocab), dim])
     for word in vocab:
         if word in embeddings:

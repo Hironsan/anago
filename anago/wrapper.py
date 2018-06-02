@@ -23,10 +23,13 @@ class Sequence(object):
                  use_char=True,
                  use_crf=True,
                  initial_vocab=None,
-                 optimizer='adam'):
+                 optimizer='adam',
+                 tokenizer=str.split):
 
         self.model = None
         self.p = None
+        self.tagger = None
+        self.tokenizer = tokenizer
 
         self.word_embedding_dim = word_embedding_dim
         self.char_embedding_dim = char_embedding_dim
@@ -41,19 +44,24 @@ class Sequence(object):
         self.optimizer = optimizer
 
     def fit(self, x_train, y_train, x_valid=None, y_valid=None,
-            epochs=1, batch_size=32, verbose=1, callbacks=None):
-        """Fit the model according to the given training data.
+            epochs=1, batch_size=32, verbose=1, callbacks=None, shuffle=True):
+        """Fit the model for a fixed number of epochs.
 
         Args:
-            X : {array-like, sparse matrix}, shape (n_samples, n_features)
-            Training vector, where n_samples is the number of samples and
-            n_features is the number of features.
-
-            y : array-like, shape (n_samples,)
-            Target vector relative to X.
-
-        Returns:
-            self : object.
+            x_train: list of training data.
+            y_train: list of training target (label) data.
+            x_valid: list of validation data.
+            y_valid: list of validation target (label) data.
+            batch_size: Integer.
+                Number of samples per gradient update.
+                If unspecified, `batch_size` will default to 32.
+            epochs: Integer. Number of epochs to train the model.
+            verbose: Integer. 0, 1, or 2. Verbosity mode.
+                0 = silent, 1 = progress bar, 2 = one line per epoch.
+            callbacks: List of `keras.callbacks.Callback` instances.
+                List of callbacks to apply during training.
+            shuffle: Boolean (whether to shuffle the training data
+                before each epoch). `shuffle` will default to True.
         """
         p = IndexTransformer(initial_vocab=self.initial_vocab, use_char=self.use_char)
         p.fit(x_train, y_train)
@@ -77,45 +85,49 @@ class Sequence(object):
         trainer = Trainer(model, preprocessor=p)
         trainer.train(x_train, y_train, x_valid, y_valid,
                       epochs=epochs, batch_size=batch_size,
-                      verbose=verbose, callbacks=callbacks)
+                      verbose=verbose, callbacks=callbacks,
+                      shuffle=shuffle)
 
         self.p = p
         self.model = model
 
-        return self
-
     def score(self, x_test, y_test):
-        """Returns the mean accuracy on the given test data and labels.
-
-        In multi-label classification, this is the subset accuracy
-        which is a harsh metric since you require for each sample that
-        each label set be correctly predicted.
+        """Returns the f1-micro score on the given test data and labels.
 
         Args:
-            X : array-like, shape = (n_samples, n_features)
+            x_test : array-like, shape = (n_samples, sent_length)
             Test samples.
 
-            y : array-like, shape = (n_samples) or (n_samples, n_outputs)
-            True labels for X.
+            y_test : array-like, shape = (n_samples, sent_length)
+            True labels for x.
 
         Returns:
-            score : float
-            Mean accuracy of self.predict(X) wrt. y.
+            score : float, f1-micro score.
         """
         if self.model:
             x_test = self.p.transform(x_test)
+            length = x_test[-1]
             y_pred = self.model.predict(x_test)
+            y_pred = self.p.inverse_transform(y_pred, length)
             score = f1_score(y_test, y_pred)
             return score
         else:
             raise OSError('Could not find a model. Call load(dir_path).')
 
-    def analyze(self, words):
-        if self.model:
-            tagger = Tagger(self.model, preprocessor=self.p)
-            return tagger.analyze(words)
-        else:
-            raise (OSError('Could not find a model. Call load(dir_path).'))
+    def analyze(self, text):
+        """Analyze text and return pretty format.
+
+        Args:
+            text: string, the input text.
+
+        Returns:
+            res: dict.
+        """
+        if not self.tagger:
+            self.tagger = Tagger(self.model, preprocessor=self.p,
+                                 tokenizer=self.tokenizer)
+
+        return self.tagger.analyze(text)
 
     def save(self, weights_file, params_file, preprocessor_file):
         self.p.save(preprocessor_file)
