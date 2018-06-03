@@ -88,7 +88,7 @@ To download a pre-trained model, call `download` function:
 ```python
 >>> from anago.utils import download
 
->>> url = 'https://storage.googleapis.com/chakki/datasets/public/ner/models_en.zip'
+>>> url = 'https://storage.googleapis.com/chakki/datasets/public/ner/model_en.zip'
 >>> download(url)
 'Downloading...'
 'Complete!'

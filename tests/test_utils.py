@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from anago.utils import load_data_and_labels, batch_iter, Vocabulary
+from anago.utils import load_data_and_labels, batch_iter, Vocabulary, download
 from anago.preprocessing import IndexTransformer
 
 
@@ -26,6 +26,18 @@ class TestUtils(unittest.TestCase):
             x1, y1 = next(generator)
             y_gen.extend(y1)
         self.assertEqual(len(y_gen), len(y))
+
+    def test_download(self):
+        save_dir = os.path.join(os.path.dirname(__file__), 'models')
+        url = 'https://storage.googleapis.com/chakki/datasets/public/ner/model_en.zip'
+        download(url, save_dir)
+
+        weights_file = os.path.join(save_dir, 'weights.h5')
+        params_file = os.path.join(save_dir, 'params.json')
+        preprocessor_file = os.path.join(save_dir, 'preprocessor.pickle')
+        self.assertTrue(os.path.exists(weights_file))
+        self.assertTrue(os.path.exists(params_file))
+        self.assertTrue(os.path.exists(preprocessor_file))
 
 
 class TestVocabulary(unittest.TestCase):
