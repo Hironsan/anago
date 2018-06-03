@@ -6,7 +6,7 @@ from anago.utils import load_data_and_labels, load_glove
 
 if __name__ == '__main__':
     DATA_ROOT = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/ner')
-    EMBEDDING_PATH = 'glove.6B.100d.txt'
+    EMBEDDING_PATH = os.path.join(os.path.dirname(__file__), '../data/glove.6B/glove.6B.100d.txt')
 
     train_path = os.path.join(DATA_ROOT, 'train.txt')
     valid_path = os.path.join(DATA_ROOT, 'valid.txt')
