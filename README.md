@@ -90,6 +90,8 @@ To download a pre-trained model, call `download` function:
 
 >>> url = 'https://storage.googleapis.com/chakki/datasets/public/ner/models_en.zip'
 >>> download(url)
+'Downloading...'
+'Complete!'
 >>> model = anago.Sequence.load('weights.h5', 'params.json', 'preprocessor.pickle')
 >>> model.score(x_test, y_test)
 90.61
