@@ -109,7 +109,7 @@ class BiLSTMCRF(BaseModel):
         lengths = Input(batch_shape=(None, None), dtype='int32')
         inputs = [word_ids]
         if self._embeddings is None:
-            word_embeddings = Embedding(input_dim=self._word_vocab_size + 1,
+            word_embeddings = Embedding(input_dim=self._word_vocab_size,
                                         output_dim=self._word_embedding_dim,
                                         mask_zero=True)(word_ids)
         else:
