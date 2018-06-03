@@ -103,7 +103,7 @@ class TestWrapper(unittest.TestCase):
         preprocessor_file = os.path.join(SAVE_ROOT, 'preprocessor.pickle')
 
         log_dir = os.path.join(os.path.dirname(__file__), 'logs')
-        file_name = '_'.join(['model_weights', '{epoch:02d}', '{f1:2.2f}']) + '.h5'
+        file_name = '_'.join(['model_weights', '{epoch:02d}', '{f1:2.4f}']) + '.h5'
         callback = ModelCheckpoint(os.path.join(log_dir, file_name),
                                    monitor='f1',
                                    save_weights_only=True)

@@ -83,6 +83,18 @@ Or tagging text on new data:
 }
 ```
 
+To download a pre-trained model, call `download` function:
+
+```python
+>>> from anago.utils import download
+
+>>> url = 'https://storage.googleapis.com/chakki/datasets/public/ner/models_en.zip'
+>>> download(url)
+>>> model = anago.Sequence.load('weights.h5', 'params.json', 'preprocessor.pickle')
+>>> model.score(x_test, y_test)
+90.61
+```
+
 ## Feature Support
 
 anaGo supports following features:
@@ -95,6 +107,7 @@ anaGo supports following features:
 * GPU Support
 * Character feature
 * CRF Support
+* Custom Callback Support
 
 anaGo officially supports Python 3.4–3.6.
 
@@ -142,19 +155,6 @@ Blackburn	I-PER
 ```
 
 anaGo supports pre-trained word embeddings like [GloVe vectors](https://nlp.stanford.edu/projects/glove/).
-
-### Downloading pre-trained models
-
-To download a pre-trained model, call `download` function:
-
-```python
-from anago.utils import download
-
-dir_path = 'models'
-url = 'https://storage.googleapis.com/chakki/datasets/public/models.zip'
-download(url, dir_path)
-model = anago.Sequence.load(dir_path)
-```
 -->
 
 ## Reference
