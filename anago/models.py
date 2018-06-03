@@ -144,7 +144,6 @@ class BiLSTMCRF(BaseModel):
         z = Dropout(self._dropout)(z)
         z = Dense(self._fc_dim, activation='tanh')(z)
         z = Dense(self._fc_dim, activation='tanh')(z)
-        # z = Dense(self._num_labels)(z)
 
         if self._use_crf:
             crf = CRF(self._num_labels, sparse_target=False)
@@ -152,7 +151,7 @@ class BiLSTMCRF(BaseModel):
             pred = crf(z)
         else:
             self._loss = 'categorical_crossentropy'
-            pred = Activation('softmax')(z)
+            pred = Dense(self._num_labels, activation='softmax')(z)
 
         self.model = Model(inputs=inputs, outputs=pred)
 
