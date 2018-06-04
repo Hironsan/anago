@@ -4,7 +4,7 @@ import os
 import sys
 
 from setuptools import find_packages, setup
-from m2r import parse_from_file
+# from m2r import parse_from_file
 
 # Package meta-data.
 NAME = 'anago'
@@ -16,7 +16,8 @@ LICENSE = 'MIT'
 
 here = os.path.abspath(os.path.dirname(__file__))
 
-long_description = parse_from_file(os.path.join(here, 'README.md'))
+# long_description = parse_from_file(os.path.join(here, 'README.md'))
+long_description = open(os.path.join(here, 'README.md')).read()
 
 if sys.argv[-1] == 'publish':
     os.system('python setup.py sdist bdist_wheel upload')
@@ -30,7 +31,7 @@ required = [
 
 setup(
     name=NAME,
-    version='1.0.3',
+    version='1.0.5',
     description=DESCRIPTION,
     long_description=long_description,
     author=AUTHOR,
