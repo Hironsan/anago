@@ -23,13 +23,11 @@ class Sequence(object):
                  use_char=True,
                  use_crf=True,
                  initial_vocab=None,
-                 optimizer='adam',
-                 tokenizer=str.split):
+                 optimizer='adam'):
 
         self.model = None
         self.p = None
         self.tagger = None
-        self.tokenizer = tokenizer
 
         self.word_embedding_dim = word_embedding_dim
         self.char_embedding_dim = char_embedding_dim
@@ -114,18 +112,20 @@ class Sequence(object):
         else:
             raise OSError('Could not find a model. Call load(dir_path).')
 
-    def analyze(self, text):
+    def analyze(self, text, tokenizer=str.split):
         """Analyze text and return pretty format.
 
         Args:
             text: string, the input text.
+            tokenizer: Tokenize input sentence. Default tokenizer is `str.split`.
 
         Returns:
             res: dict.
         """
         if not self.tagger:
-            self.tagger = Tagger(self.model, preprocessor=self.p,
-                                 tokenizer=self.tokenizer)
+            self.tagger = Tagger(self.model,
+                                 preprocessor=self.p,
+                                 tokenizer=tokenizer)
 
         return self.tagger.analyze(text)
 

@@ -31,7 +31,7 @@ required = [
 
 setup(
     name=NAME,
-    version='1.0.5',
+    version='1.0.6',
     description=DESCRIPTION,
     long_description=long_description,
     author=AUTHOR,
