@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import io
 import os
 import sys
 
 from setuptools import find_packages, setup
+# from m2r import parse_from_file
 
 # Package meta-data.
 NAME = 'anago'
@@ -15,24 +15,23 @@ AUTHOR = 'Hironsan'
 LICENSE = 'MIT'
 
 here = os.path.abspath(os.path.dirname(__file__))
-with io.open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
-    long_description = '\n' + f.read()
 
-about = {}
-with open(os.path.join(here, NAME, '__version__.py')) as f:
-    exec(f.read(), about)
+# long_description = parse_from_file(os.path.join(here, 'README.md'))
+long_description = open(os.path.join(here, 'README.md')).read()
 
 if sys.argv[-1] == 'publish':
     os.system('python setup.py sdist bdist_wheel upload')
     sys.exit()
 
 required = [
-    'Keras>=2.0.5', 'h5py>=2.7.0', 'scikit-learn>0.18.2', 'numpy>=1.13.0', 'tensorflow>=1.2.0',
+    'Keras>=2.1.6', 'h5py>=2.7.1', 'scikit-learn>=0.19.1',
+    'numpy>=1.14.3', 'tensorflow>=1.8.0', 'requests>=2.18.4',
+    'seqeval>=0.0.3'
 ]
 
 setup(
     name=NAME,
-    version=about['__version__'],
+    version='1.0.6',
     description=DESCRIPTION,
     long_description=long_description,
     author=AUTHOR,
