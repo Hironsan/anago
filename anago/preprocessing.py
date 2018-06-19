@@ -84,15 +84,14 @@ class IndexTransformer(BaseEstimator, TransformerMixin):
             y: label id matrix.
         """
         word_ids = [self._word_vocab.doc2id(doc) for doc in X]
-        lengths = np.array([len(doc) for doc in X], dtype='int32')
         word_ids = pad_sequences(word_ids, padding='post')
 
         if self._use_char:
             char_ids = [[self._char_vocab.doc2id(w) for w in doc] for doc in X]
             char_ids = pad_nested_sequences(char_ids)
-            features = [word_ids, char_ids, lengths]
+            features = [word_ids, char_ids]
         else:
-            features = [word_ids, lengths]
+            features = word_ids
 
         if y is not None:
             y = [self._label_vocab.doc2id(doc) for doc in y]

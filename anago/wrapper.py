@@ -104,9 +104,9 @@ class Sequence(object):
         """
         if self.model:
             x_test = self.p.transform(x_test)
-            length = x_test[-1]
+            lengths = map(len, y_test)
             y_pred = self.model.predict(x_test)
-            y_pred = self.p.inverse_transform(y_pred, length)
+            y_pred = self.p.inverse_transform(y_pred, lengths)
             score = f1_score(y_test, y_pred)
             return score
         else:

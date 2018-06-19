@@ -3,8 +3,7 @@ Model definition.
 """
 import json
 
-import keras.backend as K
-from keras.layers import Dense, LSTM, Bidirectional, Embedding, Input, Dropout, Lambda, Activation, Reshape
+from keras.layers import Dense, LSTM, Bidirectional, Embedding, Input, Dropout, TimeDistributed
 from keras.layers.merge import Concatenate
 from keras.models import Model
 
@@ -106,7 +105,6 @@ class BiLSTMCRF(BaseModel):
     def build(self):
         # build word embedding
         word_ids = Input(batch_shape=(None, None), dtype='int32')
-        lengths = Input(batch_shape=(None, None), dtype='int32')
         inputs = [word_ids]
         if self._embeddings is None:
             word_embeddings = Embedding(input_dim=self._word_vocab_size,
@@ -126,23 +124,11 @@ class BiLSTMCRF(BaseModel):
                                         output_dim=self._char_embedding_dim,
                                         mask_zero=True
                                         )(char_ids)
-            s = K.shape(char_embeddings)
-            char_embeddings = Lambda(lambda x: K.reshape(x, shape=(-1, s[-2], self._char_embedding_dim)))(char_embeddings)
-
-            fwd_state = LSTM(self._char_lstm_size, return_state=True)(char_embeddings)[-2]
-            bwd_state = LSTM(self._char_lstm_size, return_state=True, go_backwards=True)(char_embeddings)[-2]
-            char_embeddings = Concatenate(axis=-1)([fwd_state, bwd_state])
-            # shape = (batch size, max sentence length, char hidden size)
-            char_embeddings = Lambda(lambda x: K.reshape(x, shape=[-1, s[1], 2 * self._char_lstm_size]))(char_embeddings)
-
-            # combine characters and word
-            word_embeddings = Concatenate(axis=-1)([word_embeddings, char_embeddings])
-        inputs.append(lengths)
+            char_embeddings = TimeDistributed(Bidirectional(LSTM(self._char_lstm_size)))(char_embeddings)
+            word_embeddings = Concatenate()([word_embeddings, char_embeddings])
 
         word_embeddings = Dropout(self._dropout)(word_embeddings)
         z = Bidirectional(LSTM(units=self._word_lstm_size, return_sequences=True))(word_embeddings)
-        z = Dropout(self._dropout)(z)
-        z = Dense(self._fc_dim, activation='tanh')(z)
         z = Dense(self._fc_dim, activation='tanh')(z)
 
         if self._use_crf:

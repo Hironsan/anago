@@ -67,7 +67,6 @@ class TestIndexTransformer(unittest.TestCase):
         # No character feature.
         it = IndexTransformer(use_char=False)
         x, y = it.fit_transform(self.x, self.y)
-        x, length = x
 
         # Check sequence length.
         self.assertEqual(len(x), len(self.x))
@@ -81,7 +80,7 @@ class TestIndexTransformer(unittest.TestCase):
         # With character feature.
         it = IndexTransformer(use_char=True)
         X, y = it.fit_transform(self.x, self.y)
-        words, chars, length = X
+        words, chars = X
 
         # Check sequence length.
         self.assertEqual(len(words), len(self.x))
@@ -99,7 +98,7 @@ class TestIndexTransformer(unittest.TestCase):
 
         x_train, y_train = [['aaa']], [['X']]
         X, y = it.transform(x_train, y_train)
-        words, chars, length = X
+        words, chars = X
 
         # Check sequence length.
         self.assertEqual(len(words), len(x_train))
@@ -114,8 +113,8 @@ class TestIndexTransformer(unittest.TestCase):
     def test_inverse_transform(self):
         it = IndexTransformer()
         x, y = it.fit_transform(self.x, self.y)
-        _, _, length = x
-        inv_y = it.inverse_transform(y, length)
+        lengths = map(len, self.y)
+        inv_y = it.inverse_transform(y, lengths)
         self.assertEqual(inv_y, self.y)
 
     def test_inverse_transform_unknown_token(self):
@@ -137,7 +136,7 @@ class TestIndexTransformer(unittest.TestCase):
     def test_save_and_load(self):
         it = IndexTransformer(lower=False)
         x1, y1 = it.fit_transform(self.x, self.y)
-        x1_word, x1_char, x1_length = x1
+        x1_word, x1_char = x1
 
         self.assertFalse(os.path.exists(self.preprocessor_file))
         it.save(self.preprocessor_file)
@@ -145,7 +144,7 @@ class TestIndexTransformer(unittest.TestCase):
 
         it = IndexTransformer.load(self.preprocessor_file)
         x2, y2 = it.transform(self.x, self.y)
-        x2_word, x2_char, x2_length = x2
+        x2_word, x2_char = x2
 
         np.testing.assert_array_equal(x1_word, x2_word)
         np.testing.assert_array_equal(x1_char, x2_char)
