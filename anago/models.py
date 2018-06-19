@@ -10,30 +10,22 @@ from keras.models import Model, model_from_json
 from anago.layers import CRF
 
 
-class BaseModel(object):
-
-    def __init__(self):
-        self.model = None
-
-    def save(self, weights_file, params_file):
-        with open(params_file, 'w') as f:
-            params = self.model.to_json()
-            json.dump(json.loads(params), f, sort_keys=True, indent=4)
-            self.model.save_weights(weights_file)
-
-    @classmethod
-    def load(cls, weights_file, params_file):
-        with open(params_file) as f:
-            model = model_from_json(f.read(), custom_objects={'CRF': CRF})
-            model.load_weights(weights_file)
-
-        return model
-
-    def __getattr__(self, name):
-        return getattr(self.model, name)
+def save_model(model, weights_file, params_file):
+    with open(params_file, 'w') as f:
+        params = model.to_json()
+        json.dump(json.loads(params), f, sort_keys=True, indent=4)
+        model.save_weights(weights_file)
 
 
-class BiLSTMCRF(BaseModel):
+def load_model(weights_file, params_file):
+    with open(params_file) as f:
+        model = model_from_json(f.read(), custom_objects={'CRF': CRF})
+        model.load_weights(weights_file)
+
+    return model
+
+
+class BiLSTMCRF(object):
     """A Keras implementation of BiLSTM-CRF for sequence labeling.
 
     References
@@ -85,30 +77,31 @@ class BiLSTMCRF(BaseModel):
         self._use_crf = use_crf
         self._embeddings = embeddings
         self._num_labels = num_labels
-        self._loss = None
 
     def build(self):
         # build word embedding
-        word_ids = Input(batch_shape=(None, None), dtype='int32')
+        word_ids = Input(batch_shape=(None, None), dtype='int32', name='word_input')
         inputs = [word_ids]
         if self._embeddings is None:
             word_embeddings = Embedding(input_dim=self._word_vocab_size,
                                         output_dim=self._word_embedding_dim,
-                                        mask_zero=True)(word_ids)
+                                        mask_zero=True,
+                                        name='word_embedding')(word_ids)
         else:
             word_embeddings = Embedding(input_dim=self._embeddings.shape[0],
                                         output_dim=self._embeddings.shape[1],
                                         mask_zero=True,
-                                        weights=[self._embeddings])(word_ids)
+                                        weights=[self._embeddings],
+                                        name='word_embedding')(word_ids)
 
         # build character based word embedding
         if self._use_char:
-            char_ids = Input(batch_shape=(None, None, None), dtype='int32')
+            char_ids = Input(batch_shape=(None, None, None), dtype='int32', name='char_input')
             inputs.append(char_ids)
             char_embeddings = Embedding(input_dim=self._char_vocab_size,
                                         output_dim=self._char_embedding_dim,
-                                        mask_zero=True
-                                        )(char_ids)
+                                        mask_zero=True,
+                                        name='char_embedding')(char_ids)
             char_embeddings = TimeDistributed(Bidirectional(LSTM(self._char_lstm_size)))(char_embeddings)
             word_embeddings = Concatenate()([word_embeddings, char_embeddings])
 
@@ -118,13 +111,12 @@ class BiLSTMCRF(BaseModel):
 
         if self._use_crf:
             crf = CRF(self._num_labels, sparse_target=False)
-            self._loss = crf.loss_function
+            loss = crf.loss_function
             pred = crf(z)
         else:
-            self._loss = 'categorical_crossentropy'
+            loss = 'categorical_crossentropy'
             pred = Dense(self._num_labels, activation='softmax')(z)
 
-        self.model = Model(inputs=inputs, outputs=pred)
+        model = Model(inputs=inputs, outputs=pred)
 
-    def get_loss(self):
-        return self._loss
+        return model, loss

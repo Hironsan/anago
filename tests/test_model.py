@@ -2,7 +2,7 @@ import os
 import shutil
 import unittest
 
-from anago.models import BiLSTMCRF
+from anago.models import BiLSTMCRF, load_model, save_model
 
 
 class TestModel(unittest.TestCase):
@@ -56,14 +56,14 @@ class TestModel(unittest.TestCase):
         model = BiLSTMCRF(char_vocab_size=char_vocab_size,
                           word_vocab_size=word_vocab_size,
                           num_labels=num_labels)
-        model.build()
+        model, loss = model.build()
 
         self.assertFalse(os.path.exists(self.weights_file))
         self.assertFalse(os.path.exists(self.params_file))
 
-        model.save(self.weights_file, self.params_file)
+        save_model(model, self.weights_file, self.params_file)
 
         self.assertTrue(os.path.exists(self.weights_file))
         self.assertTrue(os.path.exists(self.params_file))
 
-        model = BiLSTMCRF.load(self.weights_file, self.params_file)
+        model = load_model(self.weights_file, self.params_file)

@@ -2,7 +2,7 @@ import os
 import unittest
 
 from anago.utils import load_data_and_labels
-from anago.models import BiLSTMCRF
+from anago.models import BiLSTMCRF, save_model
 from anago.preprocessing import IndexTransformer
 from anago.trainer import Trainer
 
@@ -42,8 +42,8 @@ class TestTrainer(unittest.TestCase):
         self.model = BiLSTMCRF(char_vocab_size=self.p.char_vocab_size,
                                word_vocab_size=self.p.word_vocab_size,
                                num_labels=self.p.label_size)
-        self.model.build()
-        self.model.compile(loss=self.model.get_loss(), optimizer='adam')
+        self.model, loss = self.model.build()
+        self.model.compile(loss=loss, optimizer='adam')
 
     def test_train(self):
         trainer = Trainer(self.model, preprocessor=self.p)
@@ -59,8 +59,8 @@ class TestTrainer(unittest.TestCase):
                           word_vocab_size=self.p.word_vocab_size,
                           num_labels=self.p.label_size,
                           use_crf=False)
-        model.build()
-        model.compile(loss=model.get_loss(), optimizer='adam')
+        model, loss = model.build()
+        model.compile(loss=loss, optimizer='adam')
         trainer = Trainer(model, preprocessor=self.p)
         trainer.train(self.x_train, self.y_train,
                       x_valid=self.x_valid, y_valid=self.y_valid)
@@ -72,8 +72,8 @@ class TestTrainer(unittest.TestCase):
                           num_labels=p.label_size,
                           use_crf=False,
                           use_char=False)
-        model.build()
-        model.compile(loss=model.get_loss(), optimizer='adam')
+        model, loss = model.build()
+        model.compile(loss=loss, optimizer='adam')
         trainer = Trainer(model, preprocessor=p)
         trainer.train(self.x_train, self.y_train,
                       x_valid=self.x_valid, y_valid=self.y_valid)
@@ -84,5 +84,5 @@ class TestTrainer(unittest.TestCase):
         trainer.train(self.x_train, self.y_train)
 
         # Save the model.
-        self.model.save(self.weights_file, self.params_file)
+        save_model(self.model, self.weights_file, self.params_file)
         self.p.save(self.preprocessor_file)

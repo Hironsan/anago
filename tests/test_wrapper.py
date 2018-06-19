@@ -103,7 +103,7 @@ class TestWrapper(unittest.TestCase):
         preprocessor_file = os.path.join(SAVE_ROOT, 'preprocessor.pickle')
 
         log_dir = os.path.join(os.path.dirname(__file__), 'logs')
-        file_name = '_'.join(['model_weights', '{epoch:02d}', '{f1:2.4f}']) + '.h5'
+        file_name = '_'.join(['weights', '{epoch:02d}', '{f1:2.4f}']) + '.h5'
         callback = ModelCheckpoint(os.path.join(log_dir, file_name),
                                    monitor='f1',
                                    save_weights_only=True)
@@ -113,5 +113,5 @@ class TestWrapper(unittest.TestCase):
                 vocab.add(word)
         model = anago.Sequence(initial_vocab=vocab, embeddings=self.embeddings)
         model.fit(self.x_train, self.y_train, self.x_test, self.y_test,
-                  epochs=30, callbacks=[callback])
+                  epochs=1, callbacks=[callback])
         model.save(weights_file, params_file, preprocessor_file)

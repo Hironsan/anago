@@ -5,7 +5,7 @@ import numpy as np
 import tensorflow as tf
 
 import anago
-from anago.models import BiLSTMCRF
+from anago.models import load_model
 from anago.preprocessing import IndexTransformer
 
 DATA_ROOT = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/ner')
@@ -24,7 +24,7 @@ class TestTagger(unittest.TestCase):
         p = IndexTransformer.load(preprocessor_file)
 
         # Load the model.
-        model = BiLSTMCRF.load(weights_file, params_file)
+        model = load_model(weights_file, params_file)
 
         # Build a tagger
         cls.tagger = anago.Tagger(model, preprocessor=p)

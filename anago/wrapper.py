@@ -3,7 +3,7 @@ Wrapper class.
 """
 from seqeval.metrics import f1_score
 
-from anago.models import BiLSTMCRF
+from anago.models import BiLSTMCRF, save_model, load_model
 from anago.preprocessing import IndexTransformer
 from anago.tagger import Tagger
 from anago.trainer import Trainer
@@ -77,8 +77,8 @@ class Sequence(object):
                           embeddings=embeddings,
                           use_char=self.use_char,
                           use_crf=self.use_crf)
-        model.build()
-        model.compile(loss=model.get_loss(), optimizer=self.optimizer)
+        model, loss = model.build()
+        model.compile(loss=loss, optimizer=self.optimizer)
 
         trainer = Trainer(model, preprocessor=p)
         trainer.train(x_train, y_train, x_valid, y_valid,
@@ -131,12 +131,12 @@ class Sequence(object):
 
     def save(self, weights_file, params_file, preprocessor_file):
         self.p.save(preprocessor_file)
-        self.model.save(weights_file, params_file)
+        save_model(self.model, weights_file, params_file)
 
     @classmethod
     def load(cls, weights_file, params_file, preprocessor_file):
         self = cls()
         self.p = IndexTransformer.load(preprocessor_file)
-        self.model = BiLSTMCRF.load(weights_file, params_file)
+        self.model = load_model(weights_file, params_file)
 
         return self
