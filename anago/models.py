@@ -5,7 +5,7 @@ import json
 
 from keras.layers import Dense, LSTM, Bidirectional, Embedding, Input, Dropout, TimeDistributed
 from keras.layers.merge import Concatenate
-from keras.models import Model
+from keras.models import Model, model_from_json
 
 from anago.layers import CRF
 
@@ -16,33 +16,18 @@ class BaseModel(object):
         self.model = None
 
     def save(self, weights_file, params_file):
-        self.save_weights(weights_file)
-        self.save_params(params_file)
-
-    def save_weights(self, file_path):
-        self.model.save_weights(file_path)
-
-    def save_params(self, file_path):
-        with open(file_path, 'w') as f:
-            params = {name.lstrip('_'): val for name, val in vars(self).items()
-                      if name not in {'_loss', 'model', '_embeddings'}}
-            json.dump(params, f, sort_keys=True, indent=4)
+        with open(params_file, 'w') as f:
+            params = self.model.to_json()
+            json.dump(json.loads(params), f, sort_keys=True, indent=4)
+            self.model.save_weights(weights_file)
 
     @classmethod
     def load(cls, weights_file, params_file):
-        params = cls.load_params(params_file)
-        self = cls(**params)
-        self.build()
-        self.load_weights(weights_file)
+        with open(params_file) as f:
+            model = model_from_json(f.read(), custom_objects={'CRF': CRF})
+            model.load_weights(weights_file)
 
-        return self
-
-    @classmethod
-    def load_params(cls, file_path):
-        with open(file_path) as f:
-            params = json.load(f)
-
-        return params
+        return model
 
     def __getattr__(self, name):
         return getattr(self.model, name)

@@ -67,6 +67,3 @@ class TestModel(unittest.TestCase):
         self.assertTrue(os.path.exists(self.params_file))
 
         model = BiLSTMCRF.load(self.weights_file, self.params_file)
-        self.assertEqual(model._char_vocab_size, char_vocab_size)
-        self.assertEqual(model._word_vocab_size, word_vocab_size)
-        self.assertEqual(model._num_labels, num_labels)
