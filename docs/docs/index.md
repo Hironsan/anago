@@ -1,17 +1,20 @@
-# Welcome to MkDocs
+# Welcome to anaGo
 
-For full documentation visit [mkdocs.org](http://mkdocs.org).
+[anaGo](https://github.com/Hironsan/anago) is an open source (MIT) library for sequence labeling like named-entity recognition, part-of-speech tagging, semantic role labeling and so on.
 
-## Commands
+![English NER](https://github.com/Hironsan/anago/raw/docs/docs/images/example.en2.png)
+![Japanese NER](https://github.com/Hironsan/anago/raw/docs/docs/images/example.ja2.png)
 
-* `mkdocs new [dir-name]` - Create a new project.
-* `mkdocs serve` - Start the live-reloading docs server.
-* `mkdocs build` - Build the documentation site.
-* `mkdocs help` - Print this help message.
+<!--Network Architecture-->
 
-## Project layout
+## Common features include:
 
-    mkdocs.yml    # The configuration file.
-    docs/
-        index.md  # The documentation homepage.
-        ...       # Other markdown pages, images and other files.
+* Model Training
+* Model Evaluation
+* Tagging Text
+* Custom Model Support
+* Downloading pre-trained model
+* GPU Support
+* Character feature
+* CRF Support
+* Custom Callback Support

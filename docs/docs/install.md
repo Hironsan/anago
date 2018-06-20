@@ -6,7 +6,7 @@ anaGo is compatible with 64-bit CPython 3.4+ and runs on Unix/Linux, macOS/OS X 
 pip install -U anago
 ```
 
-## Installation instructions
+<!--## Installation instructions-->
 
 ## pip
 
