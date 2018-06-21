@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from anago.utils import load_data_and_labels, batch_iter, Vocabulary, download
+from anago.utils import load_data_and_labels, Vocabulary, download, NERSequence
 from anago.preprocessing import IndexTransformer
 
 
@@ -19,11 +19,11 @@ class TestUtils(unittest.TestCase):
         batch_size = 32
         p = IndexTransformer()
         p.fit(X, y)
-        steps, generator = batch_iter(X, y, batch_size, shuffle=False, preprocessor=p)
+        gen = NERSequence(X, y, batch_size, shuffle=False, preprocess=p.transform)
 
         y_gen = []
-        for _ in range(steps):
-            x1, y1 = next(generator)
+        for i in range(len(gen)):
+            x1, y1 = gen[i]
             y_gen.extend(y1)
         self.assertEqual(len(y_gen), len(y))
 

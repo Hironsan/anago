@@ -8,10 +8,9 @@ from seqeval.metrics import f1_score, classification_report
 
 class F1score(Callback):
 
-    def __init__(self, steps, generator, preprocessor=None):
+    def __init__(self, seq, preprocessor=None):
         super(F1score, self).__init__()
-        self.steps = steps
-        self.generator = generator
+        self.seq = seq
         self.p = preprocessor
 
     def get_lengths(self, y_true):
@@ -28,8 +27,8 @@ class F1score(Callback):
     def on_epoch_end(self, epoch, logs={}):
         label_true = []
         label_pred = []
-        for i in range(self.steps):
-            x_true, y_true = next(self.generator)
+        for i in range(len(self.seq)):
+            x_true, y_true = self.seq[i]
             lengths = self.get_lengths(y_true)
             y_pred = self.model.predict_on_batch(x_true)
 

@@ -2,12 +2,15 @@
 Utility functions.
 """
 import io
+import math
 import os
+import random
 import zipfile
 from collections import Counter
 
 import numpy as np
 import requests
+from keras.utils import Sequence
 
 
 def download(url, save_dir='.'):
@@ -76,28 +79,34 @@ def load_data_and_labels(filename):
     return sents, labels
 
 
-def batch_iter(data, labels, batch_size=1, shuffle=True, preprocessor=None):
-    num_batches_per_epoch = int((len(data) - 1) / batch_size) + 1
+class NERSequence(Sequence):
 
-    def data_generator():
-        """
-        Generates a batch iterator for a dataset.
-        """
-        data_size = len(data)
-        while True:
-            indices = np.arange(data_size)
-            # Shuffle the data at each epoch
-            if shuffle:
-                indices = np.random.permutation(indices)
+    def __init__(self, x, y, batch_size=1, shuffle=True, preprocess=None):
+        self.x = x
+        self.y = y
+        self.batch_size = batch_size
+        self.shuffle = shuffle
+        self.preprocess = preprocess
 
-            for batch_num in range(num_batches_per_epoch):
-                start_index = batch_num * batch_size
-                end_index = min((batch_num + 1) * batch_size, data_size)
-                X = [data[i] for i in indices[start_index: end_index]]
-                y = [labels[i] for i in indices[start_index: end_index]]
-                yield preprocessor.transform(X, y)
+        self.on_epoch_end()  # for shuffle
 
-    return num_batches_per_epoch, data_generator()
+    def __getitem__(self, idx):
+        batch_x = self.x[idx * self.batch_size: (idx + 1) * self.batch_size]
+        batch_y = self.y[idx * self.batch_size: (idx + 1) * self.batch_size]
+
+        return self.preprocess(batch_x, batch_y)
+
+    def __len__(self):
+        return math.ceil(len(self.x) / self.batch_size)
+
+    def on_epoch_end(self):
+        if self.shuffle:
+            self.shuffle_list()
+
+    def shuffle_list(self):
+        l = list(zip(self.x, self.y))
+        random.shuffle(l)
+        self.x, self.y = zip(*l)
 
 
 class Vocabulary(object):

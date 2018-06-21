@@ -1,7 +1,7 @@
 """Training-related module.
 """
-from anago.utils import batch_iter
 from anago.callbacks import F1score
+from anago.utils import NERSequence
 
 
 class Trainer(object):
@@ -37,24 +37,16 @@ class Trainer(object):
                 before each epoch). `shuffle` will default to True.
         """
 
-        # Prepare training and validation data(steps, generator)
-        train_steps, train_generator = batch_iter(x_train, y_train,
-                                                  batch_size,
-                                                  shuffle=shuffle,
-                                                  preprocessor=self._preprocessor)
+        train_seq = NERSequence(x_train, y_train, batch_size, shuffle,
+                                self._preprocessor.transform)
 
         if x_valid and y_valid:
-            valid_steps, valid_generator = batch_iter(x_valid, y_valid,
-                                                      batch_size,
-                                                      shuffle=False,
-                                                      preprocessor=self._preprocessor)
-            f1 = F1score(valid_steps, valid_generator,
-                         preprocessor=self._preprocessor)
+            valid_seq = NERSequence(x_valid, y_valid, batch_size, shuffle=False,
+                                    preprocess=self._preprocessor.transform)
+            f1 = F1score(valid_seq, preprocessor=self._preprocessor)
             callbacks = [f1] + callbacks if callbacks else [f1]
 
-        # Train the model
-        self._model.fit_generator(generator=train_generator,
-                                  steps_per_epoch=train_steps,
+        self._model.fit_generator(generator=train_seq,
                                   epochs=epochs,
                                   callbacks=callbacks,
                                   verbose=verbose)
