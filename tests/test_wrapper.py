@@ -113,5 +113,5 @@ class TestWrapper(unittest.TestCase):
                 vocab.add(word)
         model = anago.Sequence(initial_vocab=vocab, embeddings=self.embeddings)
         model.fit(self.x_train, self.y_train, self.x_test, self.y_test,
-                  epochs=1, callbacks=[callback])
+                  epochs=100, callbacks=[callback])
         model.save(weights_file, params_file, preprocessor_file)

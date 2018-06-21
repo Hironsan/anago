@@ -37,16 +37,15 @@ class Trainer(object):
                 before each epoch). `shuffle` will default to True.
         """
 
-        train_seq = NERSequence(x_train, y_train, batch_size, shuffle,
-                                self._preprocessor.transform)
+        train_seq = NERSequence(x_train, y_train, batch_size, self._preprocessor.transform)
 
         if x_valid and y_valid:
-            valid_seq = NERSequence(x_valid, y_valid, batch_size, shuffle=False,
-                                    preprocess=self._preprocessor.transform)
+            valid_seq = NERSequence(x_valid, y_valid, batch_size, self._preprocessor.transform)
             f1 = F1score(valid_seq, preprocessor=self._preprocessor)
             callbacks = [f1] + callbacks if callbacks else [f1]
 
         self._model.fit_generator(generator=train_seq,
                                   epochs=epochs,
                                   callbacks=callbacks,
-                                  verbose=verbose)
+                                  verbose=verbose,
+                                  shuffle=shuffle)

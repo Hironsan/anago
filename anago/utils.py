@@ -4,7 +4,6 @@ Utility functions.
 import io
 import math
 import os
-import random
 import zipfile
 from collections import Counter
 
@@ -81,14 +80,11 @@ def load_data_and_labels(filename):
 
 class NERSequence(Sequence):
 
-    def __init__(self, x, y, batch_size=1, shuffle=True, preprocess=None):
+    def __init__(self, x, y, batch_size=1, preprocess=None):
         self.x = x
         self.y = y
         self.batch_size = batch_size
-        self.shuffle = shuffle
         self.preprocess = preprocess
-
-        self.on_epoch_end()  # for shuffle
 
     def __getitem__(self, idx):
         batch_x = self.x[idx * self.batch_size: (idx + 1) * self.batch_size]
@@ -98,15 +94,6 @@ class NERSequence(Sequence):
 
     def __len__(self):
         return math.ceil(len(self.x) / self.batch_size)
-
-    def on_epoch_end(self):
-        if self.shuffle:
-            self.shuffle_list()
-
-    def shuffle_list(self):
-        l = list(zip(self.x, self.y))
-        random.shuffle(l)
-        self.x, self.y = zip(*l)
 
 
 class Vocabulary(object):
