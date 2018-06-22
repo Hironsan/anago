@@ -1,31 +1,27 @@
 """
 Utility functions.
 """
-import io
 import math
 import os
-import zipfile
 from collections import Counter
 
 import numpy as np
-import requests
-from keras.utils import Sequence
+from keras.utils import Sequence, get_file
 
 
-def download(url, save_dir='.'):
+def download(url):
     """Download a trained weights, config and preprocessor.
 
     Args:
         url (str): target url.
-        save_dir (str): store directory.
     """
-    print('Downloading...')
-    r = requests.get(url, stream=True)
-    with zipfile.ZipFile(io.BytesIO(r.content)) as f:
-        if not os.path.exists(save_dir):
-            os.mkdir(save_dir)
-        f.extractall(save_dir)
-    print('Complete!')
+    filepath = get_file(fname='tmp.zip', origin=url, extract=True)
+    base_dir = os.path.dirname(filepath)
+    weights_file = os.path.join(base_dir, 'weights.h5')
+    params_file = os.path.join(base_dir, 'params.json')
+    preprocessor_file = os.path.join(base_dir, 'preprocessor.pickle')
+
+    return weights_file, params_file, preprocessor_file
 
 
 def load_data_and_labels(filename):

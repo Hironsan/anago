@@ -19,7 +19,7 @@ class TestUtils(unittest.TestCase):
         batch_size = 32
         p = IndexTransformer()
         p.fit(X, y)
-        gen = NERSequence(X, y, batch_size, shuffle=False, preprocess=p.transform)
+        gen = NERSequence(X, y, batch_size, preprocess=p.transform)
 
         y_gen = []
         for i in range(len(gen)):
@@ -28,13 +28,9 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(len(y_gen), len(y))
 
     def test_download(self):
-        save_dir = os.path.join(os.path.dirname(__file__), 'models')
         url = 'https://storage.googleapis.com/chakki/datasets/public/ner/model_en.zip'
-        download(url, save_dir)
+        weights_file, params_file, preprocessor_file = download(url)
 
-        weights_file = os.path.join(save_dir, 'weights.h5')
-        params_file = os.path.join(save_dir, 'params.json')
-        preprocessor_file = os.path.join(save_dir, 'preprocessor.pickle')
         self.assertTrue(os.path.exists(weights_file))
         self.assertTrue(os.path.exists(params_file))
         self.assertTrue(os.path.exists(preprocessor_file))
