@@ -18,3 +18,7 @@ def analyzer():
     j = request.get_json()
     res = model.analyze(j.get('text'))
     return jsonify(res)
+
+
+if __name__ == '__main__':
+    app.run()
