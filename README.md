@@ -7,6 +7,7 @@ anaGo can solve sequence labeling tasks such as named entity recognition (NER), 
 As an example of anaGo, the following image shows named entity recognition in English:
 
 [anaGo Demo](https://anago.herokuapp.com/)
+
 ![English NER](./docs/images/anago.gif)
 
 <!--
