@@ -17,21 +17,21 @@ LICENSE = 'MIT'
 here = os.path.abspath(os.path.dirname(__file__))
 
 # long_description = parse_from_file(os.path.join(here, 'README.md'))
-long_description = open(os.path.join(here, 'README.md')).read()
+long_description = open(os.path.join(here, 'README.md'), encoding='utf-8').read()
 
 if sys.argv[-1] == 'publish':
     os.system('python setup.py sdist bdist_wheel upload')
     sys.exit()
 
 required = [
-    'Keras>=2.1.6', 'h5py>=2.7.1', 'scikit-learn>=0.19.1',
+    'Keras>=2.2.0', 'h5py>=2.7.1', 'scikit-learn>=0.19.1',
     'numpy>=1.14.3', 'tensorflow>=1.8.0', 'requests>=2.18.4',
     'seqeval>=0.0.3'
 ]
 
 setup(
     name=NAME,
-    version='1.0.7',
+    version='1.0.8',
     description=DESCRIPTION,
     long_description=long_description,
     author=AUTHOR,

@@ -24,11 +24,12 @@ def download(url):
     return weights_file, params_file, preprocessor_file
 
 
-def load_data_and_labels(filename):
+def load_data_and_labels(filename, encoding='utf-8'):
     """Loads data and label from a file.
 
     Args:
         filename (str): path to the file.
+        encoding (str): file encoding format.
 
         The file format is tab-separated values.
         A blank line is required at the end of a sentence.
@@ -59,7 +60,7 @@ def load_data_and_labels(filename):
     """
     sents, labels = [], []
     words, tags = [], []
-    with open(filename) as f:
+    with open(filename, encoding=encoding) as f:
         for line in f:
             line = line.rstrip()
             if line:
