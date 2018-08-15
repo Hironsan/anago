@@ -49,7 +49,7 @@ Evaluate your performance in one line:
 
 ```python
 >>> model.score(x_test, y_test)
-80.20  # f1-micro score
+0.802  # f1-micro score
 # For more performance, you have to use pre-trained word embeddings.
 # For now, anaGo's best score is 90.90 f1-micro score.
 ```
