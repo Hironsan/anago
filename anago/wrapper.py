@@ -89,6 +89,26 @@ class Sequence(object):
         self.p = p
         self.model = model
 
+    def predict(self, x_test):
+        """Returns the prediction of the model on the given test data.
+
+        Args:
+            x_test : array-like, shape = (n_samples, sent_length)
+            Test samples.
+
+        Returns:
+            y_pred : array-like, shape = (n_smaples, sent_length)
+            Prediction labels for x.
+        """
+        if self.model:
+            lengths = map(len, x_test)
+            x_test = self.p.transform(x_test)
+            y_pred = self.model.predict(x_test)
+            y_pred = self.p.inverse_transform(y_pred, lengths)
+            return y_pred 
+        else:
+            raise OSError('Could not find a model. Call load(dir_path).')
+
     def score(self, x_test, y_test):
         """Returns the f1-micro score on the given test data and labels.
 
