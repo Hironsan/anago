@@ -91,6 +91,8 @@ Or tagging text on new data:
 
 To download a pre-trained model, call `download` function:
 
+**Currently unavailable. Sorry for inconvenience m(_ _)m**
+
 ```python
 >>> from anago.utils import download
 
