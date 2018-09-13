@@ -1,7 +1,7 @@
 import anago
 from anago.utils import download
 from flask import Flask, render_template, jsonify, request
-url = 'https://storage.googleapis.com/chakki/datasets/public/ner/conll2003_en.zip'
+url = 'https://s3-ap-northeast-1.amazonaws.com/dev.tech-sketch.jp/chakki/public/conll2003_en.zip'
 weights, params, preprocessor = download(url)
 model = anago.Sequence.load(weights, params, preprocessor)
 print(model.analyze('Obama'))
