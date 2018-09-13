@@ -96,11 +96,11 @@ To download a pre-trained model, call `download` function:
 ```python
 >>> from anago.utils import download
 
->>> url = 'https://storage.googleapis.com/chakki/datasets/public/ner/conll2003_en.zip'
+>>> url = 'https://s3-ap-northeast-1.amazonaws.com/dev.tech-sketch.jp/chakki/public/conll2003_en.zip'
 >>> weights, params, preprocessor = download(url)
 >>> model = anago.Sequence.load(weights, params, preprocessor)
 >>> model.score(x_test, y_test)
-0.9090262970859986
+0.909446369856927
 ```
 
 ## Feature Support
