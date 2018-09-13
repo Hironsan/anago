@@ -1,14 +1,20 @@
 # anaGo
 
-**anaGo** is a Python library for sequence labeling, implemented in Keras.
+**anaGo** is a Python library for sequence labeling(NER, PoS Tagging,...), implemented in Keras.
 
-anaGo can solve sequence labeling tasks such as named entity recognition (NER), Part-of-Speech tagging (POS tagging), semantic role labeling (SRL) and so on. Unlike traditional sequence labeling solver, we don't need to define any language dependent features. Thus, we can easily use anaGo for any languages.
+anaGo can solve sequence labeling tasks such as named entity recognition (NER), part-of-speech tagging (POS tagging), semantic role labeling (SRL) and so on. Unlike traditional sequence labeling solver, anaGo don't need to define any language dependent features. Thus, we can easily use anaGo for any languages.
 
-As an example of anaGo, the following images show named entity recognition in English and Japanese:
+As an example of anaGo, the following image shows named entity recognition in English:
 
+[anaGo Demo](https://anago.herokuapp.com/)
+
+![English NER](./docs/images/anago.gif)
+
+<!--
 ![English NER](https://github.com/Hironsan/anago/blob/docs/docs/images/example.en2.png?raw=true)
 
 ![Japanese NER](https://github.com/Hironsan/anago/blob/docs/docs/images/example.ja2.png?raw=true)
+-->
 
 ## Get Started
 
@@ -43,9 +49,9 @@ Evaluate your performance in one line:
 
 ```python
 >>> model.score(x_test, y_test)
-80.20  # f1-micro score
+0.802  # f1-micro score
 # For more performance, you have to use pre-trained word embeddings.
-# For now, anaGo's best score is 90.70 f1-micro score.
+# For now, anaGo's best score is 90.90 f1-micro score.
 ```
 
 Or tagging text on new data:
@@ -85,14 +91,16 @@ Or tagging text on new data:
 
 To download a pre-trained model, call `download` function:
 
+**Currently unavailable. Sorry for inconvenience m(_ _)m**
+
 ```python
 >>> from anago.utils import download
 
->>> url = 'https://storage.googleapis.com/chakki/datasets/public/ner/conll2003_en.zip'
+>>> url = 'https://s3-ap-northeast-1.amazonaws.com/dev.tech-sketch.jp/chakki/public/conll2003_en.zip'
 >>> weights, params, preprocessor = download(url)
 >>> model = anago.Sequence.load(weights, params, preprocessor)
 >>> model.score(x_test, y_test)
-0.9090262970859986
+0.909446369856927
 ```
 
 ## Feature Support
@@ -130,8 +138,6 @@ $ python setup.py install
 ## Documentation
 
 (coming soon)
-
-Fantastic documentation is available at [http://example.com/](http://example.com/).
 
 <!--
 ## Data and Word Vectors

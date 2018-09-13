@@ -30,7 +30,8 @@ def main(args):
                       dropout=args.dropout,
                       use_char=args.no_char_feature,
                       use_crf=args.no_use_crf)
-    model.build_model()
+    model, loss = model.build()
+    model.compile(loss=loss, optimizer='adam')
 
     print('Training the model...')
     trainer = Trainer(model, preprocessor=p)

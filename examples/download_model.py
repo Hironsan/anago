@@ -6,7 +6,7 @@ from anago.utils import download, load_data_and_labels
 
 if __name__ == '__main__':
     dir_path = 'test_dir'
-    url = 'https://storage.googleapis.com/chakki/datasets/public/ner/models_en.zip'
+    url = 'https://s3-ap-northeast-1.amazonaws.com/dev.tech-sketch.jp/chakki/public/conll2003_en.zip'
     DATA_ROOT = os.path.join(os.path.dirname(__file__), '../data/conll2003/en/ner')
 
     test_path = os.path.join(DATA_ROOT, 'test.txt')

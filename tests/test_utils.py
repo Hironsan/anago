@@ -28,7 +28,7 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(len(y_gen), len(y))
 
     def test_download(self):
-        url = 'https://storage.googleapis.com/chakki/datasets/public/ner/model_en.zip'
+        url = 'https://s3-ap-northeast-1.amazonaws.com/dev.tech-sketch.jp/chakki/public/conll2003_en.zip'
         weights_file, params_file, preprocessor_file = download(url)
 
         self.assertTrue(os.path.exists(weights_file))
