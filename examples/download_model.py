@@ -12,7 +12,8 @@ if __name__ == '__main__':
     test_path = os.path.join(DATA_ROOT, 'test.txt')
     x_test, y_test = load_data_and_labels(test_path)
 
-    download(url, dir_path)
+    weights, params, preprocessor = download(url)
 
-    model = anago.Sequence.load('weights.h5', 'params.json', 'preprocessor.pickle')
-    model.score(x_test, y_test)
+    model = anago.Sequence.load(weights, params, preprocessor)
+    score = model.score(x_test, y_test)
+    print('F1(micro): {}'.format(score))
