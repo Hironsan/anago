@@ -114,6 +114,7 @@ anaGo supports following features:
 * Character feature
 * CRF Support
 * Custom Callback Support
+* :collision:(new) ELMo
 
 anaGo officially supports Python 3.4–3.6.
 
