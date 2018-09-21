@@ -47,7 +47,7 @@ def main(args):
 
     print('Saving the model...')
     model.save(args.weights_file, args.params_file)
-    p.save(args.preprocessor_file)
+    # p.save(args.preprocessor_file)
 
 
 if __name__ == '__main__':
@@ -59,6 +59,7 @@ if __name__ == '__main__':
     parser.add_argument('--test_data', default=os.path.join(DATA_DIR, 'test.txt'), help='test data')
     parser.add_argument('--weights_file', default='weights.h5', help='weights file')
     parser.add_argument('--params_file', default='params.json', help='parameter file')
+    parser.add_argument('--preprocessor_file', default='preprocessor.json')
     # Training parameters
     parser.add_argument('--optimizer', default='adam', help='optimizer')
     parser.add_argument('--max_epoch', type=int, default=15, help='max epoch')
