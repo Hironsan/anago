@@ -51,7 +51,7 @@ Evaluate your performance in one line:
 >>> model.score(x_test, y_test)
 0.802  # f1-micro score
 # For more performance, you have to use pre-trained word embeddings.
-# For now, anaGo's best score is 90.90 f1-micro score.
+# For now, anaGo's best score is 90.94 f1-micro score.
 ```
 
 Or tagging text on new data:
@@ -139,31 +139,12 @@ $ python setup.py install
 (coming soon)
 
 <!--
-## Data and Word Vectors
-
-Training data takes a tsv format.
-The following text is an example of training data:
-
-```
-EU	B-ORG
-rejects	O
-German	B-MISC
-call	O
-to	O
-boycott	O
-British	B-MISC
-lamb	O
-.	O
-
-Peter	B-PER
-Blackburn	I-PER
-```
-
 anaGo supports pre-trained word embeddings like [GloVe vectors](https://nlp.stanford.edu/projects/glove/).
 -->
 
 ## Reference
 
-This library uses bidirectional LSTM + CRF model based on
-[Neural Architectures for Named Entity Recognition](https://arxiv.org/abs/1603.01360)
-by Lample, Guillaume, et al., NAACL 2016.
+This library is based on the following papers:
+
+* Lample, Guillaume, et al. "[Neural architectures for named entity recognition.](https://arxiv.org/abs/1603.01360)" arXiv preprint arXiv:1603.01360 (2016).
+* Peters, Matthew E., et al. "[Deep contextualized word representations.](https://arxiv.org/abs/1802.05365)" arXiv preprint arXiv:1802.05365 (2018).
