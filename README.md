@@ -101,6 +101,25 @@ To download a pre-trained model, call `download` function:
 0.909446369856927
 ```
 
+If you want to use ELMo for better performance(f1: 92.22), you can use [ELModel](https://github.com/Hironsan/anago/blob/master/anago/models.py#L125) and [ELMoTransformer](https://github.com/Hironsan/anago/blob/master/anago/preprocessing.py#L197):
+
+```python
+# Transforming datasets.
+p = ELMoTransformer()
+p.fit(x_train, y_train)
+
+# Building a model.
+model = ELModel(...)
+model, loss = model.build()
+model.compile(loss=loss, optimizer='adam')
+
+# Training the model.
+trainer = Trainer(model, preprocessor=p)
+trainer.train(x_train, y_train, x_test, y_test)
+```
+
+For futher details, see [anago/examples/elmo_example.py](https://github.com/Hironsan/anago/blob/master/examples/elmo_example.py).
+
 ## Feature Support
 
 anaGo supports following features:
