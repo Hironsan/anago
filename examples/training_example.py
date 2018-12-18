@@ -39,7 +39,7 @@ def main(args):
 
     print('Saving the model...')
     model.save(args.weights_file, args.params_file)
-    p.save(args.preprocessor_file)
+    p.save(args.params_file)
 
 
 if __name__ == '__main__':
