@@ -274,7 +274,7 @@ def load_glove(file):
         dict: a dict of numpy arrays.
     """
     model = {}
-    with open(file) as f:
+    with open(file, encoding="utf8", errors='ignore') as f:
         for line in f:
             line = line.split(' ')
             word = line[0]
