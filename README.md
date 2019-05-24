@@ -1,5 +1,7 @@
 # anaGo
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/d746380077844b50b1cb95db1b631d18)](https://app.codacy.com/app/Hironsan/anago?utm_source=github.com&utm_medium=referral&utm_content=Hironsan/anago&utm_campaign=Badge_Grade_Dashboard)
+
 **anaGo** is a Python library for sequence labeling(NER, PoS Tagging,...), implemented in Keras.
 
 anaGo can solve sequence labeling tasks such as named entity recognition (NER), part-of-speech tagging (POS tagging), semantic role labeling (SRL) and so on. Unlike traditional sequence labeling solver, anaGo don't need to define any language dependent features. Thus, we can easily use anaGo for any languages.
