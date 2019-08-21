@@ -49,6 +49,7 @@ if __name__ == '__main__':
     parser.add_argument('--valid_data', default=os.path.join(DATA_DIR, 'valid.txt'), help='validation data')
     parser.add_argument('--weights_file', default='weights.h5', help='weights file')
     parser.add_argument('--params_file', default='params.json', help='parameter file')
+    parser.add_argument('--preprocessor_file', default='preprocessor.pkl', help='preprocessor file')
     # Training parameters
     parser.add_argument('--loss', default='categorical_crossentropy', help='loss')
     parser.add_argument('--optimizer', default='adam', help='optimizer')
