@@ -9,7 +9,6 @@ from anago.tagger import Tagger
 from anago.trainer import Trainer
 from anago.utils import filter_embeddings
 
-
 class Sequence(object):
 
     def __init__(self,
@@ -123,10 +122,7 @@ class Sequence(object):
             score : float, f1-micro score.
         """
         if self.model:
-            x_test = self.p.transform(x_test)
-            lengths = map(len, y_test)
-            y_pred = self.model.predict(x_test)
-            y_pred = self.p.inverse_transform(y_pred, lengths)
+            y_pred = self.predict(x_test)
             score = f1_score(y_test, y_pred)
             return score
         else:
