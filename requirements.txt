@@ -27,5 +27,5 @@ tensorboard==1.8.0
 tensorflow==1.8.0
 Theano==0.9.0
 urllib3==1.24.1
-Werkzeug==0.12.2
+Werkzeug==0.15.3
 allennlp==0.7.1
