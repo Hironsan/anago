@@ -1,5 +1,5 @@
 backports.weakref==1.0rc1
-bleach==1.5.0
+bleach==3.1.4
 boto==2.48.0
 bz2file==0.98
 certifi==2017.11.5
