@@ -16,7 +16,7 @@ numpy==1.13.3
 protobuf==3.5.1
 python-dateutil==2.6.0
 pytz==2017.2
-PyYAML==4.2b1
+PyYAML==5.4
 requests==2.21.0
 scikit-learn==0.19.1
 scipy==1.0.0
